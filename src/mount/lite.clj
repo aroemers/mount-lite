@@ -44,7 +44,7 @@
 (defn- all-states
   []
   (->> (all-ns)
-       (mapcat ns-publics)
+       (mapcat ns-interns)
        (map second)
        (filter (comp ::start meta))
        (set)))
