@@ -27,8 +27,8 @@ First, require the `mount.lite` namespace:
             [some.db.lib :as db]))
 ```
 
-The simplest of a global state definition is one with a name and a :start expression. In this example we also supply a
-stop expression.
+The simplest of a global state definition is one with a name and a `:start` expression. In this example we also supply a
+`:stop` expression.
 
 ```clj
 (defstate db 
@@ -63,7 +63,7 @@ db
 ;=> object[mount.lite.Unstarted 0x12345678 State #your.app/db is unstarted]
 ```
 
-When in a rare case you don't want the current state is stopped automaticcaly when it is redefined, use the 
+When in a rare case you don't want the current state stopping automatically when it is redefined, use the 
 `:stop-on-reload?` key and set it to false.
 
 ### Substitute states
@@ -106,9 +106,9 @@ or, just a map
 
 ### Only, except and start/stop options
 
-The `start` and `stop` functions can take one or more option maps. The combination of these option maps make up a single
-options map, influencing what global states should be started or stopped, and, as we have seen already, which states
-should be substituted (in case of `start`).
+The `start` and `stop` functions can take one or more option maps (as we have done already actually, with the 
+substitutions above). The combination of these option maps make up a single options map, influencing what global states 
+should be started or stopped, and, as we have seen already, which states should be substituted (in case of `start`).
 
 These option maps support three keys:
 
