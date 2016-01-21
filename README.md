@@ -63,7 +63,7 @@ also shows that one can use metadata, document strings and attribute maps.
 ;=> #your.app/db
 
 db
-;=> object[mount.lite.Unstarted 0x12345678 State #your.app/db is unstarted]
+;=> object[mount.lite.Unstarted 0x12345678 "State #'your.app/db is not started."]
 ```
 
 When in a rare case you don't want the current state stopping automatically when it is redefined, use the 
