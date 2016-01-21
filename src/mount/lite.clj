@@ -160,8 +160,8 @@
       :mount.lite/status :stopped}))
 
 (defmacro defstate
-  "Define a state. At least a :start value should be supplied. Optionally one
-  can define a :stop value and toggle whether the state should be stopped when
+  "Define a state. At least a :start expression should be supplied. Optionally one
+  can define a :stop expression and toggle whether the state should be stopped when
   redefined with the :stop-on-reload? key (defaults to true)."
   {:arglists '([name doc-string? attr-map? & {:as state-map}])}
   [name & args]
