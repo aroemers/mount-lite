@@ -163,10 +163,7 @@
   "Define a state. At least a :start value should be supplied. Optionally one
   can define a :stop value and toggle whether the state should be stopped when
   redefined with the :stop-on-reload? key (defaults to true)."
-  {:arglists '([name & {:as state-map}]
-               [name docstring & {:as state-map}]
-               [name attribute-map & {:as state-map}]
-               [name docstring attribute-map & {:as state-map}])}
+  {:arglists '([name doc-string? attr-map? & {:as state-map}])}
   [name & args]
   (let [[name {:as body}] (name-with-attributes name args)
         current (resolve name)
