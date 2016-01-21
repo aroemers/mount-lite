@@ -124,7 +124,7 @@
   [& optss]
   (let [opts (merge-opts optss)]
     (-> (set (or (:only opts) (all-states)))
-        (disj (set (:except opts)))
+        (set/difference (set (:except opts)))
         (->> (filter #(= (-> % meta ::status) :stopped)))
         (start* (:substitute opts)))))
 
@@ -140,7 +140,7 @@
   [& optss]
   (let [opts (merge-opts optss)]
     (-> (set (or (:only opts) (all-states)))
-        (disj (set (:except opts)))
+        (set/difference (set (:except opts)))
         (->> (filter #(= (-> % meta ::status) :started)))
         (stop*))))
 
