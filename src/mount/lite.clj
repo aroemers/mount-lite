@@ -5,7 +5,7 @@
 
 (deftype Unstarted [ns name]
   Object
-  (toString [_] (str "State #" ns "/" name " is not started.")))
+  (toString [_] (str "State #'" ns "/" name " is not started.")))
 
 (alter-meta! #'->Unstarted assoc :private true)
 
