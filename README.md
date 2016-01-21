@@ -8,9 +8,9 @@ I like the idea of [Mount](https://github.com/tolitius/mount), a lot. But
 * I wanted a more composable and data-driven API (see [this mount issue](https://github.com/tolitius/mount/issues/19) 
   and [this presentation](https://www.youtube.com/watch?v=3oQTSP4FngY)).
  
-Mount Lite is Clojure only, no suspending, flexible and composable API, substitutions are supported (and cleaner 
-in my opinion, but Mount may [get there](https://github.com/tolitius/mount/issues/45) as well) and states stop 
-automatically whenever they are redefined (just like Mount, but with Mount-lite this can be disabled per state, 
+Mount Lite is Clojure only, offers no suspending, has a flexible and composable API, substitutions are supported 
+(and cleaner in my opinion, but Mount may [get there](https://github.com/tolitius/mount/issues/45) as well) and states stop 
+automatically whenever they are redefined (just like Mount, but with Mount Lite this can be disabled per state, 
 something Mount may [have](https://github.com/tolitius/mount/issues/36) in the future as well). That's it.
 
 You like it? Feel free to use it. Don't like it? The original Mount is great as well!
@@ -139,7 +139,7 @@ maps. For example:
 ```
 
 While the functions offer a convenient, readable and composable API, all of it is data driven. Your (test) configuration
-can be stored anywhere, such as your `user.clj` file or in EDN data stored somewhere.
+can be stored anywhere, such as your `user.clj` file or in an EDN data resource.
 
 Whatever your style or situation, enjoy!
 
