@@ -20,7 +20,7 @@ throughout these examples.
 
 ### Global states, starting and stopping
 
-```
+```clj
 (ns your.app
   (:require [mount.lite :refer (defstate) :as mount]
             [your.app.config :as config]
@@ -48,7 +48,7 @@ db
 
 ### Substitute states
 
-```
+```clj
 (mount/start (mount/substitute #db (state :start (do (println "Starting fake DB") (atom {}))
                                           :stop (println "Stopping fake DB"))))
 ;>> Starting fake DB
@@ -70,7 +70,7 @@ db
 
 ### Start and stop options
 
-```
+```clj
 (def fake-config (state :start {:url "localhost"}))
 
 (mount/start (mount/except #your.app/db) 
