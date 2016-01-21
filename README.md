@@ -3,12 +3,15 @@
 I like the idea of [Mount](https://github.com/tolitius/mount), a lot. But
 
 * I don't need ClojureScript (and its CLJC or CLJS modes),
-* I liked the idea of using meta data directly in the state vars better (which is how Mount used to work),
-* I don't need suspending, and
-* I wanted a nicer API.
+* I like using meta data directly in the state vars better (which is how Mount used to work),
+* I don't need suspending, or [other](https://github.com/tolitius/mount/issues/16) features that seem out of scope of what a library like this should do, and
+* I wanted a more composable and data-driven API (see [this mount issue](https://github.com/tolitius/mount/issues/19) 
+  and [this presentation](https://www.youtube.com/watch?v=3oQTSP4FngY)).
  
-This is Mount Lite. Clojure only, no suspending, flexible and composable API, substitutions are possible (and cleaner 
-in my opinion) and states stop automatically whenever they are redefined (just like Mount, can be turned off). That's it.
+Mount Lite is Clojure only, no suspending, flexible and composable API, substitutions are supported (and cleaner 
+in my opinion, but Mount may [get there](https://github.com/tolitius/mount/issues/45) as well) and states stop 
+automatically whenever they are redefined (just like Mount, but with Mount-lite this can be disabled per state, 
+something Mount may [have](https://github.com/tolitius/mount/issues/36) in the future as well). That's it.
 
 You like it? Feel free to use it. Don't like it? The original Mount is great as well!
 
@@ -134,6 +137,9 @@ maps. For example:
 (mount/start (-> (only #db) (only #your.app.config/config)))
 (mount/start (only #db #your.app.config/config))
 ```
+
+While the functions offer a convenient, readable and composable API, all of it is data driven. Your (test) configuration
+can be stored anywhere, such as your `user.clj` file or in EDN data stored somewhere.
 
 Whatever your style or situation, enjoy!
 
