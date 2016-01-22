@@ -85,7 +85,7 @@
 (defn only
   "Creates or updates start/stop option map, only starting or stopping the given
   vars. Multiple uses of this function on the same option map are united."
-  {:arglists '([& filtered-vars] [opts & filtered-vars])}
+  {:arglists '([& vars] [opts & vars])}
   [& [opts-or-var & vars]]
   (let [[opts vars] (if (var? opts-or-var)
                        [{} (conj (set vars) opts-or-var)]
@@ -96,7 +96,7 @@
   "Creates or updates start/stop option map, starting or stopping all defstate
   vars, except the given vars. Multiple uses of this function on the same option map
   are united."
-  {:arglists '([& filtered-vars] [opts & filtered-vars])}
+  {:arglists '([& vars] [opts & vars])}
   [& [opts-or-var & vars]]
   (let [[opts vars] (if (var? opts-or-var)
                        [{} (conj (set vars) opts-or-var)]
