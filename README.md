@@ -20,6 +20,7 @@ You like it? Feel free to use it. Don't like it? The original Mount is great!
 ## Usage
 
 Put this in your dependencies `[functionalbytes/mount-lite "0.9"]` and make sure Clojars is one of your repositories.
+Read on for a description of the library functions, or go straight to the [API docs](http://aroemers.github.io/mount-lite/index.html).
 
 ### Global states, starting and stopping
 
