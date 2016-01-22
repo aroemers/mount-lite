@@ -116,7 +116,7 @@ or, just a map
 (mount/start (substitute #'db fake-db-state-map)
 ```
 
-### Only, except and start/stop options
+### Only, except and other start/stop options
 
 The `start` and `stop` functions can take one or more option maps (as we have done already actually, with the 
 substitutions above). The combination of these option maps make up a single options map, influencing what global states 
@@ -129,7 +129,7 @@ These option maps support four keys, and are applied in the following order:
 * `:except` - A collection of the state vars that should not be started or stopped.
 
 * `:up-to` - A defstate var until which the states are started or stopped. In case multiple option maps are supplied, 
-  only the last :up-to option is used.
+  only the last `:up-to` option is used.
 
 * `:substitute` - A map of state vars to substitute states, only applicable for `start`.
 
