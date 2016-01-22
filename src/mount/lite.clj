@@ -29,7 +29,7 @@
 
 (defn- stop*
   [vars]
-  (let [sorted-vars (reverse (sort-by (comp ::order meta) vars))]
+  (let [sorted-vars (sort-by (comp - ::order meta) vars)]
     (doseq [var' sorted-vars
             :let [state' (meta var')]]
       (when-let [stop-fn (::stop-started state')] (stop-fn))
@@ -51,13 +51,17 @@
   (cond-> {}
           (some :only optss) (assoc :only (set (mapcat :only optss)))
           (some :except optss) (assoc :except (set (mapcat :except optss)))
-          (some :substitute optss) (assoc :substitute (apply conj {} (mapcat :substitute optss)))))
+          (some :substitute optss) (assoc :substitute (apply conj {} (mapcat :substitute optss)))
+          (some :up-to optss) (assoc :up-to (last (map :up-to optss)))))
 
 (defn- filtered-vars
   [status opts]
-  (-> (set (or (:only opts) (all-states)))
-      (set/difference (set (:except opts)))
-      (->> (filter #(= (-> % meta ::status) status)))))
+  (let [up-to-comparator (case status :stopped <= :started >=)
+        up-to-order (some-> (:up-to opts) meta ::order)]
+    (-> (set (or (:only opts) (all-states)))
+        (set/difference (set (:except opts)))
+        (->> (filter #(= (-> % meta ::status) status)))
+        (cond->> up-to-order (filter #(up-to-comparator (-> % meta ::order) up-to-order))))))
 
 (defn- var-state-map
   [vars opts]
@@ -113,6 +117,16 @@
                                 [opts-or-var var-state-seq])]
     (let [substitutes (apply hash-map var-state-seq)]
       (update-in opts [:substitute] merge substitutes))))
+
+(defn up-to
+  "Creates or updates start/stop option map, starting or stopping only those
+  vars up to the given var. Multiple uses of this function on the same option
+  map are overriding each other."
+  {:arglists '([var] [opts var])}
+  ([var]
+   {:up-to var})
+  ([opts var]
+   (assoc opts :up-to var)))
 
 (defn start
   "Start all unstarted states (by default). One or more option maps may
