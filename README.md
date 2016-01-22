@@ -15,7 +15,7 @@ Mount Lite is Clojure only, offers no suspending, has a flexible API, substituti
 automatically whenever they are redefined (just like Mount, but with Mount Lite this can be disabled per state, 
 something Mount may [have](https://github.com/tolitius/mount/issues/36) in the future as well). That's it.
 
-You like it? Feel free to use it. Don't like it? The original Mount is great as well!
+You like it? Feel free to use it. Don't like it? The original Mount is great!
 
 ## Usage
 
@@ -33,7 +33,7 @@ First, require the `mount.lite` namespace:
 ```
 
 The simplest of a global state definition is one with a name and a `:start` expression. In this example we also supply a
-`:stop` expression.
+`:stop` expression. These states should be part of your application, not libraries.
 
 ```clj
 (defstate db 
@@ -42,7 +42,9 @@ The simplest of a global state definition is one with a name and a `:start` expr
 ;=> #your.app/db
 ```
 
-To start all global states, just use `start`. A sequence of started state vars is returned.
+To start all global states, just use `start`. A sequence of started state vars is returned. The order in which the 
+states are started is determined by their load order by the Clojure compiler. Using `stop` stops all the states in
+reverse order.
 
 ```clj
 (mount/start)
