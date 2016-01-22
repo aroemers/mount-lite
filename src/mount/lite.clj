@@ -3,9 +3,9 @@
 
 ;;; Types
 
-(deftype Unstarted [ns name]
+(deftype Unstarted [var]
   Object
-  (toString [_] (str "State #'" ns "/" name " is not started.")))
+  (toString [_] (str "State " var " is not started.")))
 
 (alter-meta! #'->Unstarted assoc :private true)
 
@@ -14,33 +14,29 @@
 
 (defonce ^:private order (atom -1))
 
-(defn- ordered-var-metas
-  [vars]
-  (->> vars
-       (map (juxt identity meta))
-       (sort-by (comp ::order second))))
-
 (defn- start*
-  [vars substitutes]
-  (let [var-metas (ordered-var-metas vars)]
-    (doseq [[var' meta'] var-metas]
-      (let [start-fn (if-let [substitute (get substitutes var')]
-                       (let [original (select-keys meta' [::start ::stop ::stop-on-reload?])]
-                         (alter-meta! var' merge {::substituted-original original} substitute)
-                         (::start substitute))
-                       (::start meta'))]
+  [var-state-map]
+  (let [sorted (sort-by (comp ::order meta key) var-state-map)]
+    (doseq [[var' state'] sorted]
+      (if-let [start-fn (or (::start state') (:start state'))]
         (alter-var-root var' (constantly (start-fn)))
-        (alter-meta! var' assoc ::status :started)))
-    (map first var-metas)))
+        (throw (ex-info (str "Missing :start in state definition or substitution for var " var') state')))
+      (alter-meta! var' assoc
+                   ::status :started
+                   ::stop-started (or (::stop state') (:stop state'))
+                   ::stop-started-on-reload? (::stop-on-reload? state' (:stop-on-reload? state' true))))
+    (map key sorted)))
 
 (defn- stop*
   [vars]
-  (let [var-metas (reverse (ordered-var-metas vars))]
-    (doseq [[var' meta'] var-metas]
-      ((-> meta' ::stop))
-      (alter-var-root var' (constantly (Unstarted. (-> meta' :ns str) (-> meta' :name str))))
-      (alter-meta! var' merge (::substituted-original meta') {::status :stopped}))
-    (map first var-metas)))
+  (let [sorted-vars (reverse (sort-by (comp ::order meta) vars))]
+    (doseq [var' sorted-vars
+            :let [state' (meta var')]]
+      (when-let [stop-fn (::stop-started state')] (stop-fn))
+      (alter-var-root var' (constantly (Unstarted. var')))
+      (alter-meta! var' assoc ::status :stopped)
+      (alter-meta! var' dissoc ::stop-started ::stop-started-on-reload?))
+    sorted-vars))
 
 (defn- all-states
   []
@@ -56,6 +52,16 @@
           (some :only optss) (assoc :only (set (mapcat :only optss)))
           (some :except optss) (assoc :except (set (mapcat :except optss)))
           (some :substitute optss) (assoc :substitute (apply conj {} (mapcat :substitute optss)))))
+
+(defn- filtered-vars
+  [status opts]
+  (-> (set (or (:only opts) (all-states)))
+      (set/difference (set (:except opts)))
+      (->> (filter #(= (-> % meta ::status) status)))))
+
+(defn- var-state-map
+  [vars opts]
+  (into {} (for [var' vars] [var' (get (:substitute opts) var' (meta var'))])))
 
 (defn- name-with-attributes ;; from https://github.com/clojure/tools.macro
   [name macro-args]
@@ -79,7 +85,7 @@
 (defn only
   "Creates or updates start/stop option map, only starting or stopping the given
   vars. Multiple uses of this function on the same option map are united."
-  {:arglists '([& vars] [opts & vars])}
+  {:arglists '([& filtered-vars] [opts & filtered-vars])}
   [& [opts-or-var & vars]]
   (let [[opts vars] (if (var? opts-or-var)
                        [{} (conj (set vars) opts-or-var)]
@@ -90,7 +96,7 @@
   "Creates or updates start/stop option map, starting or stopping all defstate
   vars, except the given vars. Multiple uses of this function on the same option map
   are united."
-  {:arglists '([& vars] [opts & vars])}
+  {:arglists '([& filtered-vars] [opts & filtered-vars])}
   [& [opts-or-var & vars]]
   (let [[opts vars] (if (var? opts-or-var)
                        [{} (conj (set vars) opts-or-var)]
@@ -116,17 +122,14 @@
 
   :except - Collection of state vars that should not be started.
 
-  :substitute - A map of defstate vars to states (see state macro) whose info
-                is used instead of the defstate vars state.
+  :substitute - A map of defstate vars to state-maps (see state macro) whose info
+                is used instead of the defstate vars' state.
 
   These option maps are easily created using the only, except and
   substitute functions."
   [& optss]
   (let [opts (merge-opts optss)]
-    (-> (set (or (:only opts) (all-states)))
-        (set/difference (set (:except opts)))
-        (->> (filter #(= (-> % meta ::status) :stopped)))
-        (start* (:substitute opts)))))
+    (start* (var-state-map (filtered-vars :stopped opts) opts))))
 
 (defn stop
   "Stop all started states (by default). One or more option maps may be
@@ -139,10 +142,7 @@
   These option maps are easily created using the only and except functions."
   [& optss]
   (let [opts (merge-opts optss)]
-    (-> (set (or (:only opts) (all-states)))
-        (set/difference (set (:except opts)))
-        (->> (filter #(= (-> % meta ::status) :started)))
-        (stop*))))
+    (stop* (filtered-vars :started opts))))
 
 (defmacro state
   "Make a state definition, useful for making test or mock states. Use with
@@ -156,8 +156,7 @@
                    :otherwise (apply hash-map args))]
     `{:mount.lite/start (fn [] ~(or (:start body) (throw (ex-info "Missing :start in state definition" body))))
       :mount.lite/stop (fn [] ~(:stop body))
-      :mount.lite/stop-on-reload? ~(:stop-on-reload? body true)
-      :mount.lite/status :stopped}))
+      :mount.lite/stop-on-reload? ~(:stop-on-reload? body true)}))
 
 (defmacro defstate
   "Define a state. At least a :start expression should be supplied. Optionally one
@@ -168,7 +167,10 @@
   (let [[name {:as body}] (name-with-attributes name args)
         current (resolve name)
         order (or (::order (meta current)) (swap! order inc))]
-    (when (::stop-on-reload? (meta current))
+    (when (::stop-started-on-reload? (meta current))
       (stop (only current)))
-    `(doto (def ~name (Unstarted. ~(str *ns*) ~(str name)))
-       (alter-meta! merge (state ~@(apply concat body)) {:mount.lite/order ~order :redef true}))))
+    `(doto (def ~name (Unstarted. (var ~name)))
+       (alter-meta! merge (state ~@(apply concat body))
+                    {:mount.lite/order ~order
+                     :mount.lite/status :stopped
+                     :redef true}))))

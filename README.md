@@ -39,7 +39,7 @@ The simplest of a global state definition is one with a name and a `:start` expr
 (defstate db 
   :start (db/start (get-in config/config [:db :url]))
   :stop (do (println "Stopping DB...") (db/stop db)))
-;=> #your.app/db
+;=> #'your.app/db
 ```
 
 To start all global states, just use `start`. A sequence of started state vars is returned. The order in which the 
@@ -48,7 +48,7 @@ reverse order.
 
 ```clj
 (mount/start)
-;=> (#your.app.config/config #your.app/db)
+;=> (#'your.app.config/config #'your.app/db)
 
 db
 ;=> object[some.db.Object 0x12345678]
@@ -64,7 +64,7 @@ also shows that one can use metadata, document strings and attribute maps.
   :start (db/start (get-in config/config [:db :url]))
   :stop (do (println "Stopping db...") (db/stop db)))
 ;>> Stopping DB...
-;=> #your.app/db
+;=> #'your.app/db
 
 db
 ;=> object[mount.lite.Unstarted 0x12345678 "State #'your.app/db is not started."]
@@ -79,36 +79,41 @@ Whenever you want to mock a global state when testing, you can define anonymous 
 `start` function using the `substitute` function (or with plain data, as described in the next section).
 
 ```clj
-(mount/start (substitute #db (state :start (do (println "Starting fake DB") (atom {}))
-                                    :stop (println "Stopping fake DB"))))
+(mount/start (substitute #'db (state :start (do (println "Starting fake DB") (atom {}))
+                                     :stop (println "Stopping fake DB"))))
 ;>> Starting fake DB
-;=> (#your.app/db)
+;=> (#'your.app/db)
 
 db
 ;=> object[clojure.lang.Atom 0x2010a30b {:status :ready, :val {}}]
 
 (mount/stop)
 ;>> Stopping fake DB
-;=> (#your.app/db #your.app.config/config)
+;=> (#'your.app/db #'your.app.config/config)
 ```
 
 After a substituted state is stopped, it is brought back to its original definition. Thus, starting the state var again,
 without a substitute configured for it, will start the original definition.
 
-Note that substitution states don't need to be inline. For example, the following is also possible:
+Note that substitution states don't need to be inline and the `state` macro is also only for convenience. 
+For example, the following is also possible:
 
 ```clj
 (def fake-db-state (state :start (atom {})))
 
-(mount/start (substitute #db fake-db-state))
+(mount/start (substitute #'db fake-db-state))
 ```
 
 or, just a map
 
 ```clj
-(def fake-db-map '{:start (atom {})})
+(def fake-db-quoted-map '{:start (atom {})})
 
-(mount/start (substitute #db (state fake-db-map)))
+(mount/start (substitute #'db (state fake-db-quoted-map)))
+
+(def fake-db-state-map {:start (constantly (atom {}))})
+
+(mount/start (substitute #'db fake-db-state-map)
 ```
 
 ### Only, except and start/stop options
@@ -130,16 +135,16 @@ be threaded, if that's your style, but you don't need to, as both `start` and `s
 maps. For example:
 
 ```clj
-(mount/start {:only [#db]})
-(mount/start (only #db))
+(mount/start {:only [#'db]})
+(mount/start (only #'db))
 
-(mount/start {:except [#db] :substitute {#your.app.config/config my-fake-config}})
-(mount/start (-> (except #db) (substitute #your.app.config/config my-fake-config)))
+(mount/start {:except [#'db] :substitute {#'your.app.config/config my-fake-config}})
+(mount/start (-> (except #'db) (substitute #'your.app.config/config my-fake-config)))
 
-(mount/start {:only [#db]} {:only [#your.app.config/config]})
-(mount/start (only #db) (only #your.app.config/config))
-(mount/start (-> (only #db) (only #your.app.config/config)))
-(mount/start (only #db #your.app.config/config))
+(mount/start {:only [#'db]} {:only [#'your.app.config/config]})
+(mount/start (only #'db) (only #'your.app.config/config))
+(mount/start (-> (only #'db) (only #'your.app.config/config)))
+(mount/start (only #'db #'your.app.config/config))
 ```
 
 While the functions offer a convenient, readable and composable API, all of it is data driven. Your (test) configuration
