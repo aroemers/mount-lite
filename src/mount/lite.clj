@@ -129,29 +129,37 @@
    (assoc opts :up-to var)))
 
 (defn start
-  "Start all unstarted states (by default). One or more option maps may
-  be supplied. These maps are merged. The maps may contain the following keys:
+  "Start all unstarted states (by default). One or more option maps can
+  be supplied. These maps are merged. The maps can contain the following keys,
+  applied in the following order:
 
   :only - Collection of state vars that should be started, when not stopped.
 
-  :except - Collection of state vars that should not be started.
+  :except - Collection of state vars that should not be started. The except
 
-  :substitute - A map of defstate vars to state-maps (see state macro) whose info
-                is used instead of the defstate vars' state.
+  :up-to - A defstate var until which the states are started. In case multiple
+           option maps are supplied, only the last :up-to option is used.
 
-  These option maps are easily created using the only, except and
+  :substitute - A map of defstate vars to state-maps (see state macro) whose
+                info is used instead of the defstate vars' state.
+
+  These option maps are easily created using the only, except, up-to and
   substitute functions."
   [& optss]
   (let [opts (merge-opts optss)]
     (start* (var-state-map (filtered-vars :stopped opts) opts))))
 
 (defn stop
-  "Stop all started states (by default). One or more option maps may be
-  supplied. These maps are merged. The maps may contain the following keys:
+  "Stop all started states (by default). One or more option maps can be
+  supplied. These maps are merged. The maps can contain the following keys,
+  applied in the following order:
 
   :only - Collection of state vars that should be stopped, when not started.
 
   :except - Collection of state vars that should not be stopped.
+
+  :up-to - A defstate var until which the states are stopped. In case multiple
+           option maps are supplied, only the last :up-to option is used.
 
   These option maps are easily created using the only and except functions."
   [& optss]
@@ -160,8 +168,10 @@
 
 (defmacro state
   "Make a state definition, useful for making test or mock states. Use with
-  substitute function or :substitute key in start info. Note that the
-  following does not define a state var, and won't be recognized by
+  substitute function or :substitute key in start info. This is a convenience
+  macro; a plain state-map can be used in the :substitute start option as well.
+
+  Note that the following does not define a state var, and won't be recognized by
   start or stop: (def foo (state ...))."
   {:arglists '([state-map] [state-map-sym] [& {:as state-map}])}
   [& args]

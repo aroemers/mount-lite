@@ -122,17 +122,20 @@ The `start` and `stop` functions can take one or more option maps (as we have do
 substitutions above). The combination of these option maps make up a single options map, influencing what global states 
 should be started or stopped, and, as we have seen already, which states should be substituted (in case of `start`).
 
-These option maps support three keys:
+These option maps support four keys, and are applied in the following order:
 
 * `:only` - A collection of the state vars that should be started or stopped (if not already having that status).
 
 * `:except` - A collection of the state vars that should not be started or stopped.
 
+* `:up-to` - A defstate var until which the states are started or stopped. In case multiple option maps are supplied, 
+  only the last :up-to option is used.
+
 * `:substitute` - A map of state vars to substitute states, only applicable for `start`.
 
-The functions `only`, `except` and `substitute` create or update such option maps, as a convenience. These functions can
+The functions `only`, `except`, `up-to` and `substitute` create or update such option maps, as a convenience. These functions can
 be threaded, if that's your style, but you don't need to, as both `start` and `stop` take multiples of these option 
-maps. For example:
+maps. For example, these groups of expressions mean the same:
 
 ```clj
 (mount/start {:only [#'db]})
@@ -145,6 +148,23 @@ maps. For example:
 (mount/start (only #'db) (only #'your.app.config/config))
 (mount/start (-> (only #'db) (only #'your.app.config/config)))
 (mount/start (only #'db #'your.app.config/config))
+```
+
+And this shows how `up-to` works:
+ 
+```clj
+(defstate a :start nil)
+(defstate b :start nil)
+(defstate c :start nil)
+
+(start (up-to #'b))
+;=> (#'user/a #'user/b)
+
+(start)
+;=> (#'user/c)
+
+(stop (up-to #'b))
+;=> (#'user/c #'user/b)
 ```
 
 While the functions offer a convenient, readable and composable API, all of it is data driven. Your (test) configuration
