@@ -1,15 +1,17 @@
 # Mount lite
 
-I like the idea of [Mount](https://github.com/tolitius/mount), a lot. But
+I like [Mount](https://github.com/tolitius/mount), a lot. But
 
-* I don't need ClojureScript (and its CLJC or CLJS modes),
-* I like using meta data directly in the state vars better (which is how Mount used to work),
-* I don't need suspending, or [other](https://github.com/tolitius/mount/issues/16) features that seem out of scope of what a library like this should do, and
+* I don't need ClojureScript support (and its CLJC or CLJS modes),
+* I like using meta data directly in the state vars better (which is how Mount used to work before ClojureScript support),
+* I don't need suspending (or [other](https://github.com/tolitius/mount/issues/16) 
+  [features](https://github.com/tolitius/mount/blob/dc5c89b3e9a47601242fbc79846460812f81407d/src/mount/core.cljc#L301)) - 
+  I'd like a library like this to be minimal, and
 * I wanted a more composable and data-driven API (see [this mount issue](https://github.com/tolitius/mount/issues/19) 
   and [this presentation](https://www.youtube.com/watch?v=3oQTSP4FngY)).
  
-Mount Lite is Clojure only, offers no suspending, has a flexible and composable API, substitutions are supported 
-(and cleaner in my opinion, but Mount may [get there](https://github.com/tolitius/mount/issues/45) as well) and states stop 
+Mount Lite is Clojure only, offers no suspending, has a flexible API, substitutions are supported 
+(and somewhat cleaner in my opinion, but Mount may [get there](https://github.com/tolitius/mount/issues/45) as well) and states stop 
 automatically whenever they are redefined (just like Mount, but with Mount Lite this can be disabled per state, 
 something Mount may [have](https://github.com/tolitius/mount/issues/36) in the future as well). That's it.
 
