@@ -17,7 +17,7 @@ something Mount may [have](https://github.com/tolitius/mount/issues/36) in the f
 
 You like it? Feel free to use it. Don't like it? The original Mount is great!
 
-Master branch: [![Circle CI](https://circleci.com/gh/aroemers/mount-lite/tree/master.svg?style=svg)](https://circleci.com/gh/aroemers/mount-lite/tree/master)
+> Master branch: [![Circle CI](https://circleci.com/gh/aroemers/mount-lite/tree/master.svg?style=svg)](https://circleci.com/gh/aroemers/mount-lite/tree/master)
 
 ## Usage
 
