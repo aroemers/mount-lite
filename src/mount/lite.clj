@@ -3,9 +3,7 @@
 
 ;;; Types
 
-(deftype Unstarted [var]
-  Object
-  (toString [_] (str "State " var " is not started.")))
+(deftype Unstarted [var] Object (toString [_] (str "State " var " is not started.")))
 
 (alter-meta! #'->Unstarted assoc :private true)
 
@@ -14,8 +12,7 @@
 
 (defonce ^:private order (atom -1))
 
-(defn- start*
-  [var-state-map]
+(defn- start* [var-state-map]
   (let [sorted (sort-by (comp ::order meta key) var-state-map)]
     (doseq [[var' state'] sorted]
       (if-let [start-fn (or (::start state') (:start state'))]
@@ -27,8 +24,7 @@
                    ::stop-started-on-reload? (::stop-on-reload? state' (:stop-on-reload? state' true))))
     (map key sorted)))
 
-(defn- stop*
-  [vars]
+(defn- stop* [vars]
   (let [sorted-vars (sort-by (comp - ::order meta) vars)]
     (doseq [var' sorted-vars
             :let [state' (meta var')]]
@@ -38,24 +34,18 @@
       (alter-meta! var' dissoc ::stop-started ::stop-started-on-reload?))
     sorted-vars))
 
-(defn- all-states
-  []
-  (->> (all-ns)
-       (mapcat ns-interns)
-       (map second)
-       (filter (comp ::start meta))
-       (set)))
+(def ^:private all-states
+  (let [xf (comp (mapcat ns-interns) (map second) (filter (comp ::start meta)))]
+    (fn [] (into #{} xf (all-ns)))))
 
-(defn- merge-opts
-  [optss]
+(defn- merge-opts [optss]
   (cond-> {}
           (some :only optss) (assoc :only (set (mapcat :only optss)))
           (some :except optss) (assoc :except (set (mapcat :except optss)))
           (some :substitute optss) (assoc :substitute (apply conj {} (mapcat :substitute optss)))
           (some :up-to optss) (assoc :up-to (last (map :up-to optss)))))
 
-(defn- filtered-vars
-  [status opts]
+(defn- filtered-vars [status opts]
   (let [up-to-comparator (case status :stopped <= :started >=)
         up-to-order (some-> (:up-to opts) meta ::order)]
     (-> (set (or (:only opts) (all-states)))
@@ -63,12 +53,10 @@
         (->> (filter #(= (-> % meta ::status) status)))
         (cond->> up-to-order (filter #(up-to-comparator (-> % meta ::order) up-to-order))))))
 
-(defn- var-state-map
-  [vars opts]
+(defn- var-state-map [vars opts]
   (into {} (for [var' vars] [var' (get (:substitute opts) var' (meta var'))])))
 
-(defn- name-with-attributes ;; from https://github.com/clojure/tools.macro
-  [name macro-args]
+(defn- name-with-attributes [name macro-args]  ;; from https://github.com/clojure/tools.macro
   (let [[docstring macro-args] (if (string? (first macro-args))
                                  [(first macro-args) (next macro-args)]
                                  [nil macro-args])
