@@ -2,8 +2,8 @@
 
 I like [Mount](https://github.com/tolitius/mount), a lot. But
 
-* I don't need ClojureScript support (and its CLJC or CLJS modes),
-* I like using meta data directly in the state vars better (which is how Mount used to work before ClojureScript support),
+* I don't need ClojureScript support (and its CLJC mode, as the [rmap library](https://github.com/aroemers/rmap) already provides lazily loading systems/states), 
+* I think it is cleaner when using meta data directly in the state vars (which is how Mount used to work internally),
 * I don't need suspending (or [other](https://github.com/tolitius/mount/issues/16) 
   [features](https://github.com/tolitius/mount/blob/dc5c89b3e9a47601242fbc79846460812f81407d/src/mount/core.cljc#L301)) - 
   I'd like a library like this to be minimal, and
