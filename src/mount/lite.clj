@@ -56,21 +56,12 @@
 (defn- var-state-map [vars opts]
   (into {} (for [var' vars] [var' (get (:substitute opts) var' (meta var'))])))
 
-(defn- name-with-attributes [name macro-args]  ;; from https://github.com/clojure/tools.macro
-  (let [[docstring macro-args] (if (string? (first macro-args))
-                                 [(first macro-args) (next macro-args)]
-                                 [nil macro-args])
-        [attr macro-args]      (if (map? (first macro-args))
-                                 [(first macro-args) (next macro-args)]
-                                 [{} macro-args])
-        attr                   (if docstring
-                                 (assoc attr :doc docstring)
-                                 attr)
-        attr                   (if (meta name)
-                                 (conj (meta name) attr)
-                                 attr)]
-    [(with-meta name attr) macro-args]))
-
+(defn- name-with-attrs [name [arg1 arg2 & argx :as args]]
+  (let [[attrs args] (cond (and (string? arg1) (map? arg2)) [(assoc arg2 :doc arg1) argx]
+                           (string? arg1) [{:doc arg1} (cons arg2 argx)]
+                           (map? arg1) [arg1 (cons arg2 argx)]
+                           :otherwise [{} args])]
+    [(with-meta name (merge (meta name) attrs)) args]))
 
 ;;; Public API
 
@@ -176,7 +167,7 @@
   redefined with the :stop-on-reload? key (defaults to true)."
   {:arglists '([name doc-string? attr-map? & {:as state-map}])}
   [name & args]
-  (let [[name {:as body}] (name-with-attributes name args)
+  (let [[name {:as body}] (name-with-attrs name args)
         current (resolve name)
         order (or (::order (meta current)) (swap! order inc))]
     (when (::stop-started-on-reload? (meta current))
