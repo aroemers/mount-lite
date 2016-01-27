@@ -40,10 +40,10 @@
 
 (defn- merge-opts [optss]
   (cond-> {}
-          (some :only optss) (assoc :only (set (mapcat :only optss)))
-          (some :except optss) (assoc :except (set (mapcat :except optss)))
-          (some :substitute optss) (assoc :substitute (apply conj {} (mapcat :substitute optss)))
-          (some :up-to optss) (assoc :up-to (last (map :up-to optss)))))
+    (some :only optss) (assoc :only (set (mapcat :only optss)))
+    (some :except optss) (assoc :except (set (mapcat :except optss)))
+    (some :substitute optss) (assoc :substitute (apply conj {} (mapcat :substitute optss)))
+    (some :up-to optss) (assoc :up-to (last (map :up-to optss)))))
 
 (defn- filtered-vars [status opts]
   (let [up-to-comparator (case status :stopped <= :started >=)
@@ -71,8 +71,8 @@
   {:arglists '([& vars] [opts & vars])}
   [& [opts-or-var & vars]]
   (let [[opts vars] (if (var? opts-or-var)
-                       [{} (conj (set vars) opts-or-var)]
-                       [opts-or-var (set vars)])]
+                      [{} (conj (set vars) opts-or-var)]
+                      [opts-or-var (set vars)])]
     (update-in opts [:only] set/union vars)))
 
 (defn except
@@ -82,8 +82,8 @@
   {:arglists '([& vars] [opts & vars])}
   [& [opts-or-var & vars]]
   (let [[opts vars] (if (var? opts-or-var)
-                       [{} (conj (set vars) opts-or-var)]
-                       [opts-or-var (set vars)])]
+                      [{} (conj (set vars) opts-or-var)]
+                      [opts-or-var (set vars)])]
     (update-in opts [:except] set/union vars)))
 
 (defn substitute
@@ -92,8 +92,8 @@
   {:arglists '([& var-state-seq] [opts & var-state-seq])}
   [& [opts-or-var & var-state-seq]]
   (let [[opts var-state-seq] (if (var? opts-or-var)
-                                [{} (cons opts-or-var var-state-seq)]
-                                [opts-or-var var-state-seq])]
+                               [{} (cons opts-or-var var-state-seq)]
+                               [opts-or-var var-state-seq])]
     (let [substitutes (apply hash-map var-state-seq)]
       (update-in opts [:substitute] merge substitutes))))
 
