@@ -1,24 +1,20 @@
 # Change Log
-All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
-## [Unreleased][unreleased]
-### Changed
-- Add a new arity to `make-widget-async` to provide a different widget shape.
 
-## [0.1.1] - 2016-01-20
-### Changed
-- Documentation on how to make the widgets.
+## [0.9.1] - 2016-01-30
+### Added
+- `:on-reload` option has been added. Defaults to `:stop`, but can be set to only redefine the `:lifecycle` expressions.
 
 ### Removed
-- `make-widget-sync` - we're all async, all the time.
+- `:stop-on-reload?` option does not exist anymore. It has been replaced with the `:on-reload`.
 
-### Fixed
-- Fixed widget maker to keep working when daylight savings switches over.
+### Changed
+- Moved some code from macros to functions in internals.
+- The lifecycle keywords in the metadata of the state vars are not namespaced anymore.
 
-## 0.1.0 - 2016-01-20
-### Added
-- Files from the new template.
-- Widget maker public API - `make-widget-sync`.
 
-[unreleased]: https://github.com/your-name/mount-lite/compare/0.1.1...HEAD
-[0.1.1]: https://github.com/your-name/mount-lite/compare/0.1.0...0.1.1
+## 0.9
+- Initial release
+
+[unreleased]: https://github.com/your-name/mount-lite/compare/0.9.1...HEAD
+[0.9.1]: https://github.com/your-name/mount-lite/compare/0.9...0.9.1
