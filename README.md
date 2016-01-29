@@ -65,14 +65,15 @@ db
 ```
 
 Whenever you redefine a global state var, by default the current state is stopped automatically. The following example
-also shows that one can use metadata, document strings and attribute maps.
+also shows that one can use metadata, document strings, attribute maps and a `:on-reload` key (explained below).
 
 ```clj
 (defstate ^:private db
   "My database state"
   {:attribute 'map}
   :start (db/start (get-in config/config [:db :url]))
-  :stop (do (println "Stopping db...") (db/stop db)))
+  :stop (do (println "Stopping db...") (db/stop db))
+  :on-reload :lifecycle)
 ;>> Stopping DB...
 ;=> #'your.app/db
 
@@ -80,8 +81,7 @@ db
 ;=> object[mount.lite.Unstarted 0x12345678 "State #'your.app/db is not started."]
 ```
 
-When in a rare case you don't want the current state stopping automatically when it is redefined, use the
-`:stop-on-reload?` key and set it to false.
+When in a rare case you don't want the a state stopping automatically on redefinition, but just redefine its lifecycle expressions, then the `:on-reload` key can be used. By default is is set to `:stop`. Setting it to `:lifecycle` will just redefine the lifecycle functions, and keep the state running as is.
 
 ### Substitute states
 
@@ -109,21 +109,7 @@ Note that substitution states don't need to be inline and the `state` macro is a
 For example, the following is also possible:
 
 ```clj
-(def fake-db-state (state :start (atom {})))
-
-(mount/start (substitute #'db fake-db-state))
-```
-
-or, just a map
-
-```clj
-(def fake-db-quoted-map '{:start (atom {})})
-
-(mount/start (substitute #'db (state fake-db-quoted-map)))
-
-(def fake-db-state-map {:start (constantly (atom {}))})
-
-(mount/start (substitute #'db fake-db-state-map)
+(mount/start (substitute #'db {:start (constantly (atom {}))}))
 ```
 
 ### Only, except and other start/stop options

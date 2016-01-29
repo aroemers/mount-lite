@@ -13,26 +13,41 @@
 (defonce ^:private order (atom 0))
 
 (defn- start* [var-state-map]
-  (let [sorted (sort-by (comp :order meta key) var-state-map)]
+  (let [sorted (sort-by (comp ::order meta key) var-state-map)]
     (doseq [[var' state'] sorted]
       (if-let [start-fn (:start state')]
         (alter-var-root var' (constantly (start-fn)))
         (throw (ex-info (str "Missing :start in state or substitution for var " var') state')))
       (alter-meta! var' assoc
-                   ::status :started
-                   ::stop-started (:stop state')
-                   ::stop-started-on-reload? (:stop-on-reload? state' true)))
+                   ::status            :started
+                   ::current-stop      (:stop state')
+                   ::current-on-reload (:on-reload state' :stop)))
     (map key sorted)))
 
 (defn- stop* [vars]
   (let [sorted-vars (sort-by (comp - ::order meta) vars)]
     (doseq [var' sorted-vars
             :let [state' (meta var')]]
-      (when-let [stop-fn (::stop-started state')] (stop-fn))
+      (when-let [stop-fn (::current-stop state')] (stop-fn))
       (alter-var-root var' (constantly (Unstarted. var')))
       (alter-meta! var' assoc ::status :stopped)
-      (alter-meta! var' dissoc ::stop-started :stop-started-on-reload?))
+      (alter-meta! var' dissoc ::current-stop ::current-on-reload))
     sorted-vars))
+
+(defn ^:no-doc defstate*
+  [sym body]
+  (let [current    (resolve sym)
+        on-reload  (some-> current meta ::current-on-reload)
+        status     (some-> current meta ::status)
+        new-status (if (= on-reload :lifecycle) status :stopped)
+        order      (or (some-> current meta ::order) (swap! order + 10))]
+    (when (not= on-reload :lifecycle)
+      (when (and (= on-reload :stop) (= status :started))
+        (stop* [current]))
+      (let [var (intern *ns* sym)]
+        (alter-var-root var (constantly (Unstarted. var)))))
+    (doto (resolve sym)
+      (alter-meta! merge body (meta sym) {::order order ::status new-status :redef true}))))
 
 (def ^:private all-states
   (let [nss (into #{} (map find-ns)
@@ -46,14 +61,14 @@
 
 (defn- merge-opts [optss]
   (cond-> {}
-    (some :only optss) (assoc :only (set (mapcat :only optss)))
-    (some :except optss) (assoc :except (set (mapcat :except optss)))
+    (some :only optss)       (assoc :only (set (mapcat :only optss)))
+    (some :except optss)     (assoc :except (set (mapcat :except optss)))
     (some :substitute optss) (assoc :substitute (apply conj {} (mapcat :substitute optss)))
-    (some :up-to optss) (assoc :up-to (last (map :up-to optss)))))
+    (some :up-to optss)      (assoc :up-to (last (map :up-to optss)))))
 
 (defn- filtered-vars [status opts]
   (let [up-to-comparator (case status :stopped <= :started >=)
-        up-to-order (some-> (:up-to opts) meta ::order)]
+        up-to-order      (some-> (:up-to opts) meta ::order)]
     (-> (set (or (:only opts) (all-states)))
         (set/difference (set (:except opts)))
         (->> (filter #(= (-> % meta ::status) status)))
@@ -64,9 +79,9 @@
 
 (defn- name-with-attrs [name [arg1 arg2 & argx :as args]]
   (let [[attrs args] (cond (and (string? arg1) (map? arg2)) [(assoc arg2 :doc arg1) argx]
-                           (string? arg1) [{:doc arg1} (cons arg2 argx)]
-                           (map? arg1) [arg1 (cons arg2 argx)]
-                           :otherwise [{} args])]
+                           (string? arg1)                   [{:doc arg1} (cons arg2 argx)]
+                           (map? arg1)                      [arg1 (cons arg2 argx)]
+                           :otherwise                       [{} args])]
     [(with-meta name (merge (meta name) attrs)) args]))
 
 ;;; Public API
@@ -158,14 +173,12 @@
 
   Note that the following does not define a state var, and won't be recognized by
   start or stop: (def foo (state ...))."
-  {:arglists '([state-map] [state-map-sym] [& {:as state-map}])}
-  [& args]
-  (let [body (cond (map? (first args)) (first args)
-                   (symbol? (first args)) (eval (first args))
-                   :otherwise (apply hash-map args))]
-    `{:start (fn [] ~(or (:start body) (throw (ex-info "Missing :start in state definition" body))))
-      :stop (fn [] ~(:stop body))
-      :stop-on-reload? ~(:stop-on-reload? body true)}))
+  [& {:as body}]
+  (assert (:start body) "state must contain a :start expression")
+  (assert (#{:stop :lifecycle} (:on-reload body :stop)) ":on-reload must be :stop or :lifecycle")
+  `{:start     (fn [] ~(:start body))
+    :stop      (fn [] ~(:stop body))
+    :on-reload ~(:on-reload body :stop)})
 
 (defmacro defstate
   "Define a state. At least a :start expression should be supplied. Optionally one
@@ -173,14 +186,5 @@
   redefined with the :stop-on-reload? key (defaults to true)."
   {:arglists '([name doc-string? attr-map? & {:as state-map}])}
   [name & args]
-  (let [[name {:as body}] (name-with-attrs name args)
-        current (resolve name)
-        ;; + 10 below allows new states to be put between others, with some alter-meta! REPL work
-        order (or (::order (meta current)) (swap! order + 10))]
-    (when (::stop-started-on-reload? (meta current))
-      (stop (only current)))
-    `(doto (def ~name (Unstarted. (var ~name)))
-       (alter-meta! merge (state ~@(apply concat body))
-                    {:mount.lite/order ~order
-                     :mount.lite/status :stopped
-                     :redef true}))))
+  (let [[name {:as body}] (name-with-attrs name args)]
+    `(defstate* '~name (state ~@(apply concat body)))))

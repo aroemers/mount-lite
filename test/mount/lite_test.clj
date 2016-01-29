@@ -67,3 +67,17 @@
   (stop)
   (start)
   (is (= state-3 "state-1 + state-2 + state-3") "State 2 is back to its original."))
+
+(deftest test-reload
+  (start)
+  (is (= state-1 "state-1") "State 1 started correctly")
+  (in-ns 'mount.lite-test.test-state-1)
+  (defstate state-1 :start "redef-1" :on-reload :lifecycle)
+  (is (statusses #'state-1 [:stopped]) "State 1 has stopped")
+  (start)
+  (is (= state-1 "redef-1") "State 1 has been redefined.")
+  (defstate state-1 :start "state-1" :on-reload :stop)
+  (is (= state-1 "redef-1") "State 1 is still running.")
+  (stop)
+  (start)
+  (is (= state-1 "state-1") "State 1 lifecycle was redefined."))
