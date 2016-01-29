@@ -9,6 +9,7 @@
 - `:stop-on-reload?` option does not exist anymore. It has been replaced with the `:on-reload`.
 
 ### Changed
+- The order sequence number now increments in steps of 10. This allows new defstates in a REPL session to be placed in between other states (using `alter-meta!`).
 - Moved some code from macros to functions in internals.
 - The lifecycle keywords in the metadata of the state vars are not namespaced anymore.
 
