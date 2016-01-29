@@ -1,12 +1,15 @@
 # Change Log
 
+## [Unreleased][unreleased]
+### Fixed
+- Fix docstring of `defstate` mentioning removed `:stop-on-reload?` key.
 
 ## [0.9.1] - 2016-01-30
 ### Added
-- `:on-reload` option has been added. Defaults to `:stop`, but can be set to only redefine the `:lifecycle` expressions.
+- Add `:on-reload` option. Defaults to `:stop`, but can be set to only redefine the `:lifecycle` expressions.
 
 ### Removed
-- `:stop-on-reload?` option does not exist anymore. It has been replaced with the `:on-reload`.
+- Removed `:stop-on-reload?` option. It has been replaced with the `:on-reload` option.
 
 ### Changed
 - The order sequence number now increments in steps of 10. This allows new defstates in a REPL session to be placed in between other states (using `alter-meta!`).
