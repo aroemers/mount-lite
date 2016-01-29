@@ -47,7 +47,7 @@
       (let [var (intern *ns* sym)]
         (alter-var-root var (constantly (Unstarted. var)))))
     (doto (or current (resolve sym))
-      (alter-meta! merge body (meta sym) {::order order ::status new-status :redef true}))))
+      (alter-meta! merge body {::order order ::status new-status :redef true}))))
 
 (def ^:private all-states
   (let [nss (into #{} (map find-ns)
