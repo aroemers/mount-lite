@@ -169,7 +169,8 @@
   [name & args]
   (let [[name {:as body}] (name-with-attrs name args)
         current (resolve name)
-        order (or (::order (meta current)) (swap! order inc))]
+        ;; + 10 below allows new states to be put between others, with some alter-meta! REPL work
+        order (or (::order (meta current)) (swap! order + 10))]
     (when (::stop-started-on-reload? (meta current))
       (stop (only current)))
     `(doto (def ~name (Unstarted. (var ~name)))
