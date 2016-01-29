@@ -182,8 +182,9 @@
 
 (defmacro defstate
   "Define a state. At least a :start expression should be supplied. Optionally one
-  can define a :stop expression and toggle whether the state should be stopped when
-  redefined with the :stop-on-reload? key (defaults to true)."
+  can define a :stop expression, and toggle whether the state should :stop when
+  redefined or just update the :lifecycle expressions with the :on-reload key 
+  (defaults to :stop)."
   {:arglists '([name doc-string? attr-map? & {:as state-map}])}
   [name & args]
   (let [[name {:as body}] (name-with-attrs name args)]
