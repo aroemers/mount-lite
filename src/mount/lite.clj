@@ -10,18 +10,18 @@
 
 ;;; Private logic
 
-(defonce ^:private order (atom -1))
+(defonce ^:private order (atom 0))
 
 (defn- start* [var-state-map]
-  (let [sorted (sort-by (comp ::order meta key) var-state-map)]
+  (let [sorted (sort-by (comp :order meta key) var-state-map)]
     (doseq [[var' state'] sorted]
-      (if-let [start-fn (or (::start state') (:start state'))]
+      (if-let [start-fn (:start state')]
         (alter-var-root var' (constantly (start-fn)))
-        (throw (ex-info (str "Missing :start in state definition or substitution for var " var') state')))
+        (throw (ex-info (str "Missing :start in state or substitution for var " var') state')))
       (alter-meta! var' assoc
                    ::status :started
-                   ::stop-started (or (::stop state') (:stop state'))
-                   ::stop-started-on-reload? (::stop-on-reload? state' (:stop-on-reload? state' true))))
+                   ::stop-started (:stop state')
+                   ::stop-started-on-reload? (:stop-on-reload? state' true)))
     (map key sorted)))
 
 (defn- stop* [vars]
@@ -31,11 +31,17 @@
       (when-let [stop-fn (::stop-started state')] (stop-fn))
       (alter-var-root var' (constantly (Unstarted. var')))
       (alter-meta! var' assoc ::status :stopped)
-      (alter-meta! var' dissoc ::stop-started ::stop-started-on-reload?))
+      (alter-meta! var' dissoc ::stop-started :stop-started-on-reload?))
     sorted-vars))
 
 (def ^:private all-states
-  (let [xf (comp (mapcat ns-interns) (map second) (filter (comp ::start meta)))]
+  (let [nss (into #{} (map find-ns)
+                  '[clojure.core clojure.data clojure.edn clojure.inspector clojure.instant
+                    clojure.java.browse clojure.java.io clojure.java.javadoc clojure.java.shell
+                    clojure.main clojure.pprint clojure.reflect clojure.repl clojure.set
+                    clojure.stacktrace clojure.string clojure.template clojure.test clojure.walk
+                    clojure.xml clojure.zip])
+        xf (comp (remove nss) (mapcat ns-interns) (map second) (filter (comp ::order meta)))]
     (fn [] (into #{} xf (all-ns)))))
 
 (defn- merge-opts [optss]
@@ -157,9 +163,9 @@
   (let [body (cond (map? (first args)) (first args)
                    (symbol? (first args)) (eval (first args))
                    :otherwise (apply hash-map args))]
-    `{:mount.lite/start (fn [] ~(or (:start body) (throw (ex-info "Missing :start in state definition" body))))
-      :mount.lite/stop (fn [] ~(:stop body))
-      :mount.lite/stop-on-reload? ~(:stop-on-reload? body true)}))
+    `{:start (fn [] ~(or (:start body) (throw (ex-info "Missing :start in state definition" body))))
+      :stop (fn [] ~(:stop body))
+      :stop-on-reload? ~(:stop-on-reload? body true)}))
 
 (defmacro defstate
   "Define a state. At least a :start expression should be supplied. Optionally one
