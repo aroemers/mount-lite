@@ -43,12 +43,12 @@
     (if (= on-reload :lifecycle)
       (let [kept (select-keys (meta current) [::order ::status ::current-stop ::current-on-reload])]
         (doto current (reset-meta! (merge kept body (meta sym) {:redef true}))))
-      (do (when (= on-reload :stop)
-            (stop* [current]))
-          (let [var (intern *ns* sym)]
-            (doto var
-              (alter-var-root (constantly (Unstarted. var)))
-              (alter-meta! merge {::order order ::status :stopped :redef true})))))))
+      (let [var (intern *ns* sym)]
+        (when (= on-reload :stop)
+          (stop* [current]))
+        (doto var
+          (alter-var-root (constantly (Unstarted. var)))
+          (alter-meta! merge body {::order order ::status :stopped :redef true}))))))
 
 (def ^:private all-states
   (let [nss (into #{} (map find-ns)
