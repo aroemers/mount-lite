@@ -13,6 +13,20 @@
 (defonce ^:private order (atom 0))
 (defonce ^:private on-reload* (atom :cascade))
 
+(defmulti ^:no-doc do-on-reload
+  (fn [var] @on-reload*))
+
+(defn- defstate* [sym]
+  (let [current (resolve sym)
+        status  (if current (do-on-reload current) :stopped)
+        meta'   (if current
+                (select-keys (meta current) [::order ::current-stop])
+                {::order (swap! order + 10)})
+        var     (or current (intern *ns* sym))]
+    (doto var
+      (reset-meta! (merge meta' (meta sym) {::status status :redef true}))
+      (alter-var-root (constantly (if current (deref current) (Unstarted. var)))))))
+
 (defn- start* [var-state-map]
   (let [sorted (sort-by (comp ::order meta key) var-state-map)]
     (doseq [[var' state'] sorted]
@@ -153,13 +167,6 @@
 
 ;;; Reloading.
 
-;;---TODO Do I want this multimethod in the public API and/or in this namespce?
-(defmulti do-on-reload
-  "The given var will be redefined. Perform any logic on the var here,
-  and return its new status (:started or :stopped). Note that the
-  metadata of the var will be reset afterwards by the redefinition."
-  (fn [var] @on-reload*))
-
 (defmethod do-on-reload :stop [var]
   (stop (only var))
   :stopped)
@@ -172,25 +179,12 @@
   (-> var meta ::status))
 
 (defn on-reload
-  "Get or set the on-reload configuration. Default it is set
-  to :cascade."
+  "Get or set the on-reload configuration. Default is :cascade."
   ([] @on-reload*)
   ([val] (reset! on-reload* val)))
 
 
 ;;; Defining states.
-
-(defn ^:no-doc defstate*
-  [sym body]
-  (let [current (resolve sym)
-        status (if current (do-on-reload current) :stopped)
-        meta' (if current
-                (select-keys (meta current) [::order ::current-stop])
-                {::order (swap! order + 10)})
-        var (or current (intern *ns* sym))]
-    (doto var
-      (reset-meta! (merge meta' (meta sym) body {::status status :redef true}))
-      (alter-var-root (constantly (if current (deref current) (Unstarted. var)))))))
 
 (defmacro state
   "Make a state definition, useful for making test or mock states. Use with
@@ -209,5 +203,6 @@
   Optionally one can define a :stop expression."
   {:arglists '([name doc-string? attr-map? & {:as state-map}])}
   [name & args]
-  (let [[name {:as body}] (name-with-attrs name args)]
-    `(defstate* '~name (state ~@(apply concat body)))))
+  (let [[name {:as body}] (name-with-attrs name args)
+        var'              (defstate* name)]
+    `(doto ~var' (alter-meta! merge (state ~@(apply concat body))))))
