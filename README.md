@@ -17,6 +17,13 @@ You like it? Feel free to use it. Don't like it? The original Mount is great!
 
 > Master branch: [![Circle CI](https://circleci.com/gh/aroemers/mount-lite/tree/master.svg?style=svg)](https://circleci.com/gh/aroemers/mount-lite/tree/master)
 
+* [Usage](#usage)
+  * [Global states, starting and stopping](#global-states-starting-and-stopping)
+  * [Reloading](#reloading)
+  * [Substitute states](#substitute-states)
+  * [Only, except and other start/stop options](#only-except-and-other-startstop-options)
+* [License](#license)
+
 ## Usage
 
 Put this in your dependencies `[functionalbytes/mount-lite "0.9.1"]` and make sure Clojars is one of your repositories.
