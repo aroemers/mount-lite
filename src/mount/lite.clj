@@ -11,6 +11,7 @@
 ;;; Private logic
 
 (defonce ^:private order (atom 0))
+(defonce ^:private on-reload* (atom :cascade))
 
 (defn- start* [var-state-map]
   (let [sorted (sort-by (comp ::order meta key) var-state-map)]
@@ -18,10 +19,7 @@
       (if-let [start-fn (:start state')]
         (alter-var-root var' (constantly (start-fn)))
         (throw (ex-info (str "Missing :start in state or substitution for var " var') state')))
-      (alter-meta! var' assoc
-                   ::status            :started
-                   ::current-stop      (:stop state')
-                   ::current-on-reload (:on-reload state' :stop)))
+      (alter-meta! var' assoc ::status :started ::current-stop (:stop state')))
     (map key sorted)))
 
 (defn- stop* [vars]
@@ -31,7 +29,7 @@
       (when-let [stop-fn (::current-stop state')] (stop-fn))
       (alter-var-root var' (constantly (Unstarted. var')))
       (alter-meta! var' assoc ::status :stopped)
-      (alter-meta! var' dissoc ::current-stop ::current-on-reload))
+      (alter-meta! var' dissoc ::current-stop))
     sorted-vars))
 
 (def ^:private all-states
@@ -68,6 +66,7 @@
                            (map? arg1)                      [arg1 (cons arg2 argx)]
                            :otherwise                       [{} args])]
     [(with-meta name (merge (meta name) attrs)) args]))
+
 
 ;;; Public API
 
@@ -151,34 +150,47 @@
   (let [opts (merge-opts optss)]
     (stop* (filtered-vars :started opts))))
 
+
+;;; Reloading.
+
+;;---TODO Do I want this multimethod in the public API and/or in this namespce?
+(defmulti do-on-reload
+  "The given var will be redefined. Perform any logic on the var here,
+  and return its new status (:started or :stopped). Note that the
+  metadata of the var will be reset afterwards by the redefinition."
+  (fn [var] @on-reload*))
+
+(defmethod do-on-reload :stop [var]
+  (stop (only var))
+  :stopped)
+
+(defmethod do-on-reload :cascade [var]
+  (stop (up-to var))
+  :stopped)
+
+(defmethod do-on-reload :lifecycle [var]
+  (-> var meta ::status))
+
+(defn on-reload
+  "Get or set the on-reload configuration. Default it is set
+  to :cascade."
+  ([] @on-reload*)
+  ([val] (reset! on-reload* val)))
+
+
+;;; Defining states.
+
 (defn ^:no-doc defstate*
   [sym body]
-  (let [current   (resolve sym)
-        on-reload (some-> current meta ::current-on-reload)
-        status    (some-> current meta ::status)
-        order     (or (some-> current meta ::order) (swap! order + 10))]
-    (if (= on-reload :lifecycle)
-      (let [kept (select-keys (meta current) [::order ::status ::current-stop ::current-on-reload])]
-        (doto current (reset-meta! (merge kept body (meta sym) {:redef true}))))
-      (do (case on-reload
-            :stop    (stop (only current))
-            :cascade (stop (up-to current))
-            nil)
-          (let [var (intern *ns* sym)]
-            (doto var
-              (alter-var-root (constantly (Unstarted. var)))
-              (alter-meta! merge body {::order order ::status :stopped :redef true})))))))
-
-(defonce ^{:dynamic true :doc "The default :on-reload configuration for defstate/state."
-           :valid #{:stop :lifecycle :cascade}}
-  *on-reload-default* :stop)
-
-;;--- TODO Is this function (and the dyn var) really necessary? Maybe decide on a good default?
-(defn set-on-reload-default
-  "Set the root of the *on-reload-default* dynamic var."
-  [default]
-  (assert ((-> *on-reload-default* var meta :valid) default) "invalid value for :on-reload")
-  (alter-var-root #'*on-reload-default* (constantly default)))
+  (let [current (resolve sym)
+        status (if current (do-on-reload current) :stopped)
+        meta' (if current
+                (select-keys (meta current) [::order ::current-stop])
+                {::order (swap! order + 10)})
+        var (or current (intern *ns* sym))]
+    (doto var
+      (reset-meta! (merge meta' (meta sym) body {::status status :redef true}))
+      (alter-var-root (constantly (if current (deref current) (Unstarted. var)))))))
 
 (defmacro state
   "Make a state definition, useful for making test or mock states. Use with
@@ -187,18 +199,14 @@
 
   Note that the following does not define a state var, and won't be recognized by
   start or stop: (def foo (state ...))."
-  [& {:keys [start stop on-reload] :or {on-reload *on-reload-default*}}]
+  [& {:keys [start stop]}]
   (assert start "state must contain a :start expression")
-  (assert ((-> *on-reload-default* var meta :valid) on-reload) "invalid value for :on-reload")
-  `{:start     (fn [] ~start)
-    :stop      (fn [] ~stop)
-    :on-reload ~on-reload})
+  `{:start (fn [] ~start)
+    :stop  (fn [] ~stop)})
 
 (defmacro defstate
-  "Define a state. At least a :start expression should be supplied. Optionally one
-  can define a :stop expression, and toggle whether the state should :stop when
-  redefined or just update the :lifecycle expressions with the :on-reload key
-  (defaults to :stop)."
+  "Define a state. At least a :start expression should be supplied.
+  Optionally one can define a :stop expression."
   {:arglists '([name doc-string? attr-map? & {:as state-map}])}
   [name & args]
   (let [[name {:as body}] (name-with-attrs name args)]

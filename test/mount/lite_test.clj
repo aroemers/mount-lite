@@ -10,9 +10,9 @@
 (defn- statusses [& vars]
   (map (comp :mount.lite/status meta) vars))
 
-;;; Stop all states before and after every test.
+;;; Stop all states before and after every test, and reset on-reload.
 
-(use-fixtures :each (fn [f] (stop) (f) (stop)))
+(use-fixtures :each (fn [f] (stop) (on-reload :cascade) (f) (stop)))
 
 ;;; Tests
 
@@ -68,26 +68,29 @@
   (start)
   (is (= state-3 "state-1 + state-2 + state-3") "State 2 is back to its original."))
 
-(deftest test-reload
-  (start)
-  (is (= state-1 "state-1") "State 1 started correctly")
-  (in-ns 'mount.lite-test.test-state-1)
-  (defstate state-1 :start "redef-1" :on-reload :lifecycle)
-  (in-ns 'mount.lite-test)
-  (is (= (statusses #'state-1) [:stopped]) "State 1 has stopped")
-  (start)
-  (is (= state-1 "redef-1") "State 1 has been redefined.")
-  (require 'mount.lite-test.test-state-1 :reload)
-  (is (= state-1 "redef-1") "State 1 is still running.")
-  (stop)
-  (start)
-  (is (= state-1 "state-1") "State 1 lifecycle was redefined."))
-
-(deftest test-cascade
-  (in-ns 'mount.lite-test.test-state-2)
-  (defstate state-2 :start "redef-2" :on-reload :cascade)
-  (in-ns 'mount.lite-test)
+(deftest test-on-reload-cascade
   (start)
   (is (= (statusses #'state-1 #'state-2 #'state-3) [:started :started :started]) "All states started")
   (require 'mount.lite-test.test-state-2 :reload)
   (is (= (statusses #'state-1 #'state-2 #'state-3) [:started :stopped :stopped]) "Both state 2 and 3 have stopped"))
+
+(deftest test-on-reload-stop
+  (start)
+  (is (= (statusses #'state-1 #'state-2 #'state-3) [:started :started :started]) "All states started")
+  (on-reload :stop)
+  (require 'mount.lite-test.test-state-2 :reload)
+  (is (= (statusses #'state-1 #'state-2 #'state-3) [:started :stopped :started]) "Only state 2 has stopped"))
+
+(deftest test-on-reload-lifecycle
+  (start)
+  (is (= (statusses #'state-1 #'state-2 #'state-3) [:started :started :started]) "All states started")
+  (on-reload :lifecycle)
+  (in-ns 'mount.lite-test.test-state-2)
+  (defstate state-2 :start "redef-2")
+  (in-ns 'mount.lite-test)
+  (is (= (statusses #'state-1 #'state-2 #'state-3) [:started :started :started]) "All states are still running")
+  (is (= state-2 "state-1 + state-2") "State 2 still has original value")
+  (stop)
+  (start)
+  (is (= state-2 "redef-2") "State 2 lifecycle was redefined")
+  (require 'mount.lite-test.test-state-2 :reload))

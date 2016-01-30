@@ -10,10 +10,8 @@ I like [Mount](https://github.com/tolitius/mount), a lot. But
 * I wanted a more composable and data-driven API (see [this mount issue](https://github.com/tolitius/mount/issues/19)
   and [this presentation](https://www.youtube.com/watch?v=3oQTSP4FngY)).
 
-Mount Lite is Clojure only, offers no suspending, has a flexible API, substitutions are supported
-(and somewhat cleaner in my opinion, but Mount may [get there](https://github.com/tolitius/mount/issues/45) as well) and states stop
-automatically whenever they are redefined (just like Mount, but with Mount Lite this can be disabled per state,
-something Mount may [have](https://github.com/tolitius/mount/issues/36) in the future as well). That's it.
+Mount Lite is Clojure only, has a flexible data-driven API, substitutions are supported
+(and somewhat cleaner in my opinion, but Mount may [get there](https://github.com/tolitius/mount/issues/45) as well) and states stop automatically (cascadingly by default!) whenever they are redefined. That's it.
 
 You like it? Feel free to use it. Don't like it? The original Mount is great!
 
@@ -64,34 +62,44 @@ db
 ;=> object[some.db.Object 0x12345678]
 ```
 
-### Reloading
-
-Whenever you redefine a global state var, by default the current state is to stop automatically. The following example
-also shows that one can use metadata, document strings, attribute maps and an `:on-reload` key (explained below).
+Also note that documents strings and attribute maps are supported. So a full `defstate` might look something like this:
 
 ```clj
 (defstate ^:private db
   "My database state"
   {:attribute 'map}
   :start (db/start (get-in config/config [:db :url]))
-  :stop (do (println "Stopping db...") (db/stop db))
-  :on-reload :lifecycle)
-;>> Stopping DB...
-;=> #'your.app/db
+  :stop (do (println "Stopping db...") (db/stop db)))
+```
+### Reloading
 
-db
-;=> object[mount.lite.Unstarted 0x12345678 "State #'your.app/db is not started."]
+Whenever you redefine a global state var - when reloading the namespace for instance - by default all the states up to and including the to-be-redefined state will be stopped automatically. We call this a cascading stop. For example:
+
+```clj
+(defstate a :start 1 :stop (println "Stopping a"))
+(defstate b :start 2 :stop (println "Stopping b"))
+(defstate c :start 3 :stop (println "Stopping c"))
+
+(start)
+;=> (#'user/a #'user/b #'user/c)
+
+(defstate b :start 22 :stop (println "Stopping bb"))
+;;> Stopping c
+;;> Stopping b
+
+(start)
+;=> (#'user/b #'user/c)
 ```
 
-There may be cases where you don't want a redefined state stopping automatically. To alter this behaviour, an `:on-reload` option can be given to a state. The following values are supported:
+There may be cases where you don't want this cascading stop behaviour. To alter this behaviour, one can set a different mode via the `on-reload` function. Given no arguments, it returns the current mode. Given an argument, you can set the reload behaviour to one the following modes:
 
-* `:stop` - This is the default, as described above.
-* `:lifecycle` -  This will only redefine the lifecycle functions, and keep the state running as is (including its original `:stop` expression and `:on-reload` configuration).
-* `:cascade` - This will stop all the states _up to_ the state being redefined. In other words, all states that might depend on the state in question, are stopped as well
+* `:cascade` - This is the default, as described above.
+* `:stop` - This will stop only the state that is being redefined.
+* `:lifecycle` -  This will only redefine the lifecycle functions, and keep the state running as is (including the original `:stop` expression). I.e, it is only after a (re)start that the redefinition will be used.
 
-> _Up to_ is actually an option for the `start` and `stop` functions, as described [here](#only-except-and-other-startstop-options).
+> Note 1: _Up to_ is actually an option for the `start` and `stop` functions, as described [further below](#only-except-and-other-startstop-options).
 
-**Note that these options are not finalized yet.** A sane default has to be found, and maybe options such as `:restart` and/or `:restart-cascade` can be added.
+> Note 2: Extra modes can be added by adding a method to the `do-on-reload` multimethod.
 
 ### Substitute states
 
