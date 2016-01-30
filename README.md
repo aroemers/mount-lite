@@ -21,7 +21,7 @@ You like it? Feel free to use it. Don't like it? The original Mount is great!
 
 * [Usage](#usage)
   * [Global states, starting and stopping](#global-states-starting-and-stopping)
-  * [Reloading](#reloading)
+  * [Reloading, cascading and tools.namespace](#reloading-cascading-and-toolsnamespace)
   * [Substitute states](#substitute-states)
   * [Only, except and other start/stop options](#only-except-and-other-startstop-options)
 * [License](#license)
@@ -80,7 +80,7 @@ Also note that documents strings and attribute maps are supported. So a full `de
   :start (db/start (get-in config/config [:db :url]))
   :stop (do (println "Stopping db...") (db/stop db)))
 ```
-### Reloading
+### Reloading, cascading and tools.namespace
 
 Whenever you redefine a global state var - when reloading the namespace for instance - by default all the states up to and including the to-be-redefined state will be stopped automatically. We call this a cascading stop. For example:
 
@@ -100,7 +100,7 @@ Whenever you redefine a global state var - when reloading the namespace for inst
 ;=> (#'user/b #'user/c)
 ```
 
-This cascading is great to work with, and in combination with the [tools.namespace](https://github.com/clojure/tools.namespace) library it can really shine. Whenever you make sure your namespaces with `defstate` definitions have `{:clojure.tools.namespace.repl/unload false}` as metadata, calling `(clojure.tools.namespace.repl/refresh :after 'mount.lite/start)` will only stop the required states and restart them.
+This cascading is great to work with, and in combination with the [tools.namespace](https://github.com/clojure/tools.namespace) library it can really shine. Whenever you make sure your namespaces with `defstate` definitions have `{:clojure.tools.namespace.repl/unload false}` as metadata, calling `(clojure.tools.namespace.repl/refresh :after 'mount.lite/start)` will only stop the required states (in correct order) and restart them.
 
 Still, there may be cases where you don't want this cascading stop behaviour. To alter this behaviour, one can set a different mode via the `on-reload` function. Given no arguments, it returns the current mode. Given an argument, you can set the reload behaviour to one the following modes:
 
