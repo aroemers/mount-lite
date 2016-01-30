@@ -34,22 +34,6 @@
       (alter-meta! var' dissoc ::current-stop ::current-on-reload))
     sorted-vars))
 
-(defn ^:no-doc defstate*
-  [sym body]
-  (let [current   (resolve sym)
-        on-reload (some-> current meta ::current-on-reload)
-        status    (some-> current meta ::status)
-        order     (or (some-> current meta ::order) (swap! order + 10))]
-    (if (= on-reload :lifecycle)
-      (let [kept (select-keys (meta current) [::order ::status ::current-stop ::current-on-reload])]
-        (doto current (reset-meta! (merge kept body (meta sym) {:redef true}))))
-      (let [var (intern *ns* sym)]
-        (when (= on-reload :stop)
-          (stop* [current]))
-        (doto var
-          (alter-var-root (constantly (Unstarted. var)))
-          (alter-meta! merge body {::order order ::status :stopped :redef true}))))))
-
 (def ^:private all-states
   (let [nss (into #{} (map find-ns)
                   '[clojure.core clojure.data clojure.edn clojure.inspector clojure.instant
@@ -167,6 +151,35 @@
   (let [opts (merge-opts optss)]
     (stop* (filtered-vars :started opts))))
 
+(defn ^:no-doc defstate*
+  [sym body]
+  (let [current   (resolve sym)
+        on-reload (some-> current meta ::current-on-reload)
+        status    (some-> current meta ::status)
+        order     (or (some-> current meta ::order) (swap! order + 10))]
+    (if (= on-reload :lifecycle)
+      (let [kept (select-keys (meta current) [::order ::status ::current-stop ::current-on-reload])]
+        (doto current (reset-meta! (merge kept body (meta sym) {:redef true}))))
+      (do (case on-reload
+            :stop    (stop (only current))
+            :cascade (stop (up-to current))
+            nil)
+          (let [var (intern *ns* sym)]
+            (doto var
+              (alter-var-root (constantly (Unstarted. var)))
+              (alter-meta! merge body {::order order ::status :stopped :redef true})))))))
+
+(defonce ^{:dynamic true :doc "The default :on-reload configuration for defstate/state."
+           :valid #{:stop :lifecycle :cascade}}
+  *on-reload-default* :stop)
+
+;;--- TODO Is this function (and the dyn var) really necessary? Maybe decide on a good default?
+(defn set-on-reload-default
+  "Set the root of the *on-reload-default* dynamic var."
+  [default]
+  (assert ((-> *on-reload-default* var meta :valid) default) "invalid value for :on-reload")
+  (alter-var-root #'*on-reload-default* (constantly default)))
+
 (defmacro state
   "Make a state definition, useful for making test or mock states. Use with
   substitute function or :substitute key in start info. This is a convenience
@@ -174,12 +187,12 @@
 
   Note that the following does not define a state var, and won't be recognized by
   start or stop: (def foo (state ...))."
-  [& {:as body}]
-  (assert (:start body) "state must contain a :start expression")
-  (assert (#{:stop :lifecycle} (:on-reload body :stop)) ":on-reload must be :stop or :lifecycle")
-  `{:start     (fn [] ~(:start body))
-    :stop      (fn [] ~(:stop body))
-    :on-reload ~(:on-reload body :stop)})
+  [& {:keys [start stop on-reload] :or {on-reload *on-reload-default*}}]
+  (assert start "state must contain a :start expression")
+  (assert ((-> *on-reload-default* var meta :valid) on-reload) "invalid value for :on-reload")
+  `{:start     (fn [] ~start)
+    :stop      (fn [] ~stop)
+    :on-reload ~on-reload})
 
 (defmacro defstate
   "Define a state. At least a :start expression should be supplied. Optionally one

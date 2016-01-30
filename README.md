@@ -81,7 +81,12 @@ db
 ;=> object[mount.lite.Unstarted 0x12345678 "State #'your.app/db is not started."]
 ```
 
-When in a rare case you don't want the a state stopping automatically on redefinition, but just redefine its lifecycle expressions, then the `:on-reload` key can be used. By default is is set to `:stop`. Setting it to `:lifecycle` will just redefine the lifecycle functions, and keep the state running as is (including its original `:stop` expression and `:on-reload` configuration).
+There may be cases where you don't want a redefined state stopping automatically. To alter this behaviour, a `:on-reload` option can be given to a state. The following values are supported:
+
+* `:stop` - This is the default, as described above.
+* `:lifecycle` -  This will just redefine the lifecycle functions on a reload, and keep the state running as is (including its original `:stop` expression and `:on-reload` configuration).
+* `:cascade` - This will stop all the status "up to" the state being redefined. In other words, all states that might depend on the state in question, are stopped as well.
+
 
 ### Substitute states
 

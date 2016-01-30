@@ -1,9 +1,14 @@
 # Change Log
 
 ## [Unreleased][unreleased]
+### Added
+- Add `:cascade` value for the `:on-reload` option (experimental).
+- Add a dynamic var `*on-reload-default*` (experimental).
+
 ### Fixed
 - Fix docstring of `defstate` mentioning removed `:stop-on-reload?` key.
 - Fix stale metadata on redefinition with `:on-reload` set to `:lifecycle`.
+
 
 ## [0.9.1] - 2016-01-30
 ### Added
