@@ -64,8 +64,10 @@ db
 ;=> object[some.db.Object 0x12345678]
 ```
 
-Whenever you redefine a global state var, by default the current state is stopped automatically. The following example
-also shows that one can use metadata, document strings, attribute maps and a `:on-reload` key (explained below).
+### Reloading
+
+Whenever you redefine a global state var, by default the current state is to stop automatically. The following example
+also shows that one can use metadata, document strings, attribute maps and an `:on-reload` key (explained below).
 
 ```clj
 (defstate ^:private db
@@ -81,12 +83,15 @@ db
 ;=> object[mount.lite.Unstarted 0x12345678 "State #'your.app/db is not started."]
 ```
 
-There may be cases where you don't want a redefined state stopping automatically. To alter this behaviour, a `:on-reload` option can be given to a state. The following values are supported:
+There may be cases where you don't want a redefined state stopping automatically. To alter this behaviour, an `:on-reload` option can be given to a state. The following values are supported:
 
 * `:stop` - This is the default, as described above.
-* `:lifecycle` -  This will just redefine the lifecycle functions on a reload, and keep the state running as is (including its original `:stop` expression and `:on-reload` configuration).
-* `:cascade` - This will stop all the status "up to" the state being redefined. In other words, all states that might depend on the state in question, are stopped as well.
+* `:lifecycle` -  This will only redefine the lifecycle functions, and keep the state running as is (including its original `:stop` expression and `:on-reload` configuration).
+* `:cascade` - This will stop all the states _up to_ the state being redefined. In other words, all states that might depend on the state in question, are stopped as well
 
+> _Up to_ is actually an option for the `start` and `stop` functions, as described [here](#only-except-and-other-startstop-options).
+
+**Note that these options are not finalized yet.** A sane default has to be found, and maybe options such as `:restart` and/or `:restart-cascade` can be added.
 
 ### Substitute states
 
