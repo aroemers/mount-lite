@@ -3,6 +3,7 @@
 ## [Unreleased][unreleased]
 ### Fixed
 - Fix docstring of `defstate` mentioning removed `:stop-on-reload?` key.
+- Fix stale metadata on redefinition with `:on-reload` set to `:lifecycle`.
 
 ## [0.9.1] - 2016-01-30
 ### Added
