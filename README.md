@@ -17,6 +17,8 @@ You like it? Feel free to use it. Don't like it? The original Mount is great!
 
 > Master branch: [![Circle CI](https://circleci.com/gh/aroemers/mount-lite/tree/master.svg?style=svg)](https://circleci.com/gh/aroemers/mount-lite/tree/master)
 
+## Table of contents
+
 * [Usage](#usage)
   * [Global states, starting and stopping](#global-states-starting-and-stopping)
   * [Reloading](#reloading)
