@@ -28,7 +28,7 @@ You like it? Feel free to use it. Don't like it? The original Mount is great!
 
 ## Usage
 
-Put this in your dependencies `[functionalbytes/mount-lite "0.9.1"]` and make sure Clojars is one of your repositories.
+Put this in your dependencies `[functionalbytes/mount-lite "0.9.2"]` and make sure Clojars is one of your repositories.
 Also make sure you use Clojure 1.7+, as the library uses transducers.
 Read on for a description of the library functions, or go straight to the [API docs](http://aroemers.github.io/mount-lite/index.html).
 

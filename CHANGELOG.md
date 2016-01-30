@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased][unreleased]
+
+
+## [0.9.2] - 2016-01-30
 ### Added
 - Add the `on-reload` function to the API, replacing the `:on-reload` state option.
 - Add the `:cascade` mode for `on-reload`.
@@ -29,5 +32,6 @@
 ## 0.9
 - Initial release
 
-[unreleased]: https://github.com/aroemers/mount-lite/compare/0.9.1...HEAD
+[unreleased]: https://github.com/aroemers/mount-lite/compare/0.9.2...HEAD
+[0.9.2]: https://github.com/aroemers/mount-lite/compare/0.9.1...0.9.2
 [0.9.1]: https://github.com/aroemers/mount-lite/compare/0.9...0.9.1
