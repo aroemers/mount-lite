@@ -100,7 +100,9 @@ Whenever you redefine a global state var - when reloading the namespace for inst
 ;=> (#'user/b #'user/c)
 ```
 
-There may be cases where you don't want this cascading stop behaviour. To alter this behaviour, one can set a different mode via the `on-reload` function. Given no arguments, it returns the current mode. Given an argument, you can set the reload behaviour to one the following modes:
+This cascading is great to work with, and in combination with the [tools.namespace](https://github.com/clojure/tools.namespace) library it can really shine. Whenever you make sure your namespaces with `defstate` definitions have `{:clojure.tools.namespace.repl/unload false}` as metadata, calling `(clojure.tools.namespace.repl/refresh :after 'mount.lite/start)` will only stop the required states and restart them.
+
+Still, there may be cases where you don't want this cascading stop behaviour. To alter this behaviour, one can set a different mode via the `on-reload` function. Given no arguments, it returns the current mode. Given an argument, you can set the reload behaviour to one the following modes:
 
 * `:cascade` - This is the default, as described above.
 * `:stop` - This will stop only the state that is being redefined.
