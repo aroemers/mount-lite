@@ -36,18 +36,19 @@
 
 (defn ^:no-doc defstate*
   [sym body]
-  (let [current    (resolve sym)
-        on-reload  (some-> current meta ::current-on-reload)
-        status     (some-> current meta ::status)
-        new-status (if (= on-reload :lifecycle) status :stopped)
-        order      (or (some-> current meta ::order) (swap! order + 10))]
-    (when (not= on-reload :lifecycle)
-      (when (and (= on-reload :stop) (= status :started))
-        (stop* [current]))
-      (let [var (intern *ns* sym)]
-        (alter-var-root var (constantly (Unstarted. var)))))
-    (doto (or current (resolve sym))
-      (alter-meta! merge body {::order order ::status new-status :redef true}))))
+  (let [current   (resolve sym)
+        on-reload (some-> current meta ::current-on-reload)
+        status    (some-> current meta ::status)
+        order     (or (some-> current meta ::order) (swap! order + 10))]
+    (if (= on-reload :lifecycle)
+      (let [kept (select-keys (meta current) [::order ::status ::current-stop ::current-on-reload])]
+        (doto current (reset-meta! (merge kept body (meta sym) {:redef true}))))
+      (do (when (= on-reload :stop)
+            (stop* [current]))
+          (let [var (intern *ns* sym)]
+            (doto var
+              (alter-var-root (constantly (Unstarted. var)))
+              (alter-meta! merge {::order order ::status :stopped :redef true})))))))
 
 (def ^:private all-states
   (let [nss (into #{} (map find-ns)
@@ -183,7 +184,7 @@
 (defmacro defstate
   "Define a state. At least a :start expression should be supplied. Optionally one
   can define a :stop expression, and toggle whether the state should :stop when
-  redefined or just update the :lifecycle expressions with the :on-reload key 
+  redefined or just update the :lifecycle expressions with the :on-reload key
   (defaults to :stop)."
   {:arglists '([name doc-string? attr-map? & {:as state-map}])}
   [name & args]
