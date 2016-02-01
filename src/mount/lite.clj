@@ -1,5 +1,8 @@
 (ns mount.lite
-  (:require [clojure.set :as set]))
+  (:require [clojure.set :as set]
+            [com.stuartsierra.dependency :as dep]
+            [mount.graph :as graph]
+            [mount.parallel :as parallel]))
 
 ;;; Types
 
@@ -20,8 +23,8 @@
   (let [current (resolve sym)
         status  (if current (do-on-reload current) :stopped)
         meta'   (if current
-                (select-keys (meta current) [::order ::current-stop])
-                {::order (swap! order + 10)})
+                  (select-keys (meta current) [::order ::current-stop])
+                  {::order (swap! order + 10)})
         var     (or current (intern *ns* sym))]
     (doto var
       (reset-meta! (merge meta' (meta sym) {::status status :redef true}))
@@ -61,15 +64,17 @@
     (some :only optss)       (assoc :only (set (mapcat :only optss)))
     (some :except optss)     (assoc :except (set (mapcat :except optss)))
     (some :substitute optss) (assoc :substitute (apply conj {} (mapcat :substitute optss)))
-    (some :up-to optss)      (assoc :up-to (last (map :up-to optss)))))
+    (some :up-to optss)      (assoc :up-to (last (keep :up-to optss)))
+    (some :parallel optss)   (assoc :parallel (last (keep :parallel optss)))))
 
 (defn- filtered-vars [status opts]
-  (let [up-to-comparator (case status :stopped <= :started >=)
-        up-to-order      (some-> (:up-to opts) meta ::order)]
-    (-> (set (or (:only opts) (all-states)))
-        (set/difference (set (:except opts)))
-        (->> (filter #(= (-> % meta ::status) status)))
-        (cond->> up-to-order (filter #(up-to-comparator (-> % meta ::order) up-to-order))))))
+  (let [filtered  (-> (set (or (:only opts) (all-states)))
+                      (set/difference (set (:except opts)))
+                      (->> (filter #(= (-> % meta ::status) status))))]
+    (if-let [upto (:up-to opts)]
+      (let [graph (graph/var-graph filtered)]
+        (conj (dep/transitive-dependencies graph upto) upto))
+      filtered)))
 
 (defn- var-state-map [vars opts]
   (into {} (for [var' vars] [var' (get (:substitute opts) var' (meta var'))])))
@@ -116,6 +121,7 @@
     (let [substitutes (apply hash-map var-state-seq)]
       (update-in opts [:substitute] merge substitutes))))
 
+;;---TODO Update documentation of up-to
 (defn up-to
   "Creates or updates start/stop option map, starting or stopping only those
   vars up to the given var. Multiple uses of this function on the same option
@@ -125,6 +131,17 @@
    {:up-to var})
   ([opts var]
    (assoc opts :up-to var)))
+
+(defn parallel
+  "Creates or updates start/stop option map, starting or stopping
+  independent vars in parallel using the given number of threads.
+  Multiple uses of this function on the same option map are overriding
+  each other."
+  {:arglists '([threads] [opts threads])}
+  ([threads]
+   {:parallel threads})
+  ([opts threads]
+   (assoc opts :parallel threads)))
 
 (defn start
   "Start all unstarted states (by default). One or more option maps can
@@ -144,8 +161,12 @@
   These option maps are easily created using the only, except, up-to and
   substitute functions."
   [& optss]
-  (let [opts (merge-opts optss)]
-    (start* (var-state-map (filtered-vars :stopped opts) opts))))
+  (let [opts (merge-opts optss)
+        vars (filtered-vars :stopped opts)
+        vsm (var-state-map vars opts)]
+    (if-let [threads (:parallel opts)]
+      (parallel/start vars #(start* {% (get vsm %)}) threads)
+      (start* vsm))))
 
 (defn stop
   "Stop all started states (by default). One or more option maps can be
@@ -161,8 +182,11 @@
 
   These option maps are easily created using the only and except functions."
   [& optss]
-  (let [opts (merge-opts optss)]
-    (stop* (filtered-vars :started opts))))
+  (let [opts (merge-opts optss)
+        vars (filtered-vars :started opts)]
+    (if-let [threads (:parallel opts)]
+      (parallel/stop vars #(stop* [%]) threads)
+      (stop* vars))))
 
 
 ;;; Reloading.
