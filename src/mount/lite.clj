@@ -1,4 +1,5 @@
 (ns mount.lite
+  "The core namespace providing the public API"
   (:require [clojure.set :as set]
             [com.stuartsierra.dependency :as dep]
             [mount.graph :as graph]
@@ -121,11 +122,10 @@
     (let [substitutes (apply hash-map var-state-seq)]
       (update-in opts [:substitute] merge substitutes))))
 
-;;---TODO Update documentation of up-to
 (defn up-to
-  "Creates or updates start/stop option map, starting or stopping only those
-  vars up to the given var. Multiple uses of this function on the same option
-  map are overriding each other."
+  "Creates or updates start/stop option map, starting or stopping only
+  those vars that depend on the given var and itself. Multiple uses of
+  this function on the same option map are overriding each other."
   {:arglists '([var] [opts var])}
   ([var]
    {:up-to var})
@@ -144,26 +144,34 @@
    (assoc opts :parallel threads)))
 
 (defn start
-  "Start all unstarted states (by default). One or more option maps can
-  be supplied. These maps are merged. The maps can contain the following keys,
-  applied in the following order:
+  "Start all unstarted states (by default). One or more option maps
+  can be supplied. The maps can contain the following keys, applied in
+  the following order, and merged as specified:
 
   :only - Collection of state vars that should be started, when not stopped.
+          Multiples of these collections are united.
 
-  :except - Collection of state vars that should not be started. The except
+  :except - Collection of state vars that should not be started. Multiples
+            of these are united.
 
   :up-to - A defstate var until which the states are started. In case multiple
            option maps are supplied, only the last :up-to option is used.
 
+  :parallel - The number of threads to use for parallel starting of the
+              states. Default is nil, meaning the current thread will be
+              used. In case multiple option maps are supplied, only the
+              last :parallel option is used.
+
   :substitute - A map of defstate vars to state-maps (see state macro) whose
-                info is used instead of the defstate vars' state.
+                info is used instead of the defstate vars' state. Multiples
+                of these maps are merged.
 
   These option maps are easily created using the only, except, up-to and
   substitute functions."
   [& optss]
   (let [opts (merge-opts optss)
         vars (filtered-vars :stopped opts)
-        vsm (var-state-map vars opts)]
+        vsm  (var-state-map vars opts)]
     (if-let [threads (:parallel opts)]
       (parallel/start vars #(start* {% (get vsm %)}) threads)
       (start* vsm))))
@@ -174,13 +182,21 @@
   applied in the following order:
 
   :only - Collection of state vars that should be stopped, when not started.
+          Multiples of these collections are united.
 
-  :except - Collection of state vars that should not be stopped.
+  :except - Collection of state vars that should not be stopped. Multiples
+            of these are united.
 
   :up-to - A defstate var until which the states are stopped. In case multiple
            option maps are supplied, only the last :up-to option is used.
 
-  These option maps are easily created using the only and except functions."
+  :parallel - The number of threads to use for parallel stopping of the
+              states. Default is nil, meaning the current thread will be
+              used. In case multiple option maps are supplied, only the
+              last :parallel option is used.
+
+  These option maps are easily created using the only, except and parallel
+  functions."
   [& optss]
   (let [opts (merge-opts optss)
         vars (filtered-vars :started opts)]
@@ -203,7 +219,9 @@
   (-> var meta ::status))
 
 (defn on-reload
-  "Get or set the on-reload configuration. Default is :cascade."
+  "Get or set the on-reload configuration. Default is :cascade,
+  meaning all states `up-to` the reloaded state (inclusive) are
+  stopped."
   ([] @on-reload*)
   ([val] (reset! on-reload* val)))
 
