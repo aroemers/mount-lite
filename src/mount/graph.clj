@@ -33,11 +33,11 @@
 (defn- add-same-ns
   [graph var vars]
   (reduce (fn [g ns-var]
-            (if (= var ns-var)
-              g
-              (if (< (-> ns-var meta :mount.lite/order) (-> var meta :mount.lite/order))
-                (dep/depend g var ns-var)
-                (dep/depend g ns-var var))))
+            (cond-> g
+              (and (not= var ns-var)
+                   (< (-> ns-var meta :mount.lite/order)
+                      (-> var meta :mount.lite/order)))
+              (dep/depend var ns-var)))
           graph vars))
 
 (defn var-graph
@@ -46,7 +46,9 @@
         ns-vars (group-by #(.ns %) vars)
         graph (reduce mydep/add-node (dep/graph) vars)]
     (reduce (fn [g var]
-              (let [ns (.ns var)]
-                (-> (add-transitives g (dep/transitive-dependencies ns-graph ns) ns-vars var)
-                    (add-same-ns var (get ns-vars ns)))))
+              (if-let [deps (-> var meta :dependencies)]
+                (reduce (fn [g dep] (dep/depend g var dep)) g deps)
+                (let [ns (.ns var)]
+                  (-> (add-transitives g (dep/transitive-dependencies ns-graph ns) ns-vars var)
+                      (add-same-ns var (get ns-vars ns))))))
             graph vars)))

@@ -2,7 +2,7 @@
 
 I like [Mount](https://github.com/tolitius/mount), a lot. But
 
-* I wanted a better composable and data-driven API (see [this mount issue](https://github.com/tolitius/mount/issues/19)
+* I wanted a composable and data-driven API (see [this mount issue](https://github.com/tolitius/mount/issues/19)
   and [this presentation](https://www.youtube.com/watch?v=3oQTSP4FngY)).
 * I had my own ideas about how to handle redefinition of states.
 * I don't need ClojureScript support (and its CLJC mode, I use the [rmap library](https://github.com/aroemers/rmap) for lazily loading systems),
@@ -10,9 +10,9 @@ I like [Mount](https://github.com/tolitius/mount), a lot. But
   [features](https://github.com/tolitius/mount/blob/dc5c89b3e9a47601242fbc79846460812f81407d/src/mount/core.cljc#L301)) -
   I'd like a library like this to be minimal.
 
-Mount Lite is **Clojure only**, has a **flexible data-driven API**, **substitutions** are well supported
+Mount Lite is **Clojure only**, has a **flexible data-driven** API, **substitutions** are well supported
 (and cleaner in my opinion, but Mount may [get there](https://github.com/tolitius/mount/issues/45) as well),
-states **stop automatically and cascadingly on redefinition**, and states can be started and stopped **_in parallel_**. That's it.
+states **stop automatically and cascadingly on redefinition**, and states can be started and stopped **in parallel**. That's it.
 
 You like it? Feel free to use it. Don't like it? The original Mount is great!
 
@@ -23,6 +23,7 @@ You like it? Feel free to use it. Don't like it? The original Mount is great!
   * [Reloading, cascading and tools.namespace](#reloading-cascading-and-toolsnamespace)
   * [Substitute states](#substitute-states)
   * [Only, except and other start/stop options](#only-except-and-other-startstop-options)
+  * [Parallelism](#parallelism)
 * [License](#license)
 
 ## Usage
@@ -204,7 +205,7 @@ A unique feature of Mount Lite is being able to start and stop the defstates par
 It does this by calculating a dependency graph of all the states, and starts (or stops) them as eagerly as possible
 using a - user specified - number of threads.
 
-States in the same namespace always depend on each other (as far as this library can tell), so the parallelism is to
+States default to depend on other states in the same namespace defined above them, so the parallelism is normally to
 be gained on a namespace level. The following example shows how parallelism works:
 
 
@@ -251,11 +252,15 @@ be gained on a namespace level. The following example shows how parallelism work
 In above example one can see that states `mid1` and `mid2` are started almost simultaneously. Also note that when
 one would stop above example, the states `core` and `mid2` will be stopped in parallel.
 
-> NOTE: Currently, the namespace dependencies are gathered by `ns-aliases` and `ns-refers`. As long as you use
-> an alias or at least one refer from one namespace to another (which is usually the case), you are good to go.
-> If not, it is just an option, and disabled by default. I hope to make this more watertight soon.
+> NOTE: If you really want to get the most out of parallelism, you can declare the dependencies
+> on a state by putting `:dependencies` in its metadata. This way states don't necessarily depend on other states
+> in the same namespace or referenced namespaces.
 
-Whatever your style or situation, I hope Mount Lite offers it, and enjoy!
+> NOTE: Currently, the namespace dependencies are extracted by `ns-aliases` and `ns-refers`. As long as you use
+> an alias or at least one refer from one namespace to another (which is usually the case), you are good to go.
+> If not, parallelism is just an option, and disabled by default. I hope to make this more watertight soon.
+
+*Whatever your style or situation, enjoy!*
 
 ## License
 
