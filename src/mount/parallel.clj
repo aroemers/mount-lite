@@ -20,33 +20,30 @@
        (doall)
        (run! deref)))
 
-(defn- do-action [todo done action-f put-f next-f deps-f var]
+(defn- do-action [todonext action-f put-f next-f deps-f var]
   (action-f var)
-  (send todo (fn [vars]
-               (swap! done conj var)
-               (let [updated (disj vars var)]
-                 (doseq [dependent (next-f var)]
-                   (when-not (some updated (deps-f dependent))
-                     (put-f dependent)))
-                 updated)))
-  (await todo))
+  (let [todonext' (swap! (fn [[todo done _]]
+                           (let [todo' (disj todo var)
+                                 done' (conj done var)]
+                             [todo' done' (remove #(some todo' (dep-f %)) (next-f var))])))]
+    (doseq [var (:next todonext')]
+      (put-f var))))
 
 (defn- action
   [vars action-f next-f deps-f threads]
-  (let [graph   (graph/var-graph vars)
-        nodes   (dep/nodes graph)
-        next-f  (partial next-f graph)
-        deps-f  (partial deps-f graph)
-        initial (filter #(empty? (deps-f %)) nodes)
-        queue   (local-queue initial)
-        take-f  #(.poll queue)
-        put-f   #(.add queue %)
-        todo    (agent (set nodes))
-        done    (atom [])
-        task-f  (partial do-action todo done action-f put-f next-f deps-f)
-        done-f  #(empty? @todo)]
+  (let [graph    (graph/var-graph vars)
+        nodes    (dep/nodes graph)
+        next-f   (partial next-f graph)
+        deps-f   (partial deps-f graph)
+        initial  (filter #(empty? (deps-f %)) nodes)
+        queue    (local-queue initial)
+        take-f   #(.poll queue)
+        put-f    #(.add queue %)
+        todonext (atom {:todo (set nodes) :done [] :next nil})
+        task-f   (partial do-action todonext action-f put-f next-f deps-f)
+        done-f   #(empty? (:todo @todonext))]
     (work task-f take-f done-f threads)
-    (seq @done)))
+    (seq (:done @todonext))))
 
 (defn start
   [vars start-f threads]
