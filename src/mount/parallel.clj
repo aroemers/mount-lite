@@ -33,7 +33,6 @@
 
 (defn- action [vars action-f next-f deps-f threads]
   (let [graph    (graph/var-graph vars)
-        pool     (fixed-pool threads)
         acc      (atom {:todo (set (dep/nodes graph)) :done () :next nil})
         done-f   (fn [var]
                    (let [acc' (swap! acc
