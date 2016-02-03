@@ -1,4 +1,7 @@
 (ns mount.graph
+  "Namespace reponsible for deducing a dependency graph for
+  a set of state vars."
+  {:no-doc true}
   (:require [clojure.set :as set]
             [com.stuartsierra.dependency :as dep]
             [mount.dependency :as mydep]))
@@ -12,8 +15,7 @@
       (set/union (into #{} aliases-xf (ns-aliases ns))
                  (into #{} refers-xf (ns-refers ns))))))
 
-(defn- ns-graph
-  [vars]
+(defn- ns-graph [vars]
   (let [nss (into #{} (map #(.ns %)) vars)]
     (reduce (fn [g ns]
               (reduce (fn [g dep]
@@ -21,8 +23,7 @@
                       g (ns-deps ns)))
             (dep/graph) nss)))
 
-(defn- add-transitives
-  [graph namespaces ns-vars var]
+(defn- add-transitives [graph namespaces ns-vars var]
   (reduce (fn [g ns]
             (reduce (fn [g dep-ns-var]
                       (dep/depend g var dep-ns-var))
@@ -30,8 +31,7 @@
                     (get ns-vars ns)))
           graph namespaces))
 
-(defn- add-same-ns
-  [graph var vars]
+(defn- add-same-ns [graph var vars]
   (reduce (fn [g ns-var]
             (cond-> g
               (and (not= var ns-var)
@@ -41,6 +41,7 @@
           graph vars))
 
 (defn var-graph
+  "Create a dependency graph of the given state vars."
   [vars]
   (let [ns-graph (ns-graph vars)
         ns-vars (group-by #(.ns %) vars)

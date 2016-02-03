@@ -1,5 +1,6 @@
 (ns mount.dependency
   "Extensions for the com.stuartsierra/dependency library."
+  {:no-doc true}
   (:require [clojure.set :as set]
             [com.stuartsierra.dependency :as dep]))
 
