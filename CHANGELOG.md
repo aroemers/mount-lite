@@ -1,6 +1,14 @@
 # Change Log
 
 ## [Unreleased][unreleased]
+### Added
+- Add `:parallel` option to `start` and `stop` options. Value is number of threads to use, to start/stop independent states in parallel.
+- Internally mount-lite now builds a proper graph of dependencies, instead of a sequence.
+- Add processing of `:dependencies` meta data in a state var, in order to influence the deduced state dependency graph.
+
+### Changed
+- Start/stop option `:up-to` now uses the internal dependency graph to only start (or stop) the dependencies (or dependents) of the given var.
+- Because of the finer grained `:up-to` behaviour, the "cascading stop" on a state redefinition has also improved.
 
 
 ## [0.9.2] - 2016-01-30
