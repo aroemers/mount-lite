@@ -2,26 +2,29 @@
   "Namespace reponsible for deducing a dependency graph for
   a set of state vars."
   {:no-doc true}
-  (:require [clojure.set :as set]
+  (:require [clojure.java.classpath :as cp]
+            [clojure.set :as set]
+            [clojure.string :as str]
+            [clojure.tools.namespace.find :as find]
+            [clojure.tools.namespace.parse :as parse]
             [com.stuartsierra.dependency :as dep]
             [mount.dependency :as mydep]))
 
-;;---TODO Incomplete, because ns-refers and ns-aliases is sadny not enough. Below is prove of concept.
-(def ^:private ns-deps
-  (let [ignore (into #{} (map find-ns) '[clojure.core])
-        aliases-xf (comp (map second) (remove ignore))
-        refers-xf (comp (map (fn [[_ var]] (.ns var))) (remove ignore))]
-    (fn [ns]
-      (set/union (into #{} aliases-xf (ns-aliases ns))
-                 (into #{} refers-xf (ns-refers ns))))))
 
-(defn- ns-graph [vars]
-  (let [nss (into #{} (map #(.ns %)) vars)]
+(def ns-deps
+  (let [parse-xs (map (juxt (comp find-ns parse/name-from-ns-decl)
+                            (comp set #(keep find-ns %) parse/deps-from-ns-decl)))]
+    (fn []
+      (-> (into {} parse-xs (find/find-ns-decls (cp/classpath)))
+          (dissoc nil)))))
+
+(defn- ns-graph []
+  (let [ns-deps (ns-deps)]
     (reduce (fn [g ns]
               (reduce (fn [g dep]
                         (dep/depend g ns dep))
                       g (ns-deps ns)))
-            (dep/graph) nss)))
+            (dep/graph) (keys ns-deps))))
 
 (defn- add-transitives [graph namespaces ns-vars var]
   (reduce (fn [g ns]
@@ -43,7 +46,7 @@
 (defn var-graph
   "Create a dependency graph of the given state vars."
   [vars]
-  (let [ns-graph (ns-graph vars)
+  (let [ns-graph (ns-graph)
         ns-vars (group-by #(.ns %) vars)
         graph (reduce mydep/add-node (dep/graph) vars)]
     (reduce (fn [g var]
