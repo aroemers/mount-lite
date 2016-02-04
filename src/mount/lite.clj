@@ -81,7 +81,10 @@
                       (->> (filter #(= (-> % meta ::status) status))))]
     (if-let [upto (:up-to opts)]
       (let [graph (graph/var-graph filtered)]
-        (conj (dep/transitive-dependencies graph upto) upto))
+        (conj (case status
+                :stopped (dep/transitive-dependencies graph upto)
+                :started (dep/transitive-dependents graph upto))
+              upto))
       filtered)))
 
 (defn- var-state-map [vars opts]
