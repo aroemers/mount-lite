@@ -3,7 +3,7 @@
   dependency graph using a Thread pool."
   {:no-doc true}
   (:require [clojure.set :as set]
-            [com.stuartsierra.dependency :as dep]
+            [clojure.tools.namespace.dependency :as dep]
             [mount.graph :as graph])
   (:import [java.util.concurrent Executors TimeUnit]))
 

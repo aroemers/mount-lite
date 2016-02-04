@@ -1,7 +1,7 @@
 (ns mount.lite
   "The core namespace providing the public API"
   (:require [clojure.set :as set]
-            [com.stuartsierra.dependency :as dep]
+            [clojure.tools.namespace.dependency :as dep]
             [mount.graph :as graph]
             [mount.parallel :as parallel]))
 

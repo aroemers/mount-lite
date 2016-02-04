@@ -1,8 +1,9 @@
 (ns mount.dependency
-  "Extensions for the com.stuartsierra/dependency library."
+  "Extensions for the org.clojure/tools.namespace or
+  com.stuartsierra/dependency library."
   {:no-doc true}
   (:require [clojure.set :as set]
-            [com.stuartsierra.dependency :as dep]))
+            [clojure.tools.namespace.dependency :as dep]))
 
 (defn add-node
   "Returns a new graph with the node added, if not already known."

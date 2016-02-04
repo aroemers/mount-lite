@@ -5,9 +5,9 @@
   (:require [clojure.java.classpath :as cp]
             [clojure.set :as set]
             [clojure.string :as str]
+            [clojure.tools.namespace.dependency :as dep]
             [clojure.tools.namespace.find :as find]
             [clojure.tools.namespace.parse :as parse]
-            [com.stuartsierra.dependency :as dep]
             [mount.dependency :as mydep]))
 
 
