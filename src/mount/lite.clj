@@ -214,6 +214,13 @@
       (parallel/stop vars #(stop* [%]) threads)
       (stop* vars))))
 
+(defn status
+  "Retrieve status map for all states, or the given state vars."
+  ([]
+   (apply status (all-states)))
+  ([& vars]
+   (reduce (fn [m v] (assoc m v (-> v meta ::status))) {} vars)))
+
 
 ;;; Reloading.
 
