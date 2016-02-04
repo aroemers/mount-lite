@@ -202,8 +202,9 @@ The following shows how `up-to` works:
 ### Parallelism
 
 A unique feature of Mount Lite is being able to start and stop the defstates parallel to each other, wherever applicable.
-It does this by calculating a dependency graph of all the states, and starts (or stops) them as eagerly as possible
-using a - user specified - number of threads.
+It does this by calculating a dependency graph (using [tools.namespace](https://github.com/clojure/tools.namespace) of all the states,
+and starts (or stops) them as eagerly as possible using a - user specified - number of threads. Note that this same graph is also
+used for the `up-to` feature.
 
 States default to depend on other states in the same namespace defined above them, so the parallelism is normally to
 be gained on a namespace level. The following example shows how parallelism works:
@@ -224,17 +225,17 @@ be gained on a namespace level. The following example shows how parallelism work
 ;;                    }-> end
 ;;             mid2 -'
 ;;
-(ns end (:require [mount.lite :refer (defstate)]))
-(defstate end :start (user/starter "end"))
+(ns end (:require mount.lite))
+(mount.lite/defstate end :start (user/starter "end"))
 
-(ns mid1 (:require [mount.lite :refer (defstate)] [end :as e]))
-(defstate mid1 :start (user/starter "mid1"))
+(ns mid1 (:require end))
+(mount.lite/defstate mid1 :start (user/starter "mid1"))
 
-(ns mid2 (:require [mount.lite :refer (defstate)] [end :as e]))
-(defstate mid2 :start (user/starter "mid2"))
+(ns mid2 (:require end))
+(mount.lite/defstate mid2 :start (user/starter "mid2"))
 
-(ns core (:require [mount.lite :refer (defstate)] [mid1 :as m1]))
-(defstate core :start (user/starter "core"))
+(ns core (:require mid1))
+(mount.lite/defstate core :start (user/starter "core"))
 
 ;; Test the parallelism:
 
@@ -255,10 +256,6 @@ one would stop above example, the states `core` and `mid2` will be stopped in pa
 > NOTE: If you really want to get the most out of parallelism, you can declare the dependencies
 > on a state by putting `:dependencies` in its metadata. This way states don't necessarily depend on other states
 > in the same namespace or referenced namespaces.
-
-> NOTE: Currently, the namespace dependencies are extracted by `ns-aliases` and `ns-refers`. As long as you use
-> an alias or at least one refer from one namespace to another (which is usually the case), you are good to go.
-> If not, parallelism is just an option, and disabled by default. I hope to make this more watertight soon.
 
 *Whatever your style or situation, enjoy!*
 

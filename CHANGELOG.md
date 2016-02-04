@@ -3,7 +3,7 @@
 ## [Unreleased][unreleased]
 ### Added
 - Add `:parallel` option to `start` and `stop` options. Value is number of threads to use, to start/stop independent states in parallel.
-- Internally mount-lite now builds a proper graph of dependencies, instead of a sequence.
+- Internally mount-lite now builds a proper graph of dependencies, instead of an ordered sequence.
 - Add processing of `:dependencies` meta data in a state var, in order to influence the deduced state dependency graph.
 - Add `status` function to main API.
 
