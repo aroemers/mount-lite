@@ -252,8 +252,8 @@
 
   Note that the following does not define a state var, and won't be recognized by
   start or stop: (def foo (state ...))."
-  [& {:keys [start stop]}]
-  (assert start "state must contain a :start expression")
+  [& {:keys [start stop] :as body}]
+  (assert (contains? body :start) "state must contain a :start expression")
   `{:start (fn [] ~start)
     :stop  (fn [] ~stop)})
 
