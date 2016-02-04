@@ -23,18 +23,19 @@
         (.shutdown pool)
         (deliver thrown t)))))
 
-(defn- work [pool task-f done-f & initial]
-  (let [thrown (promise)]
-    (doseq [init initial]
-      (.submit pool (work-task pool thrown task-f done-f init)))
+(defn- work [threads task-f done-f tasks]
+  (let [pool (fixed-pool threads)
+        thrown (promise)]
+    (doseq [task tasks]
+      (.submit pool (work-task pool thrown task-f done-f task)))
     (.awaitTermination pool 24 TimeUnit/HOURS)
     (when (realized? thrown)
       (throw @thrown))))
 
 (defn- action [vars action-f next-f deps-f threads]
-  (let [graph    (graph/var-graph vars)
-        acc      (atom {:todo (set (dep/nodes graph)) :done () :next nil})
-        done-f   (fn [var]
+  (let [graph   (graph/var-graph vars)
+        acc     (atom {:todo (set (dep/nodes graph)) :done () :next nil})
+        done-f  (fn [var]
                    (let [acc' (swap! acc
                                      (fn [{:keys [todo done]}]
                                        (let [todo' (disj todo var)
@@ -43,8 +44,8 @@
                                           :next (remove #(some todo' (deps-f graph %))
                                                         (next-f graph var))})))]
                      [(empty? (:todo acc')) (:next acc')]))
-        initials (filter #(empty? (deps-f graph %)) (dep/nodes graph))]
-    (apply work (fixed-pool threads) action-f done-f initials)
+        initial (filter #(empty? (deps-f graph %)) (dep/nodes graph))]
+    (work threads action-f done-f initial)
     (reverse (:done @acc))))
 
 (defn start
