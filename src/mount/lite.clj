@@ -39,7 +39,7 @@
           (alter-var-root var' (constantly (start-fn)))
           (throw (IllegalArgumentException. "Missing :start expression.")))
         (catch Throwable t
-          (throw ex-info (str "Exception while starting " var' ":") {:var var' :state state'} t)))
+          (throw (ex-info (str "Error while starting " var' ":") {:var var' :state state'} t))))
       (alter-meta! var' assoc ::status :started ::current-stop (:stop state')))
     (map key sorted)))
 
@@ -51,7 +51,7 @@
         (try
           (stop-fn)
           (catch Throwable t
-            (throw ex-info (str "Exception while stopping " var' ":") {:var var' :state state'} t))))
+            (throw (ex-info (str "Error while stopping " var' ":") {:var var' :state state'} t)))))
       (alter-var-root var' (constantly (Unstarted. var')))
       (alter-meta! var' assoc ::status :stopped)
       (alter-meta! var' dissoc ::current-stop))
