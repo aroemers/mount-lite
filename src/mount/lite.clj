@@ -34,9 +34,12 @@
 (defn- start* [var-state-map]
   (let [sorted (sort-by (comp ::order meta key) var-state-map)]
     (doseq [[var' state'] sorted]
-      (if-let [start-fn (:start state')]
-        (alter-var-root var' (constantly (start-fn)))
-        (throw (ex-info (str "Missing :start in state or substitution for var " var') state')))
+      (try
+        (if-let [start-fn (:start state')]
+          (alter-var-root var' (constantly (start-fn)))
+          (throw (IllegalArgumentException. "Missing :start expression.")))
+        (catch Throwable t
+          (throw ex-info (str "Exception while starting " var' ":") {:var var' :state state'} t)))
       (alter-meta! var' assoc ::status :started ::current-stop (:stop state')))
     (map key sorted)))
 
@@ -44,7 +47,11 @@
   (let [sorted-vars (sort-by (comp - ::order meta) vars)]
     (doseq [var' sorted-vars
             :let [state' (meta var')]]
-      (when-let [stop-fn (::current-stop state')] (stop-fn))
+      (when-let [stop-fn (::current-stop state')]
+        (try
+          (stop-fn)
+          (catch Throwable t
+            (throw ex-info (str "Exception while stopping " var' ":") {:var var' :state state'} t))))
       (alter-var-root var' (constantly (Unstarted. var')))
       (alter-meta! var' assoc ::status :stopped)
       (alter-meta! var' dissoc ::current-stop))
