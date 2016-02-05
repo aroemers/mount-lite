@@ -3,15 +3,12 @@
   (:import [java.util.concurrent CountDownLatch TimeUnit]))
 
 (def in nil)
-(def out nil)
 
 (defn set-latches [n]
-  (alter-var-root #'in (constantly (CountDownLatch. n)))
-  (alter-var-root #'out (constantly (CountDownLatch. n))))
+  (alter-var-root #'in (constantly (CountDownLatch. n))))
 
 (defn reset-latches []
-  (alter-var-root #'in (constantly nil))
-  (alter-var-root #'out (constantly nil)))
+  (alter-var-root #'in (constantly nil)))
 
 (defstate par
   :start (when in
