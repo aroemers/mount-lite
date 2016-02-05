@@ -1,4 +1,4 @@
-(ns mount.graph
+(ns mount.lite.graph
   "Namespace reponsible for deducing a dependency graph for
   a set of state vars."
   {:no-doc true}
@@ -7,7 +7,7 @@
             [clojure.tools.namespace.dependency :as dep]
             [clojure.tools.namespace.find :as find]
             [clojure.tools.namespace.parse :as parse]
-            [mount.dependency :as mydep]))
+            [mount.lite.dependency :as mydep]))
 
 
 (def ^:private ns-deps

@@ -2,8 +2,8 @@
   "The core namespace providing the public API"
   (:require [clojure.set :as set]
             [clojure.tools.namespace.dependency :as dep]
-            [mount.graph :as graph]
-            [mount.parallel :as parallel]))
+            [mount.lite.graph :as graph]
+            [mount.lite.parallel :as parallel]))
 
 ;;; Types
 

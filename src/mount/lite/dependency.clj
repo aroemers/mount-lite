@@ -1,4 +1,4 @@
-(ns mount.dependency
+(ns mount.lite.dependency
   "Extensions for the org.clojure/tools.namespace or
   com.stuartsierra/dependency library."
   {:no-doc true}

@@ -1,10 +1,10 @@
-(ns mount.parallel
+(ns mount.lite.parallel
   "Namepace responsible for starting and stopping a state var
   dependency graph using a Thread pool."
   {:no-doc true}
   (:require [clojure.set :as set]
             [clojure.tools.namespace.dependency :as dep]
-            [mount.graph :as graph])
+            [mount.lite.graph :as graph])
   (:import [java.util.concurrent Executors TimeUnit]))
 
 (defn- fixed-pool [t]
