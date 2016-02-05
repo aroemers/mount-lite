@@ -16,9 +16,9 @@
   "Returns a sequence of sets, where each set has dependencies on the
   former sets."
   [graph]
-  (loop [found #{}
+  (loop [found  #{}
          layers []
-         graph graph]
+         graph  graph]
     (if-let [nodes (seq (dep/nodes graph))]
       (let [layer (set (filter #(every? found (dep/immediate-dependencies graph %)) nodes))]
         (recur (apply conj found layer)

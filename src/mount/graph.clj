@@ -10,20 +10,12 @@
             [mount.dependency :as mydep]))
 
 
-(def ns-deps
+(def ^:private ns-deps
   (let [parse-xs (map (juxt (comp find-ns parse/name-from-ns-decl)
                             (comp set #(keep find-ns %) parse/deps-from-ns-decl)))]
     (fn []
       (-> (into {} parse-xs (find/find-ns-decls (cp/classpath)))
           (dissoc nil)))))
-
-(defn- ns-graph []
-  (let [ns-deps (ns-deps)]
-    (reduce (fn [g ns]
-              (reduce (fn [g dep]
-                        (dep/depend g ns dep))
-                      g (ns-deps ns)))
-            (dep/graph) (keys ns-deps))))
 
 (defn- add-transitives [graph namespaces ns-vars var]
   (reduce (fn [g ns]
@@ -42,12 +34,22 @@
               (dep/depend var ns-var)))
           graph vars))
 
+(defn ns-graph
+  "Creates a dependency graph of all the loaded namespaces."
+  []
+  (let [ns-deps (ns-deps)]
+    (reduce (fn [g ns]
+              (reduce (fn [g dep]
+                        (dep/depend g ns dep))
+                      g (ns-deps ns)))
+            (dep/graph) (keys ns-deps))))
+
 (defn var-graph
   "Create a dependency graph of the given state vars."
   [vars]
   (let [ns-graph (ns-graph)
-        ns-vars (group-by #(.ns %) vars)
-        graph (reduce mydep/add-node (dep/graph) vars)]
+        ns-vars  (group-by #(.ns %) vars)
+        graph    (reduce mydep/add-node (dep/graph) vars)]
     (reduce (fn [g var]
               (if-let [deps (-> var meta :dependencies)]
                 (reduce (fn [g dep] (dep/depend g var dep)) g deps)

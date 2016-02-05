@@ -58,13 +58,14 @@
     sorted-vars))
 
 (def ^:private all-states
-  (let [nss (into #{} (map find-ns)
-                  '[clojure.core clojure.data clojure.edn clojure.inspector clojure.instant
-                    clojure.java.browse clojure.java.io clojure.java.javadoc clojure.java.shell
-                    clojure.main clojure.pprint clojure.reflect clojure.repl clojure.set
-                    clojure.stacktrace clojure.string clojure.template clojure.test clojure.walk
-                    clojure.xml clojure.zip])
-        xf (comp (remove nss) (mapcat ns-interns) (map second) (filter (comp ::order meta)))]
+  (let [ignore (-> (into #{} (map find-ns)
+                         '[clojure.core clojure.data clojure.edn clojure.inspector clojure.instant
+                           clojure.java.browse clojure.java.io clojure.java.javadoc clojure.java.shell
+                           clojure.main clojure.pprint clojure.reflect clojure.repl clojure.set
+                           clojure.stacktrace clojure.string clojure.template clojure.test clojure.walk
+                           clojure.xml clojure.zip])
+                   (set/union (dep/transitive-dependencies (graph/ns-graph) *ns*)))
+        xf     (comp (remove ignore) (mapcat ns-interns) (map second) (filter (comp ::order meta)))]
     (fn [] (into #{} xf (all-ns)))))
 
 (defn- merge-opts [optss]

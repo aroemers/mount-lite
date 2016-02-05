@@ -24,7 +24,7 @@
         (deliver thrown t)))))
 
 (defn- work [threads task-f done-f tasks]
-  (let [pool (fixed-pool threads)
+  (let [pool   (fixed-pool threads)
         thrown (promise)]
     (doseq [task tasks]
       (.submit pool (work-task pool thrown task-f done-f task)))
