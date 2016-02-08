@@ -80,6 +80,9 @@ Also note that documents strings and attribute maps are supported. So a full `de
   :start (db/start (get-in config/config [:db :url]))
   :stop (do (println "Stopping db...") (db/stop db)))
 ```
+
+*Now you know the basics. Go on, try it! I will see you in 10 minutes.*
+
 ### Reloading, cascading and tools.namespace
 
 Whenever you redefine a global state var - when reloading the namespace for instance - by default that state and all the states depending on that state will be stopped automatically (in reverse order). We call this a cascading stop. For example:
