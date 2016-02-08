@@ -152,18 +152,18 @@ The `start` and `stop` functions can take one or more option maps (as we have do
 substitutions above). The combination of these option maps make up a single options map, influencing what global states
 should be started or stopped, and, as we have seen already, which states should be substituted (in case of `start`).
 
-These option maps support four keys, and are applied in the following order:
+These option maps support five keys, and are applied in the following order:
 
 * `:only` - A collection of the state vars that should be started or stopped (if not already having that status).
 
 * `:except` - A collection of the state vars that should not be started or stopped.
 
-* `:up-to` - A defstate var that should be started or stopped, including all its dependencies.
+* `:up-to` - A defstate var that should be started (or stopped), including all its dependencies (or dependents). This is unique to mount lite.
 
 * `:substitute` - A map of state vars to substitute states, only applicable for `start`.
 
 * `:parallel` - The number of threads to use for parallel starting or stopping of states. Default is nil, meaning the
-  current thread will be used. Parallelism is explained in the next [section](#parallelism).
+  current thread will be used. Parallelism is unique to mount lite and explained in the next [section](#parallelism).
 
 The functions `only`, `except`, `up-to`, `substitute` and `parallel` create or update such option maps, as a convenience. These functions can
 be threaded, if that's your style, but you don't need to, as both `start` and `stop` take multiples of these option
