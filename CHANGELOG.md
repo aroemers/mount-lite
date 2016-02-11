@@ -2,7 +2,11 @@
 
 ## [Unrealased][unreleased]
 ### Changed
-- Some memoization has been added to the var dependency graph calculation
+- Memoization (with a cache of 1) has been added to the var dependency graph calculation
+
+### Fixed
+- Stopping `:up-to` an already stopped state now will stop its started dependencies. Same for starting up to an already started state.
+- Starting or stopping `:up-to` an already started or stopped state will now not start or stop that state again.
 
 
 ## [0.9.3][0.9.3]
