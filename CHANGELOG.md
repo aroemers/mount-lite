@@ -1,5 +1,10 @@
 # Change Log
 
+## [Unrealased][unreleased]
+### Changed
+- Some memoization has been added to the var dependency graph calculation
+
+
 ## [0.9.3][0.9.3]
 ### Added
 - Add `:parallel` option to `start` and `stop` options. Value is number of threads to use, to start/stop independent states in parallel.

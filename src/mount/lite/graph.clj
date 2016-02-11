@@ -7,7 +7,8 @@
             [clojure.tools.namespace.dependency :as dep]
             [clojure.tools.namespace.find :as find]
             [clojure.tools.namespace.parse :as parse]
-            [mount.lite.dependency :as mydep]))
+            [mount.lite.dependency :as mydep]
+            [mount.lite.util :as util]))
 
 
 (def ^:private ns-deps
@@ -44,9 +45,7 @@
                       g (ns-deps ns)))
             (dep/graph) (keys ns-deps))))
 
-(defn var-graph
-  "Create a dependency graph of the given state vars."
-  [vars]
+(defn- var-graph* [vars]
   (let [ns-graph (ns-graph)
         ns-vars  (group-by #(.ns %) vars)
         graph    (reduce mydep/add-node (dep/graph) vars)]
@@ -57,3 +56,6 @@
                   (-> (add-transitives g (dep/transitive-dependencies ns-graph ns) ns-vars var)
                       (add-same-ns var (get ns-vars ns))))))
             graph vars)))
+
+(def ^{:doc "Create a dependency graph of the given state vars. Memoizes the last input."}
+  var-graph (util/memoize-1 var-graph*))

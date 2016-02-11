@@ -15,7 +15,7 @@
 ;;; Private logic
 
 (defonce ^:private order (atom 0))
-(defonce ^:private on-reload* (atom :cascade))
+(defonce ^:private on-reload* (volatile! :cascade))
 
 (defmulti ^:no-doc do-on-reload
   (fn [var] @on-reload*))
@@ -241,7 +241,7 @@
   meaning all states `up-to` the reloaded state (inclusive) are
   stopped."
   ([] @on-reload*)
-  ([val] (reset! on-reload* val)))
+  ([val] (vreset! on-reload* val)))
 
 
 ;;; Defining states.
