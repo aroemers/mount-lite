@@ -125,3 +125,8 @@
   (throws (start (parallel 2)))
   (is (= (statusses #'state-1 #'par/par) [:stopped :started]))
   (require 'mount.lite-test.test-state-1 :reload))
+
+(deftest test-up-to-already-started
+  (start (only #'state-3))
+  (is (= (start (up-to #'state-3)) [#'state-1 #'state-2])
+      "Dependencies are started, even though state 1 was already started. State 1 is not started again."))
