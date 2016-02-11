@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unrealased][unreleased]
+## [0.9.4] - 2016-02-11
 ### Changed
 - Memoization (with a cache of 1) has been added to the var dependency graph calculation
 
@@ -9,7 +9,7 @@
 - Starting or stopping `:up-to` an already started or stopped state will now not start or stop that state again.
 
 
-## [0.9.3][0.9.3]
+## [0.9.3] - 2016-02-05
 ### Added
 - Add `:parallel` option to `start` and `stop` options. Value is number of threads to use, to start/stop independent states in parallel.
 - Internally mount-lite now builds a proper graph of dependencies, instead of an ordered sequence.
@@ -50,7 +50,8 @@
 ## 0.9
 - Initial release
 
-[unreleased]: https://github.com/aroemers/mount-lite/compare/0.9.3...HEAD
+[unreleased]: https://github.com/aroemers/mount-lite/compare/0.9.4...HEAD
+[0.9.4]: https://github.com/aroemers/mount-lite/compare/0.9.3...0.9.4
 [0.9.3]: https://github.com/aroemers/mount-lite/compare/0.9.2...0.9.3
 [0.9.2]: https://github.com/aroemers/mount-lite/compare/0.9.1...0.9.2
 [0.9.1]: https://github.com/aroemers/mount-lite/compare/0.9...0.9.1
