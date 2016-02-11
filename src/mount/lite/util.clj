@@ -10,5 +10,6 @@
     (fn [& args]
       (if (= args @mem-args)
         @mem-val
-        (do (vreset! mem-args args)
-            (vreset! mem-val (apply f args)))))))
+        (let [val (apply f args)]
+          (vreset! mem-args args)
+          (vreset! mem-val val))))))
