@@ -32,6 +32,8 @@ Put this in your dependencies `[functionalbytes/mount-lite "0.9.4"]` and make su
 Also make sure you use Clojure 1.7+, as the library uses transducers and volatiles.
 Read on for a description of the library functions, or go straight to the [API docs](http://aroemers.github.io/mount-lite/index.html).
 
+> NOTE: Clojure 1.8 - with its direct linking - is safe to use as well.
+
 ### Global states, starting and stopping
 
 First, require the `mount.lite` namespace:
