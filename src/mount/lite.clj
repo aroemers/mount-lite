@@ -96,7 +96,8 @@
   (let [bindings (:bindings opts)]
     (reduce-kv (fn [m var state]
                  (assoc m var {:start (fn [] ((:start state) (get bindings var)))
-                               :stop  (fn [] ((:stop state) (get bindings var)))}))
+                               :stop  (when-let [stop-fn (:stop state)]
+                                        (fn [] (stop-fn (get bindings var))))}))
                {} vsm)))
 
 (defn- name-with-attrs [name [arg1 arg2 & argx :as args]]
