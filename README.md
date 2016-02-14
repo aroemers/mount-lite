@@ -267,9 +267,9 @@ one would stop above example, the states `core` and `mid2` will be stopped in pa
 
 ### Bindings
 
-It is generally best to define the `defstate`s in application namespaces, not in the more general (library) namespaces. This is because the `:start` and `:stop` expressions are tightly coupled to their surroundings, including references to other states. This is fine though, as you as the application writer have full control over your states, and resources should be at the periphery of the application anyway.
+It is generally best to define the `defstate`s in application namespaces, not in the more general (library) namespaces. This is because the `:start` and `:stop` expressions are tightly coupled to their environment, including references to other states. This is fine though, as you as the application writer have full control over your states, and resources should be at the periphery of the application anyway.
 
-Yet, in the rare situations where you need a looser coupling between the `:start`/`:stop` expressions and their surroundings, mount-lite has a unique feature called bindings. When defining a `defstate`, one can optionally supply a `:bindings` vector, next to the `:start` and `:stop` expressions. This vector declares the bindings that can be used by the `:start`/`:stop` expressions, and their defaults. For example:
+Yet, in the rare situations where you need a looser coupling between the `:start`/`:stop` expressions and their environment, mount-lite has a unique feature called bindings. When defining a `defstate`, one can optionally supply a `:bindings` vector, next to the `:start` and `:stop` expressions. This vector declares the bindings that can be used by the `:start`/`:stop` expressions, and their defaults. For example:
 
 ```clj
 (defstate incrementer
@@ -294,7 +294,7 @@ When the `incrementer` state is started normally, it will become a function that
 
 As can be seen, the bindings that were used when starting the state are also used when stopping the state.
 
-This bindings feature can be used as some kind of dependency injection or for passing configuration parameters. Yet, at the current time of writing, my opinion is to use this feature sparingly.
+This bindings feature can be used as a kind of dependency injection or for passing configuration parameters. Yet, at the current time of writing, my opinion is to use this feature sparingly.
 
 *Whatever your style or situation, enjoy!*
 
