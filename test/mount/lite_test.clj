@@ -130,3 +130,10 @@
   (start (only #'state-3))
   (is (= (start (up-to #'state-3)) [#'state-1 #'state-2])
       "Dependencies are started, even though state 1 was already started. State 1 is not started again."))
+
+(deftest test-bindings
+  (let [p (promise)]
+    (start (bindings #'state-2 {'s " + BOUND" 'p p}))
+    (is (= state-2 "state-1 + BOUND") "State 2 has been bound.")
+    (stop)
+    (is (realized? p) "State 2 binding also used in stop.")))
