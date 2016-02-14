@@ -294,7 +294,7 @@ When the `incrementer` state is started normally, it will become a function that
 
 As can be seen, the bindings that were used when starting the state are also used when stopping the state.
 
-This bindings feature can be used as a kind of dependency injection or for passing configuration parameters. Yet, at the current time of writing, my opinion is to use this feature sparingly.
+This bindings feature can be used as a kind of dependency injection or for passing configuration parameters. Yet, at the current time of writing, my opinion is to use this feature sparingly. Substitutions are normally sufficient and using bindings a lot might hint towards a design flaw.
 
 *Whatever your style or situation, enjoy!*
 
