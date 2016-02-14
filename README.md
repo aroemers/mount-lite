@@ -24,6 +24,7 @@ You like it? Feel free to use it. Don't like it? The original Mount is great!
   * [Substitute states](#substitute-states)
   * [Only, except and other start/stop options](#only-except-and-other-startstop-options)
   * [Parallelism](#parallelism)
+  * [Bindings](#bindings)
 * [License](#license)
 
 ## Usage
@@ -154,7 +155,7 @@ The `start` and `stop` functions can take one or more option maps (as we have do
 substitutions above). The combination of these option maps make up a single options map, influencing what global states
 should be started or stopped, and, as we have seen already, which states should be substituted (in case of `start`).
 
-These option maps support five keys, and are applied in the following order:
+These option maps support six keys, and are applied in the following order:
 
 * `:only` - A collection of the state vars that should be started or stopped (if not already having that status).
 
@@ -166,6 +167,8 @@ These option maps support five keys, and are applied in the following order:
 
 * `:parallel` - The number of threads to use for parallel starting or stopping of states. Default is nil, meaning the
   current thread will be used. Parallelism is unique to mount lite and explained in the next [section](#parallelism).
+
+* `:bindings` - A map of state vars to binding maps. This is a more advanced feature, explained in the section about [bindings](#bindings).
 
 The functions `only`, `except`, `up-to`, `substitute` and `parallel` create or update such option maps, as a convenience. These functions can
 be threaded, if that's your style, but you don't need to, as both `start` and `stop` take multiples of these option
@@ -261,6 +264,37 @@ one would stop above example, the states `core` and `mid2` will be stopped in pa
 > NOTE: If you really want to get the most out of parallelism, you can declare the dependencies
 > on a state by putting `:dependencies` in its metadata. This way states don't necessarily depend on other states
 > in the same namespace or referenced namespaces.
+
+### Bindings
+
+It is generally best to define the `defstate`s in application namespaces, not in the more general (library) namespaces. This is because the `:start` and `:stop` expressions are tightly coupled to their surroundings, including references to other states. This is fine though, as you as the application writer have full control over your states, and resources should be at the periphery of the application anyway.
+
+Yet, in the rare situations where you need a looser coupling between the `:start`/`:stop` expressions and their surroundings, mount-lite has a unique feature called bindings. When defining a `defstate`, one can optionally supply a `:bindings` vector, next to the `:start` and `:stop` expressions. This vector declares the bindings that can be used by the `:start`/`:stop` expressions, and their defaults. For example:
+
+```clj
+(defstate incrementer
+  :start    (fn [n] (+ n i))
+  :stop     (println "stopping incrementer of" i)
+  :bindings [i 10])
+```
+
+When the `incrementer` state is started normally, it will become a function that increments the argument by 10. However, one can start the `incrementer` with different bindings, like so:
+
+```clj
+(mount/start (bindings #'incrementer {'i 20})
+;=> (#'incrementer)
+
+(incrementer 5)
+;=> 25
+
+(stop)
+;>> stopping 20 incrementer
+;=> (#'incrementer)
+```
+
+As can be seen, the bindings that were used when starting the state are also used when stopping the state.
+
+This bindings feature can be used as some kind of dependency injection or for passing configuration parameters. Yet, at the current time of writing, my opinion is to use this feature sparingly.
 
 *Whatever your style or situation, enjoy!*
 

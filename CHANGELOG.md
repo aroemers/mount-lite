@@ -1,8 +1,13 @@
 # Change Log
 
+## [Unreleased][unreleased]
+### Added
+- Add `:bindings` option to `defstate` and `start`. See README for details.
+
+
 ## [0.9.4] - 2016-02-11
 ### Changed
-- Memoization (with a cache of 1) has been added to the var dependency graph calculation
+- Memoization (with a cache of 1) has been added to the var dependency graph calculation, for speed.
 
 ### Fixed
 - Stopping `:up-to` an already stopped state now will stop its started dependencies. Same for starting up to an already started state.

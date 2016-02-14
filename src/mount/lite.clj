@@ -73,6 +73,7 @@
     (some :only optss)       (assoc :only (set (mapcat :only optss)))
     (some :except optss)     (assoc :except (set (mapcat :except optss)))
     (some :substitute optss) (assoc :substitute (apply conj {} (mapcat :substitute optss)))
+    (some :bindings optss)   (assoc :bindings (apply conj {} (mapcat :bindings optss)))
     (some :up-to optss)      (assoc :up-to (last (keep :up-to optss)))
     (some :parallel optss)   (assoc :parallel (last (keep :parallel optss)))))
 
@@ -90,6 +91,13 @@
 
 (defn- var-state-map [vars opts]
   (into {} (for [var' vars] [var' (get (:substitute opts) var' (meta var'))])))
+
+(defn- var-bindings-map [vsm opts]
+  (let [bindings (:bindings opts)]
+    (reduce-kv (fn [m var state]
+                 (assoc m var {:start (fn [] ((:start state) (get bindings var)))
+                               :stop  (fn [] ((:stop state) (get bindings var)))}))
+               {} vsm)))
 
 (defn- name-with-attrs [name [arg1 arg2 & argx :as args]]
   (let [[attrs args] (cond (and (string? arg1) (map? arg2)) [(assoc arg2 :doc arg1) argx]
@@ -154,6 +162,19 @@
   ([opts threads]
    (assoc opts :parallel threads)))
 
+(defn bindings
+  "Creates or updates start option map, supplying binding maps for the
+  given defstate vars. Make sure the symbols in the binding maps are
+  quoted. Multiple uses of this function on the same option map are
+  merged."
+  {:arglists '([& var-binding-seq] [opts & var-binding-seq])}
+  [& [opts-or-var & var-binding-seq]]
+  (let [[opts var-binding-seq] (if (var? opts-or-var)
+                                 [{} (cons opts-or-var var-binding-seq)]
+                                 [opts-or-var var-binding-seq])]
+    (let [bindings (apply hash-map var-binding-seq)]
+      (update-in opts [:bindings] merge bindings))))
+
 (defn start
   "Start all unstarted states (by default). One or more option maps
   can be supplied. The maps can contain the following keys, applied in
@@ -177,15 +198,19 @@
                 info is used instead of the defstate vars' state. Multiples
                 of these maps are merged.
 
+  :bindings - A map of defstate vars to binding maps. Multiples of
+              these maps are merged.
+
   These option maps are easily created using the only, except, up-to and
   substitute functions."
   [& optss]
   (let [opts (merge-opts optss)
         vars (filtered-vars :stopped opts)
-        vsm  (var-state-map vars opts)]
+        vsm  (var-state-map vars opts)
+        vbm  (var-bindings-map vsm opts)]
     (if-let [threads (:parallel opts)]
-      (parallel/start vars #(start* {% (get vsm %)}) threads)
-      (start* vsm))))
+      (parallel/start vars #(start* {% (get vbm %)}) threads)
+      (start* vbm))))
 
 (defn stop
   "Stop all started states (by default). One or more option maps can be
@@ -253,14 +278,18 @@
 
   Note that the following does not define a state var, and won't be recognized by
   start or stop: (def foo (state ...))."
-  [& {:keys [start stop] :as body}]
+  [& {:keys [start stop bindings] :as body :or {bindings []}}]
   (assert (contains? body :start) "state must contain a :start expression")
-  `{:start (fn [] ~start)
-    :stop  (fn [] ~stop)})
+  (assert (vector? bindings) "bindings must be vector")
+  (assert (even? (count bindings)) "bindings must have even number of elems")
+  (let [syms (mapv first (partition 2 bindings))]
+    `{:start (fn [{:syms ~syms :or ~(apply hash-map bindings)}] ~start)
+      :stop  (fn [{:syms ~syms :or ~(apply hash-map bindings)}] ~stop)}))
 
 (defmacro defstate
   "Define a state. At least a :start expression should be supplied.
-  Optionally one can define a :stop expression."
+  Optionally one can define a :stop expression and a :bindings
+  vector."
   {:arglists '([name doc-string? attr-map? & {:as state-map}])}
   [name & args]
   (let [[name {:as body}] (name-with-attrs name args)
