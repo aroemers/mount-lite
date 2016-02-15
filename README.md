@@ -16,6 +16,8 @@ states **stop automatically and cascadingly on redefinition**, and states can be
 
 You like it? Feel free to use it. Don't like it? The original Mount is great!
 
+> NOTE: [This blog post](http://www.functionalbytes.nl/clojure/mount/mount-lite/2016/02/11/mount-lite.html) explains in more detail why mount-lite was created and what it offers.
+
 ## Table of contents
 
 * [Usage](#usage)
@@ -24,13 +26,14 @@ You like it? Feel free to use it. Don't like it? The original Mount is great!
   * [Substitute states](#substitute-states)
   * [Only, except and other start/stop options](#only-except-and-other-startstop-options)
   * [Parallelism](#parallelism)
+  * [Bindings](#bindings)
 * [License](#license)
 
-## Usage
+## Usage [API](http://aroemers.github.io/mount-lite/index.html)
 
 Put this in your dependencies `[functionalbytes/mount-lite "0.9.4"]` and make sure Clojars is one of your repositories.
 Also make sure you use Clojure 1.7+, as the library uses transducers and volatiles.
-Read on for a description of the library functions, or go straight to the [API docs](http://aroemers.github.io/mount-lite/index.html).
+Read on for a description of the library functions, go straight to the [API docs](http://aroemers.github.io/mount-lite/index.html).
 
 > NOTE: Clojure 1.8 - with its direct linking - is safe to use as well.
 
@@ -261,6 +264,11 @@ one would stop above example, the states `core` and `mid2` will be stopped in pa
 > NOTE: If you really want to get the most out of parallelism, you can declare the dependencies
 > on a state by putting `:dependencies` in its metadata. This way states don't necessarily depend on other states
 > in the same namespace or referenced namespaces.
+
+### Bindings
+
+Want to pass (command line) arguments to a `defstate`, or have some other use case that requires a little more loose coupling between the state and its environment? Check [this pull request](https://github.com/aroemers/mount-lite/pull/5) and let me know.
+
 
 *Whatever your style or situation, enjoy!*
 
