@@ -24,13 +24,14 @@
         (deliver thrown t)))))
 
 (defn- work [threads task-f done-f tasks]
-  (let [pool   (fixed-pool threads)
-        thrown (promise)]
-    (doseq [task tasks]
-      (.submit pool (work-task pool thrown task-f done-f task)))
-    (.awaitTermination pool 24 TimeUnit/HOURS)
-    (when (realized? thrown)
-      (throw @thrown))))
+  (when (seq tasks)
+    (let [pool   (fixed-pool threads)
+          thrown (promise)]
+      (doseq [task tasks]
+        (.submit pool (work-task pool thrown task-f done-f task)))
+      (.awaitTermination pool 24 TimeUnit/HOURS)
+      (when (realized? thrown)
+        (throw @thrown)))))
 
 (defn- action [vars action-f next-f deps-f threads]
   (let [graph   (graph/var-graph vars)
