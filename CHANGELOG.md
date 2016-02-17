@@ -1,5 +1,10 @@
 # Change Log
 
+## [Unreleased][unreleased]
+### Fixed
+- Fix hang when starting or stopping no states in parallel.
+
+
 ## [0.9.4] - 2016-02-11
 ### Changed
 - Memoization (with a cache of 1) has been added to the var dependency graph calculation
