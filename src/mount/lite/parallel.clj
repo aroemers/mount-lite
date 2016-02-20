@@ -17,7 +17,7 @@
       (let [[done? forks] (done-f task)]
         (if-not done?
           (doseq [fork forks]
-            (.submit pool (work-task pool thrown done-f task-f fork)))
+            (.submit pool (work-task pool thrown task-f done-f fork)))
           (.shutdown pool)))
       (catch Throwable t
         (.shutdown pool)
