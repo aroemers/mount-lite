@@ -33,14 +33,18 @@
 
 (defn- start* [var-state-map]
   (let [sorted (sort-by (comp ::order meta key) var-state-map)]
-    (doseq [[var' state'] sorted]
+    (doseq [[var' state'] sorted
+            :let [boundp (promise)]]
       (try
         (if-let [start-fn (:start state')]
-          (alter-var-root var' (constantly (start-fn)))
+          (alter-var-root var' (constantly (start-fn boundp)))
           (throw (IllegalArgumentException. "Missing :start expression.")))
         (catch Throwable t
           (throw (ex-info (str "Error while starting " var' ":") {:var var' :state state'} t))))
-      (alter-meta! var' assoc ::status :started ::current-stop (:stop state')))
+      (alter-meta! var' assoc
+                   ::status :started
+                   ::current-stop (:stop state')
+                   ::current-bindings (when (realized? boundp) @boundp)))
     (map key sorted)))
 
 (defn- stop* [vars]
@@ -54,7 +58,7 @@
             (throw (ex-info (str "Error while stopping " var' ":") {:var var' :state state'} t)))))
       (alter-var-root var' (constantly (Unstarted. var')))
       (alter-meta! var' assoc ::status :stopped)
-      (alter-meta! var' dissoc ::current-stop))
+      (alter-meta! var' dissoc ::current-stop ::current-bindings))
     sorted-vars))
 
 (def ^:private all-states
@@ -95,7 +99,10 @@
 (defn- var-bindings-map [vsm opts]
   (let [bindings (:bindings opts)]
     (reduce-kv (fn [m var state]
-                 (assoc m var {:start (fn [] ((:start state) (get bindings var)))
+                 (assoc m var {:start (let [start-fn (:start state)]
+                                        (fn [p] (if (:bindings-form state)
+                                                  (start-fn p (get bindings var))
+                                                  (start-fn))))
                                :stop  (when-let [stop-fn (:stop state)]
                                         (fn [] (stop-fn (get bindings var))))}))
                {} vsm)))
@@ -279,20 +286,26 @@
 
   Note that the following does not define a state var, and won't be recognized by
   start or stop: (def foo (state ...))."
+  {:arglists '([& {:keys [start stop]}])}
   [& {:keys [start stop bindings] :as body :or {bindings []}}]
   (assert (contains? body :start) "state must contain a :start expression")
   (assert (vector? bindings) "bindings must be vector")
   (assert (even? (count bindings)) "bindings must have even number of elems")
   (let [syms (mapv first (partition 2 bindings))]
-    `{:start (fn [{:syms ~syms :or ~(apply hash-map bindings)}] ~start)
-      :stop  (fn [{:syms ~syms :or ~(apply hash-map bindings)}] ~stop)}))
+    `{:start         (fn [boundp# [& {:syms ~syms :or ~(apply hash-map bindings)}]]
+                       (deliver boundp# (vec (apply concat (zipmap '~syms ~syms))))
+                       ~start)
+      :stop          (fn [[& {:syms ~syms :or ~(apply hash-map bindings)}]] ~stop)
+      :bindings-form '~bindings}))
 
 (defmacro defstate
   "Define a state. At least a :start expression should be supplied.
-  Optionally one can define a :stop expression and a :bindings
-  vector."
-  {:arglists '([name doc-string? attr-map? & {:as state-map}])}
+   Optionally one can define a :stop expression."
+  {:arglists '([name doc-string? attr-map? bindings? & {:as state-map}])}
   [name & args]
-  (let [[name {:as body}] (name-with-attrs name args)
-        var'              (defstate* name)]
+  (let [[name args] (name-with-attrs name args)
+        body        (if (vector? (first args))
+                      (apply hash-map :bindings (first args) (next args))
+                      (apply hash-map args))
+        var'        (defstate* name)]
     `(doto ~var' (alter-meta! merge (state ~@(apply concat body))))))

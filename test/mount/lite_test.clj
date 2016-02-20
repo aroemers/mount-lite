@@ -68,7 +68,7 @@
   (is (= state-3 "state-1 + state-2 + state-3") "State 1 is back to its original."))
 
 (deftest test-substitute-map
-  (start (substitute #'state-2 {:start (constantly "sub-2")}))
+  (start (substitute #'state-2 {:start (fn [] "sub-2")}))
   (is (= state-3 "sub-2 + state-3") "State 2 is substituted by map.")
   (stop)
   (start)
@@ -133,7 +133,9 @@
 
 (deftest test-bindings
   (let [p (promise)]
-    (start (bindings #'state-2 {'s " + BOUND" 'p p}))
+    (start (bindings #'state-2 ['s " + BOUND" 'p p]))
     (is (= state-2 "state-1 + BOUND") "State 2 has been bound.")
+    (is (= (-> #'state-2 meta :mount.lite/current-bindings (->> (apply hash-map)) (get 'p)) p)
+        "Current bindings is set.")
     (stop)
     (is (realized? p) "State 2 binding also used in stop.")))
