@@ -16,9 +16,11 @@ states **stop automatically and cascadingly on redefinition**, and states can be
 
 You like it? Feel free to use it. Don't like it? The original Mount is great!
 
+> NOTE: [This blog post](http://www.functionalbytes.nl/clojure/mount/mount-lite/2016/02/11/mount-lite.html) explains in more detail why mount-lite was created and what it offers.
+
 ## Table of contents
 
-* [Usage](#usage)
+* [Usage](#usage-api)
   * [Global states, starting and stopping](#global-states-starting-and-stopping)
   * [Reloading, cascading and tools.namespace](#reloading-cascading-and-toolsnamespace)
   * [Substitute states](#substitute-states)
@@ -27,11 +29,11 @@ You like it? Feel free to use it. Don't like it? The original Mount is great!
   * [Bindings](#bindings)
 * [License](#license)
 
-## Usage
+## Usage ([API](http://aroemers.github.io/mount-lite/index.html))
 
-Put this in your dependencies `[functionalbytes/mount-lite "0.9.4"]` and make sure Clojars is one of your repositories.
+Put this in your dependencies `[functionalbytes/mount-lite "0.9.5"]` and make sure Clojars is one of your repositories.
 Also make sure you use Clojure 1.7+, as the library uses transducers and volatiles.
-Read on for a description of the library functions, or go straight to the [API docs](http://aroemers.github.io/mount-lite/index.html).
+Read on for a description of the library functions, go straight to the [API docs](http://aroemers.github.io/mount-lite/index.html).
 
 > NOTE: Clojure 1.8 - with its direct linking - is safe to use as well.
 
@@ -62,9 +64,9 @@ The simplest of a global state definition is one with a name and a `:start` expr
 > * Only use defstate when either the state needs some stop logic before it can be reloaded,
 >   or whenever the state depends on another defstate. In other cases, just use a def.
 
-To start all global states, just use `start`. A sequence of started state vars is returned. The order in which the
-states are started is determined by their load order by the Clojure compiler. Using `stop` stops all the states in
-reverse order.
+To start all global states, just use `start`. A sequence of started state vars is returned.
+The order in which the states are started is determined by their load order by the Clojure compiler (except when [parallelism](#parallelism) is used).
+Using `stop` stops all the states in reverse order.
 
 ```clj
 (mount/start)
@@ -88,7 +90,7 @@ Also note that documents strings and attribute maps are supported. So a full `de
 
 ### Reloading, cascading and tools.namespace
 
-Whenever you redefine a global state var - when reloading the namespace for instance - by default that state and all the states depending on that state will be stopped automatically (in reverse order). We call this a cascading stop. For example:
+Whenever you redefine a global state var - when reloading the namespace for instance - by default that state and all the states depending on that state will be stopped automatically (in reverse order). We call this a cascading stop, and uses an internal graph to determine the dependents. An example:
 
 ```clj
 (defstate a :start 1 :stop (println "Stopping a"))
@@ -113,10 +115,12 @@ This cascading is great to work with, and in combination with the [tools.namespa
 Still, there may be cases where you don't want this cascading stop behaviour. To alter this behaviour, one can set a different mode via the `on-reload` function. Given no arguments, it returns the current mode. Given an argument (a keyword), you can set the reload behaviour to one the following modes:
 
 * `:cascade` - This is the default, as described above.
+
 * `:stop` - This will stop only the state that is being redefined.
+
 * `:lifecycle` -  This will only redefine the lifecycle functions, and keep the state running as is (including the accompanying `:stop` expression). I.e, it is only after a (re)start that the redefinition will be used.
 
-> NOTE: _Up to_ is actually an option for the `start` and `stop` functions, as described [further below](#only-except-and-other-startstop-options).
+> NOTE: This cascading is actually available as an option for the `start` and `stop` functions, called `:up-to`, as described [further below](#only-except-and-other-startstop-options).
 
 > NOTE: Extra modes can be added by adding a method to the `do-on-reload` multimethod.
 
@@ -146,7 +150,9 @@ Note that substitution states don't need to be inline and the `state` macro is a
 For example, the following is also possible:
 
 ```clj
-(mount/start (substitute #'db {:start (constantly (atom {}))}))
+(def sub {:start (constantly (atom {}))})
+
+(mount/start (substitute #'db sub))
 ```
 
 ### Only, except and other start/stop options
@@ -213,6 +219,8 @@ A unique feature of Mount Lite is being able to start and stop the defstates par
 It does this by calculating a dependency graph (using [tools.namespace](https://github.com/clojure/tools.namespace) of all the states,
 and starts (or stops) them as eagerly as possible using a - user specified - number of threads. Note that this same graph is also
 used for the `up-to` feature.
+
+> NOTE: To visualize the dependency graph of all the states, one can use the `dot` function.
 
 States default to depend on other states in the same namespace defined above them, so the parallelism is normally to
 be gained on a namespace level. The following example shows how parallelism works:

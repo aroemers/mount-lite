@@ -17,20 +17,21 @@
       (let [[done? forks] (done-f task)]
         (if-not done?
           (doseq [fork forks]
-            (.submit pool (work-task pool thrown done-f task-f fork)))
+            (.submit pool (work-task pool thrown task-f done-f fork)))
           (.shutdown pool)))
       (catch Throwable t
         (.shutdown pool)
         (deliver thrown t)))))
 
 (defn- work [threads task-f done-f tasks]
-  (let [pool   (fixed-pool threads)
-        thrown (promise)]
-    (doseq [task tasks]
-      (.submit pool (work-task pool thrown task-f done-f task)))
-    (.awaitTermination pool 24 TimeUnit/HOURS)
-    (when (realized? thrown)
-      (throw @thrown))))
+  (when (seq tasks)
+    (let [pool   (fixed-pool threads)
+          thrown (promise)]
+      (doseq [task tasks]
+        (.submit pool (work-task pool thrown task-f done-f task)))
+      (.awaitTermination pool 24 TimeUnit/HOURS)
+      (when (realized? thrown)
+        (throw @thrown)))))
 
 (defn- action [vars action-f next-f deps-f threads]
   (let [graph   (graph/var-graph vars)
