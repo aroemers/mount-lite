@@ -53,7 +53,8 @@
           (catch Throwable t
             (throw (ex-info (str "Error while stopping " var' ":") {:var var' :state state'} t)))))
       (alter-var-root var' (constantly (Unstarted. var')))
-      (alter-meta! var' assoc ::status :stopped))
+      (alter-meta! var' assoc ::status :stopped)
+      (alter-meta! var' dissoc ::current-stop))
     sorted-vars))
 
 (def ^:private all-states
