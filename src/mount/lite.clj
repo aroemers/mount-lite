@@ -222,6 +222,18 @@
   ([& vars]
    (reduce (fn [m v] (assoc m v (-> v meta ::status))) {} vars)))
 
+(defn dot
+  "Retuns a Graphfiz dot representation of the state dependencies.
+  Currently no options available."
+  [& {:as options}]
+  (let [graph (graph/var-graph (all-states))
+        builder (StringBuilder. "digraph {\n")]
+    (doseq [state (dep/nodes graph)
+            dep (dep/immediate-dependencies graph state)]
+      (.append builder (str "  \"" (subs (str state) 2) "\" -> \"" (subs (str dep) 2) "\";\n")))
+    (.append builder "}")
+    (str builder)))
+
 
 ;;; Reloading.
 
