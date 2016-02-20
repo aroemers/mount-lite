@@ -218,6 +218,8 @@ It does this by calculating a dependency graph (using [tools.namespace](https://
 and starts (or stops) them as eagerly as possible using a - user specified - number of threads. Note that this same graph is also
 used for the `up-to` feature.
 
+> NOTE: To visualize the dependency graph of all the states, one can use the `dot` function.
+
 States default to depend on other states in the same namespace defined above them, so the parallelism is normally to
 be gained on a namespace level. The following example shows how parallelism works:
 

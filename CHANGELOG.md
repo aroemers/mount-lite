@@ -1,8 +1,15 @@
 # Change Log
 
 ## [Unreleased][unreleased]
+
+
+## [0.9.5] - 2016-02-20
 ### Fixed
 - Fix hang when starting or stopping no states in parallel.
+- Fix wrong initialisation of parallel fork tasks.
+
+### Added
+- The `dot` function, for generating a Graphviz graph of all the states.
 
 
 ## [0.9.4] - 2016-02-11
@@ -55,7 +62,8 @@
 ## 0.9
 - Initial release
 
-[unreleased]: https://github.com/aroemers/mount-lite/compare/0.9.4...HEAD
+[unreleased]: https://github.com/aroemers/mount-lite/compare/0.9.5...HEAD
+[0.9.5]: https://github.com/aroemers/mount-lite/compare/0.9.4...0.9.5
 [0.9.4]: https://github.com/aroemers/mount-lite/compare/0.9.3...0.9.4
 [0.9.3]: https://github.com/aroemers/mount-lite/compare/0.9.2...0.9.3
 [0.9.2]: https://github.com/aroemers/mount-lite/compare/0.9.1...0.9.2
