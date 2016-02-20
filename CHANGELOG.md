@@ -2,7 +2,7 @@
 
 ## [Unreleased][unreleased]
 ### Added
-- Add `:bindings` option to `defstate` and `start`. See README for details.
+- Add optional bindings to `defstate`, and `:bindings` option to `start`. See README for details.
 
 
 ## [0.9.4] - 2016-02-11
