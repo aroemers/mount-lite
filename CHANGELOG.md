@@ -1,11 +1,11 @@
 # Change Log
 
 ## [Unreleased][unreleased]
-### Added
-- Add optional bindings to `defstate`, and `:bindings` option to `start`. See README for details.
+
 
 ## [0.9.6] - 2016-02-29
 ### Added
+- Add optional bindings to `defstate`, and `:bindings` option to `start`. See README for details.
 - Added `:on-reload` option for `defstate`.
 - Added `:on-cascade` option for `defstate`.
 

@@ -303,9 +303,11 @@ When the `incrementer` state is started normally, it will become a function that
 
 As can be seen, the bindings that were used when starting the state are also used when stopping the state.
 
-> NOTE: If you want to inspect what the binding values are when a state has started, consult the var meta key `:mount.lite/current-bindings`.
+> NOTE: If you want to inspect what the binding values are when a state has started, consult the var meta keyseq `[:mount.lite/current :bindings]`.
 
-This bindings feature can be used for passing configuration parameters or even as a kind of dependency injection. Yet, at the current time of writing, my opinion is to use this feature sparingly. Configuration can be read from some configuration state, and substitutions are normally sufficient for mocking. Using bindings a lot, especially for dependency injection, might hint towards a design flaw.
+This bindings feature can be used for passing in any kind of object. Yet, at the current time of writing, my opinion is to use this feature sparingly. Configuration can be read from some configuration state, and substitutions are normally sufficient for mocking. Using bindings a lot, especially as some kind of dependency injection, might hint towards a design flaw.
+
+Still, for passing in some configuration values (e.g. command line arguments), I think this is a nice and clean solution: no need for `alter-var-root`s, thread-local dynamic vars (which will break in parallel mode) or other fragile and rigid solutions. Bindings in that sense offer an easy, cleanly scoped and semantically clear way of passing values to states, ensuring the same values on stop as when a state was started.
 
 *Whatever your style or situation, enjoy!*
 
