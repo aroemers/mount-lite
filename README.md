@@ -12,7 +12,7 @@ I like [Mount](https://github.com/tolitius/mount), a lot. But
 
 Mount Lite is **Clojure only**, has a **flexible data-driven** API, **substitutions** are well supported
 (and cleaner in my opinion), states **stop automatically and cascadingly on redefinition**, states can define **bindings**
-and states can be started and stopped **in parallel**. That's it.
+for looser coupling and states can be started and stopped **in parallel**. That's it.
 
 You like it? Feel free to use it. Don't like it? The original Mount is great!
 

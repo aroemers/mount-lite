@@ -174,10 +174,10 @@
    (assoc opts :parallel threads)))
 
 (defn bindings
-  "Creates or updates start option map, supplying binding maps for the
-  given defstate vars. Make sure the symbols in the binding maps are
-  quoted. Multiple uses of this function on the same option map are
-  merged."
+  "Creates or updates start option map, supplying binding vectors for
+  the given defstate vars. Make sure the symbols in the binding
+  vectors are quoted. Multiple uses of this function on the same
+  option map are merged."
   {:arglists '([& var-binding-seq] [opts & var-binding-seq])}
   [& [opts-or-var & var-binding-seq]]
   (let [[opts var-binding-seq] (if (var? opts-or-var)
@@ -310,7 +310,6 @@
   (assert (contains? body :start) "state must contain a :start expression")
   (assert (vector? bindings) "bindings must be vector")
   (assert (even? (count bindings)) "bindings must have even number of elems")
-  (assert (contains? body :start) "state must contain a :start expression")
   (let [valid-on-reload (set (keys (methods do-on-reload)))]
     (assert (or (nil? on-reload) (valid-on-reload on-reload))
             (str ":on-reload must be nil or in " valid-on-reload)))
