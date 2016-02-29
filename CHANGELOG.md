@@ -2,6 +2,14 @@
 
 ## [Unreleased][unreleased]
 
+## [0.9.6] - 2016-02-29
+### Added
+- Added `:on-reload` option for `defstate`.
+- Added `:on-cascade` option for `defstate`.
+
+## Changed
+- The `on-reload` function now defaults to `nil`, and only overrides the states' `:on-reload` when set to a non-nil value.
+
 
 ## [0.9.5] - 2016-02-20
 ### Fixed
@@ -62,7 +70,8 @@
 ## 0.9
 - Initial release
 
-[unreleased]: https://github.com/aroemers/mount-lite/compare/0.9.5...HEAD
+[unreleased]: https://github.com/aroemers/mount-lite/compare/0.9.6...HEAD
+[0.9.6]: https://github.com/aroemers/mount-lite/compare/0.9.5...0.9.6
 [0.9.5]: https://github.com/aroemers/mount-lite/compare/0.9.4...0.9.5
 [0.9.4]: https://github.com/aroemers/mount-lite/compare/0.9.3...0.9.4
 [0.9.3]: https://github.com/aroemers/mount-lite/compare/0.9.2...0.9.3

@@ -112,7 +112,9 @@ This cascading is great to work with, and in combination with the [tools.namespa
 
 > NOTE: If you want your namespaces to be unloaded when using `c.t.n.r/refresh`, make sure you call `(stop)` beforehand.
 
-Still, there may be cases where you don't want this cascading stop behaviour. To alter this behaviour, one can set a different mode via the `on-reload` function. Given no arguments, it returns the current mode. Given an argument (a keyword), you can set the reload behaviour to one the following modes:
+> NOTE: This cascading is actually available as an option for the `start` and `stop` functions, called `:up-to`, as described [further below](#only-except-and-other-startstop-options).
+
+Still, there may be cases where you don't want this reloading and/or cascading stop behaviour. To alter the reloading behaviour, one can set a different mode via the `:on-reload` option on a `defstate`. You can set the option to one the following modes:
 
 * `:cascade` - This is the default, as described above.
 
@@ -120,9 +122,9 @@ Still, there may be cases where you don't want this cascading stop behaviour. To
 
 * `:lifecycle` -  This will only redefine the lifecycle functions, and keep the state running as is (including the accompanying `:stop` expression). I.e, it is only after a (re)start that the redefinition will be used.
 
-> NOTE: This cascading is actually available as an option for the `start` and `stop` functions, called `:up-to`, as described [further below](#only-except-and-other-startstop-options).
+> NOTE: You can also override the `:on-reload` behaviour of all the `defstates` by setting a bahaviour using the `on-reload` function.
 
-> NOTE: Extra modes can be added by adding a method to the `do-on-reload` multimethod.
+If you don't want your `defstate` to be stopped whenever a dependency is stopped, you can override the default behaviour with the `:on-cascade` option on a `defstate`. You can set this to `:skip`, which means the state won't be stopped automatically whenever a dependency is redefined that has the `:cascade` on-reload behaviour.
 
 ### Substitute states
 

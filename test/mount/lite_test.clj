@@ -18,7 +18,7 @@
 
 ;;; Stop all states before and after every test, and reset on-reload.
 
-(use-fixtures :each (fn [f] (stop) (on-reload :cascade) (f) (stop)))
+(use-fixtures :each (fn [f] (stop) (on-reload nil) (f) (stop)))
 
 ;;; Tests
 
@@ -74,20 +74,30 @@
   (start)
   (is (= state-3 "state-1 + state-2 + state-3") "State 2 is back to its original."))
 
+(deftest test-on-cascade-skip
+  (start)
+  (require 'mount.lite-test.test-state-1 :reload)
+  (is (= (statusses #'state-1 #'state-2 #'state-3) [:stopped :started :stopped]) "State 2 has :on-cascade :skip"))
+
+(deftest test-on-reload-lifecycle
+  (start)
+  (require 'mount.lite-test.test-state-3 :reload)
+  (is (= (statusses #'state-1 #'state-2 #'state-3) [:started :started :started]) "State 3 has :on-reload :lifecycle"))
+
 (deftest test-on-reload-cascade
   (start)
   (is (= (statusses #'state-1 #'state-2 #'state-3) [:started :started :started]) "All states started")
   (require 'mount.lite-test.test-state-2 :reload)
   (is (= (statusses #'state-1 #'state-2 #'state-3) [:started :stopped :stopped]) "Both state 2 and 3 have stopped"))
 
-(deftest test-on-reload-stop
+(deftest test-on-reload-stop-override
   (start)
   (is (= (statusses #'state-1 #'state-2 #'state-3) [:started :started :started]) "All states started")
   (on-reload :stop)
   (require 'mount.lite-test.test-state-2 :reload)
   (is (= (statusses #'state-1 #'state-2 #'state-3) [:started :stopped :started]) "Only state 2 has stopped"))
 
-(deftest test-on-reload-lifecycle
+(deftest test-on-reload-lifecycle-override
   (start)
   (is (= (statusses #'state-1 #'state-2 #'state-3) [:started :started :started]) "All states started")
   (on-reload :lifecycle)

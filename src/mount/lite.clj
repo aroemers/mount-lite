@@ -15,16 +15,16 @@
 ;;; Private logic
 
 (defonce ^:private order (atom 0))
-(defonce ^:private on-reload* (volatile! :cascade))
+(defonce ^:private on-reload-override (volatile! nil))
 
 (defmulti ^:no-doc do-on-reload
-  (fn [var] @on-reload*))
+  (fn [var] (or @on-reload-override (-> var meta ::current :on-reload) :cascade)))
 
 (defn- defstate* [sym]
   (let [current (resolve sym)
         status  (if current (do-on-reload current) :stopped)
         meta'   (if current
-                  (select-keys (meta current) [::order ::current-stop])
+                  (select-keys (meta current) [::order ::current])
                   {::order (swap! order + 10)})
         var     (or current (intern *ns* sym))]
     (doto var
@@ -40,21 +40,21 @@
           (throw (IllegalArgumentException. "Missing :start expression.")))
         (catch Throwable t
           (throw (ex-info (str "Error while starting " var' ":") {:var var' :state state'} t))))
-      (alter-meta! var' assoc ::status :started ::current-stop (:stop state')))
+      (alter-meta! var' assoc ::status :started ::current state'))
     (map key sorted)))
 
 (defn- stop* [vars]
   (let [sorted-vars (sort-by (comp - ::order meta) vars)]
     (doseq [var' sorted-vars
             :let [state' (meta var')]]
-      (when-let [stop-fn (::current-stop state')]
+      (when-let [stop-fn (-> state' ::current :stop)]
         (try
           (stop-fn)
           (catch Throwable t
             (throw (ex-info (str "Error while stopping " var' ":") {:var var' :state state'} t)))))
       (alter-var-root var' (constantly (Unstarted. var')))
       (alter-meta! var' assoc ::status :stopped)
-      (alter-meta! var' dissoc ::current-stop))
+      (alter-meta! var' dissoc ::current))
     sorted-vars))
 
 (def ^:private all-states
@@ -242,18 +242,22 @@
   :stopped)
 
 (defmethod do-on-reload :cascade [var]
-  (stop (up-to var))
+  (let [up-to' (filtered-vars :started {:up-to var})
+        only'  (remove #(= (-> % meta ::current :on-cascade) :skip) up-to')]
+    (stop {:only (conj only' var)}))
   :stopped)
 
 (defmethod do-on-reload :lifecycle [var]
   (-> var meta ::status))
 
 (defn on-reload
-  "Get or set the on-reload configuration. Default is :cascade,
-  meaning all states `up-to` the reloaded state (inclusive) are
-  stopped."
-  ([] @on-reload*)
-  ([val] (vreset! on-reload* val)))
+  "Get or set the on-reload override configuration. Default is nil,
+  meaning the defstates themselves determine how they should respond
+  to a redefinition. Default for defstates is :cascade, meaning all
+  states `up-to` the reloaded state (inclusive) are stopped (except
+  those with :on-cascade set to :skip)."
+  ([] @on-reload-override)
+  ([val] (vreset! on-reload-override val)))
 
 
 ;;; Defining states.
@@ -265,14 +269,21 @@
 
   Note that the following does not define a state var, and won't be recognized by
   start or stop: (def foo (state ...))."
-  [& {:keys [start stop] :as body}]
+  [& {:keys [start stop on-reload on-cascade] :as body}]
   (assert (contains? body :start) "state must contain a :start expression")
-  `{:start (fn [] ~start)
-    :stop  (fn [] ~stop)})
+  (let [valid-on-reload (set (keys (methods do-on-reload)))]
+    (assert (or (nil? on-reload) (valid-on-reload on-reload))
+            (str ":on-reload must be nil or in " valid-on-reload)))
+  (assert (or (nil? on-cascade) (= on-cascade :skip)) ":on-cascade must be nil or :skip")
+  `{:start      (fn [] ~start)
+    :stop       (fn [] ~stop)
+    :on-reload  ~on-reload
+    :on-cascade ~on-cascade})
 
 (defmacro defstate
   "Define a state. At least a :start expression should be supplied.
-  Optionally one can define a :stop expression."
+  Optionally one can define a :stop expression, an :on-reload setting
+  and an :on-cascade setting."
   {:arglists '([name doc-string? attr-map? & {:as state-map}])}
   [name & args]
   (let [[name {:as body}] (name-with-attrs name args)
