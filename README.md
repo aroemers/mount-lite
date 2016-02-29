@@ -93,30 +93,19 @@ Also note that documents strings and attribute maps are supported. So a full `de
 Whenever you redefine a global state var - when reloading the namespace for instance - by default that state and all the states depending on that state will be stopped automatically (in reverse order). We call this a cascading stop, and uses an internal graph to determine the dependents. An example:
 
 ```clj
-(defstate a :start 1 :stop (println "Stopping a") :on-reload :lifecycle)
+(defstate a :start 1 :stop (println "Stopping a"))
 (defstate b :start 2 :stop (println "Stopping b"))
-(defstate c :start 3 :stop (println "Stopping c") :on-cascade :skip)
-(defstate d :start 4 :stop (println "Stopping d"))
+(defstate c :start 3 :stop (println "Stopping c"))
 
 (start)
-;=> (#'user/a #'user/b #'user/c #'user/d)
+;=> (#'user/a #'user/b #'user/c)
 
 (defstate b :start 22 :stop (println "Stopping bb"))
-;;> Stopping d
+;;> Stopping c
 ;;> Stopping b
-;; -- note that #'b is skipped, as :on-cascade of it is set to :skip --
 
 (start)
-;=> (#'user/b #'user/d)
-
-b
-;=> 22
-
-(defstate a :start 11 :stop (println "Stopping aa"))
-;; --nothing happens, as :on-reload of #'a is set to :lifecycle --
-
-a
-;=> 1
+;=> (#'user/b #'user/c)
 ```
 
 This cascading is great to work with, and in combination with the [tools.namespace](https://github.com/clojure/tools.namespace) library it can really shine. Whenever you make sure your namespaces with `defstate` definitions have `{:clojure.tools.namespace.repl/unload false}` as metadata, calling `(clojure.tools.namespace.repl/refresh :after 'mount.lite/start)` will only stop the required states (in correct order) and restart them.
