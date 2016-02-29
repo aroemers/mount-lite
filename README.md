@@ -5,14 +5,14 @@ I like [Mount](https://github.com/tolitius/mount), a lot. But
 * I wanted a composable and data-driven API (see [this mount issue](https://github.com/tolitius/mount/issues/19)
   and [this presentation](https://www.youtube.com/watch?v=3oQTSP4FngY)).
 * I had my own ideas about how to handle redefinition of states.
-* I don't need ClojureScript support (and its CLJC mode, I use the [rmap library](https://github.com/aroemers/rmap) for lazily loading systems),
+* I don't need ClojureScript support (or its CLJC mode).
 * I don't need suspending (or [other](https://github.com/tolitius/mount/issues/16)
   [features](https://github.com/tolitius/mount/blob/dc5c89b3e9a47601242fbc79846460812f81407d/src/mount/core.cljc#L301)) -
-  I'd like a library like this to be minimal.
+  but I did have some own feature ideas for a library like this.
 
 Mount Lite is **Clojure only**, has a **flexible data-driven** API, **substitutions** are well supported
-(and cleaner in my opinion, but Mount may [get there](https://github.com/tolitius/mount/issues/45) as well),
-states **stop automatically and cascadingly on redefinition**, and states can be started and stopped **in parallel**. That's it.
+(and cleaner in my opinion), states **stop automatically and cascadingly on redefinition**, states can define **bindings**
+and states can be started and stopped **in parallel**. That's it.
 
 You like it? Feel free to use it. Don't like it? The original Mount is great!
 
