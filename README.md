@@ -93,19 +93,30 @@ Also note that documents strings and attribute maps are supported. So a full `de
 Whenever you redefine a global state var - when reloading the namespace for instance - by default that state and all the states depending on that state will be stopped automatically (in reverse order). We call this a cascading stop, and uses an internal graph to determine the dependents. An example:
 
 ```clj
-(defstate a :start 1 :stop (println "Stopping a"))
+(defstate a :start 1 :stop (println "Stopping a") :on-reload :lifecycle)
 (defstate b :start 2 :stop (println "Stopping b"))
-(defstate c :start 3 :stop (println "Stopping c"))
+(defstate c :start 3 :stop (println "Stopping c") :on-cascade :skip)
+(defstate d :start 4 :stop (println "Stopping d"))
 
 (start)
-;=> (#'user/a #'user/b #'user/c)
+;=> (#'user/a #'user/b #'user/c #'user/d)
 
 (defstate b :start 22 :stop (println "Stopping bb"))
-;;> Stopping c
+;;> Stopping d
 ;;> Stopping b
+;; -- note that #'b is skipped, as :on-cascade of it is set to :skip --
 
 (start)
-;=> (#'user/b #'user/c)
+;=> (#'user/b #'user/d)
+
+b
+;=> 22
+
+(defstate a :start 11 :stop (println "Stopping aa"))
+;; --nothing happens, as :on-reload of #'a is set to :lifecycle --
+
+a
+;=> 1
 ```
 
 This cascading is great to work with, and in combination with the [tools.namespace](https://github.com/clojure/tools.namespace) library it can really shine. Whenever you make sure your namespaces with `defstate` definitions have `{:clojure.tools.namespace.repl/unload false}` as metadata, calling `(clojure.tools.namespace.repl/refresh :after 'mount.lite/start)` will only stop the required states (in correct order) and restart them.
@@ -122,9 +133,9 @@ Still, there may be cases where you don't want this reloading and/or cascading s
 
 * `:lifecycle` -  This will only redefine the lifecycle functions, and keep the state running as is (including the accompanying `:stop` expression). I.e, it is only after a (re)start that the redefinition will be used.
 
-> NOTE: You can also override the `:on-reload` behaviour of all the `defstates` by setting a bahaviour using the `on-reload` function.
+> NOTE: You can also override the `:on-reload` behaviour of all the `defstates` by setting a behaviour using the `on-reload` function. By setting is back to `nil`, the `:on-reload` setting of the `defstates` is used again.
 
-If you don't want your `defstate` to be stopped whenever a dependency is stopped, you can override the default behaviour with the `:on-cascade` option on a `defstate`. You can set this to `:skip`, which means the state won't be stopped automatically whenever a dependency is redefined that has the `:cascade` on-reload behaviour.
+If you don't want your `defstate` to be stopped whenever a dependency is stopped, you can have your state skip the cascading stop with the `:on-cascade` option on a `defstate`. If can set this to `:skip`, the state won't be stopped automatically whenever a dependency is redefined that has the `:cascade` on-reload behaviour.
 
 ### Substitute states
 
@@ -178,7 +189,7 @@ These option maps support six keys, and are applied in the following order:
 
 * `:bindings` - A map of state vars to binding maps. This is a more advanced feature, explained in the section about [bindings](#bindings).
 
-The functions `only`, `except`, `up-to`, `substitute` and `parallel` create or update such option maps, as a convenience. These functions can
+The functions `only`, `except`, `up-to`, `substitute`, `parallel` and `bindings` create or update such option maps, as a convenience. These functions can
 be threaded, if that's your style, but you don't need to, as both `start` and `stop` take multiples of these option
 maps. For example, these groups of expressions mean the same:
 
@@ -198,7 +209,7 @@ maps. For example, these groups of expressions mean the same:
 While the functions offer a convenient, readable and composable API, all of it is data driven. Your (test) configuration
 can be stored anywhere, such as your `user.clj` file or in an EDN data resource.
 
-The following shows how `up-to` works:
+Oh, and the following shows how `up-to` works:
 
 ```clj
 (defstate a :start nil)
