@@ -15,16 +15,16 @@
 ;;; Private logic
 
 (defonce ^:private order (atom 0))
-(defonce ^:private on-reload* (volatile! :cascade))
+(defonce ^:private on-reload-override (volatile! nil))
 
 (defmulti ^:no-doc do-on-reload
-  (fn [var] @on-reload*))
+  (fn [var] (or @on-reload-override (-> var meta ::current :on-reload) :cascade)))
 
 (defn- defstate* [sym]
   (let [current (resolve sym)
         status  (if current (do-on-reload current) :stopped)
         meta'   (if current
-                  (select-keys (meta current) [::order ::current-stop])
+                  (select-keys (meta current) [::order ::current])
                   {::order (swap! order + 10)})
         var     (or current (intern *ns* sym))]
     (doto var
@@ -40,21 +40,22 @@
           (throw (IllegalArgumentException. "Missing :start expression.")))
         (catch Throwable t
           (throw (ex-info (str "Error while starting " var' ":") {:var var' :state state'} t))))
-      (alter-meta! var' assoc ::status :started ::current-stop (:stop state')))
+      (alter-meta! var' assoc ::status :started)
+      (alter-meta! var' update-in [::current] merge state'))
     (map key sorted)))
 
 (defn- stop* [vars]
   (let [sorted-vars (sort-by (comp - ::order meta) vars)]
     (doseq [var' sorted-vars
             :let [state' (meta var')]]
-      (when-let [stop-fn (::current-stop state')]
+      (when-let [stop-fn (-> state' ::current :stop)]
         (try
           (stop-fn)
           (catch Throwable t
             (throw (ex-info (str "Error while stopping " var' ":") {:var var' :state state'} t)))))
       (alter-var-root var' (constantly (Unstarted. var')))
       (alter-meta! var' assoc ::status :stopped)
-      (alter-meta! var' dissoc ::current-stop))
+      (alter-meta! var' dissoc ::current))
     sorted-vars))
 
 (def ^:private all-states
@@ -95,18 +96,18 @@
 (defn- var-bindings-map [vsm opts]
   (let [bindings (:bindings opts)]
     (reduce-kv (fn [m var state]
-                 (assoc m var {:start (let [start-fn (:start state)]
-                                        (fn [] (if (::bindings-form state)
-                                                 (let [boundp (promise)
-                                                       val (start-fn boundp (get bindings var))]
-                                                   (alter-meta! var assoc ::current-bindings
-                                                                (when (realized? boundp) @boundp))
-                                                   val)
-                                                 (start-fn))))
-                               :stop  (when-let [stop-fn (:stop state)]
-                                        (fn []
-                                          (stop-fn (get bindings var))
-                                          (alter-meta! var dissoc ::current-bindings)))}))
+                 (assoc m var
+                        (merge (select-keys state [:on-reload :on-cascade])
+                               {:start (let [start-fn (:start state)]
+                                         (fn [] (if (::bindings-form state)
+                                                  (let [boundp (promise)
+                                                        val (start-fn boundp (get bindings var))]
+                                                    (alter-meta! var assoc-in [::current :bindings]
+                                                                 (when (realized? boundp) @boundp))
+                                                    val)
+                                                  (start-fn))))
+                                :stop  (when-let [stop-fn (:stop state)]
+                                         (fn [] (stop-fn (get bindings var))))})))
                {} vsm)))
 
 (defn- name-with-attrs [name [arg1 arg2 & argx :as args]]
@@ -258,7 +259,7 @@
    (reduce (fn [m v] (assoc m v (-> v meta ::status))) {} vars)))
 
 (defn dot
-  "Retuns a Graphfiz dot representation of the state dependencies.
+  "Retuns a Graphviz dot representation of the state dependencies.
   Currently no options available."
   [& {:as options}]
   (let [graph (graph/var-graph (all-states))
@@ -277,18 +278,22 @@
   :stopped)
 
 (defmethod do-on-reload :cascade [var]
-  (stop (up-to var))
+  (let [up-to' (filtered-vars :started {:up-to var})
+        only'  (remove #(= (-> % meta ::current :on-cascade) :skip) up-to')]
+    (stop {:only (conj only' var)}))
   :stopped)
 
 (defmethod do-on-reload :lifecycle [var]
   (-> var meta ::status))
 
 (defn on-reload
-  "Get or set the on-reload configuration. Default is :cascade,
-  meaning all states `up-to` the reloaded state (inclusive) are
-  stopped."
-  ([] @on-reload*)
-  ([val] (vreset! on-reload* val)))
+  "Get or set the on-reload override configuration. Default is nil,
+  meaning the defstates themselves determine how they should respond
+  to a redefinition. Default for defstates is :cascade, meaning all
+  states `up-to` the reloaded state (inclusive) are stopped (except
+  those with :on-cascade set to :skip)."
+  ([] @on-reload-override)
+  ([val] (vreset! on-reload-override val)))
 
 
 ;;; Defining states.
@@ -300,16 +305,23 @@
 
   Note that the following does not define a state var, and won't be recognized by
   start or stop: (def foo (state ...))."
-  {:arglists '([& {:keys [start stop]}])}
-  [& {:keys [start stop bindings] :as body :or {bindings []}}]
+  {:arglists '([& {:keys [start stop on-reload on-cascade]}])}
+  [& {:keys [start stop bindings on-reload on-cascade] :as body :or {bindings []}}]
   (assert (contains? body :start) "state must contain a :start expression")
   (assert (vector? bindings) "bindings must be vector")
   (assert (even? (count bindings)) "bindings must have even number of elems")
+  (assert (contains? body :start) "state must contain a :start expression")
+  (let [valid-on-reload (set (keys (methods do-on-reload)))]
+    (assert (or (nil? on-reload) (valid-on-reload on-reload))
+            (str ":on-reload must be nil or in " valid-on-reload)))
+  (assert (or (nil? on-cascade) (= on-cascade :skip)) ":on-cascade must be nil or :skip")
   (let [syms (mapv first (partition 2 bindings))]
     `{:start (fn [boundp# [& {:syms ~syms :or ~(apply hash-map bindings)}]]
                (deliver boundp# (vec (apply concat (zipmap '~syms ~syms))))
                                   ~start)
       :stop  (fn [[& {:syms ~syms :or ~(apply hash-map bindings)}]] ~stop)
+      :on-reload  ~on-reload
+      :on-cascade ~on-cascade
       :mount.lite/bindings-form '~bindings}))
 
 (defmacro defstate

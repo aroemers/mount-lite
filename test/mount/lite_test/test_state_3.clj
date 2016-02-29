@@ -3,4 +3,5 @@
             [mount.lite-test.test-state-2 :refer (state-2)]))
 
 (defstate state-3
-  :start (str state-2 " + state-3"))
+  :start (str state-2 " + state-3")
+  :on-reload :lifecycle)

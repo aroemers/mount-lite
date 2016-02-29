@@ -5,4 +5,5 @@
 (defstate state-2 [s " + state-2"
                    p (promise)]
   :start (str state-1 s)
-  :stop (deliver p "delivery!"))
+  :stop (deliver p "delivery!")
+  :on-cascade :skip)
