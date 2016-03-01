@@ -124,7 +124,7 @@ Still, there may be cases where you don't want this reloading and/or cascading s
 
 > NOTE: You can also override the `:on-reload` behaviour of all the `defstates` by setting a behaviour using the `on-reload` function. By setting is back to `nil`, the `:on-reload` setting of the `defstates` is used again.
 
-If you don't want your `defstate` to be stopped whenever a dependency is stopped, you can have your state skip the cascading stop with the `:on-cascade` option on a `defstate`. If can set this to `:skip`, the state won't be stopped automatically whenever a dependency is redefined that has the `:cascade` on-reload behaviour.
+If you don't want your `defstate` to be stopped whenever a dependency is stopped, you can have your state skip the cascading stop with the `:on-cascade` option. If you set this to `:skip`, the state won't be stopped automatically whenever a dependency is redefined that has the `:cascade` on-reload behaviour.
 
 ### Substitute states
 
