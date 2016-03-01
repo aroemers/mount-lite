@@ -17,20 +17,6 @@
 (defonce ^:private order (atom 0))
 (defonce ^:private on-reload-override (volatile! nil))
 
-(defmulti ^:no-doc do-on-reload
-  (fn [var] (or @on-reload-override (-> var meta ::current :on-reload) :cascade)))
-
-(defn- defstate* [sym]
-  (let [current (resolve sym)
-        status  (if current (do-on-reload current) :stopped)
-        meta'   (if current
-                  (select-keys (meta current) [::order ::current])
-                  {::order (swap! order + 10)})
-        var     (or current (intern *ns* sym))]
-    (doto var
-      (reset-meta! (merge meta' (meta sym) {::status status :redef true}))
-      (alter-var-root (constantly (if current (deref current) (Unstarted. var)))))))
-
 (defn- start* [var-state-map]
   (let [sorted (sort-by (comp ::order meta key) var-state-map)]
     (doseq [[var' state'] sorted]
@@ -273,6 +259,9 @@
 
 ;;; Reloading.
 
+(defmulti ^:no-doc do-on-reload
+  (fn [var] (or @on-reload-override (-> var meta ::current :on-reload) :cascade)))
+
 (defmethod do-on-reload :stop [var]
   (stop (only var))
   :stopped)
@@ -332,5 +321,12 @@
         body        (if (vector? (first args))
                       (apply hash-map :bindings (first args) (next args))
                       (apply hash-map args))
-        var'        (defstate* name)]
-    `(doto ~var' (alter-meta! merge (state ~@(apply concat body))))))
+        current     (resolve name)]
+    `(let [status# (if ~current (do-on-reload ~current) :stopped)
+           meta#   ~(if current
+                      `(select-keys (meta ~current) [::order ::current])
+                      `{::order (swap! @#'order + 10)})]
+       ~(when-not current `(defonce ~name (Unstarted. (var ~name))))
+       (alter-meta! (var ~name) merge (state ~@(apply concat body)) meta#
+                    {::status status# :redef true})
+       (var ~name))))
