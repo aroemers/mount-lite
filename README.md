@@ -20,7 +20,7 @@ You like it? Feel free to use it. Don't like it? The original Mount is great!
 
 ## Documentation
 
-Put this in your dependencies `[functionalbytes/mount-lite "0.9.5"]` and make sure Clojars is one of your repositories.
+Put this in your dependencies `[functionalbytes/mount-lite "0.9.7"]` and make sure Clojars is one of your repositories.
 Also make sure you use Clojure 1.7+, as the library uses transducers and volatiles.
 
 > NOTE: Clojure 1.8 - with its direct linking - is safe to use as well.
