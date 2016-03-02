@@ -10,6 +10,7 @@ Using this lifecycle, you can quickly bring up the application state, and bring 
 The mount and mount-lite libraries give you an easy and non-intrusive way of adding such lifecycles to the stateful parts of your application.
 
 The mount-lite library has some unique features and approach with respect to mount.
+For more info on why mount-lite was created, see [this blog post](http://www.functionalbytes.nl/clojure/mount/mount-lite/2016/02/11/mount-lite.html).
 
 ## Defining states
 

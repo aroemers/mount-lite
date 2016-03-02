@@ -56,4 +56,10 @@ To alter the reloading behaviour, one can set a different mode via the `:on-relo
 If you don't want your `defstate` to be stopped whenever a dependency is stopped because it is redefined, you can have your defstate skip the cascading stop with the `:on-cascade` option on your `defstate`.
 If you set this to `:skip`, the defstate won't be stopped automatically whenever a dependency is redefined that has `:cascade` as its `:on-reload` behaviour.
 
-> NOTE: You can also override the `:on-reload` behaviour of all the `defstates` by setting a behaviour using the `on-reload` function. By setting is back to `nil`, the `:on-reload` setting of the `defstates` is used again.
+### In summary
+
+To alter the behaviour for when _this_ state is being reloaded, use `:on-reload`.
+
+To alter the behaviour for when _another_ state is being reloaded (and has the `:cascade` behaviour, which is the default), use `:on-cascade`.
+
+> NOTE: You can also override the `:on-reload` behaviour of all the `defstates` by setting a behaviour keyword using the `on-reload` function. By setting is back to `nil`, the `:on-reload` setting of the `defstates` is used again.
