@@ -78,7 +78,7 @@
 - Initial release
 
 [unreleased]: https://github.com/aroemers/mount-lite/compare/0.9.7...HEAD
-[0.9.6]: https://github.com/aroemers/mount-lite/compare/0.9.6...0.9.7
+[0.9.7]: https://github.com/aroemers/mount-lite/compare/0.9.6...0.9.7
 [0.9.6]: https://github.com/aroemers/mount-lite/compare/0.9.5...0.9.6
 [0.9.5]: https://github.com/aroemers/mount-lite/compare/0.9.4...0.9.5
 [0.9.4]: https://github.com/aroemers/mount-lite/compare/0.9.3...0.9.4
