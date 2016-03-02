@@ -322,7 +322,12 @@
                       (apply hash-map :bindings (first args) (next args))
                       (apply hash-map args))
         current     (resolve name)]
-    `(let [status# (if ~current (do-on-reload ~current) :stopped)
+    `(let [status# ~(if current
+                      (if (-> current meta ::order)
+                        `(do-on-reload ~current)
+                        `(throw (ex-info (str "Cannot define defstate for existing var that is not "
+                                              "a defstate") {:var ~current})))
+                      :stopped)
            meta#   ~(if current
                       `(select-keys (meta ~current) [::order ::current])
                       `{::order (swap! @#'order + 10)})]
