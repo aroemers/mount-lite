@@ -1,7 +1,9 @@
 # Change Log
 
 ## [Unreleased][unreleased]
-
+### Changed
+- The `defstate` macro now disallows defining a var that already exists and is not a defstate.
+- The documentation has moved to codox
 
 ## [0.9.7] - 2016-03-01
 ### Fixed
