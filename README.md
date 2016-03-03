@@ -2,8 +2,8 @@
 
 I like [Mount](https://github.com/tolitius/mount), a lot. But
 
-* I wanted a composable and data-driven API (see [this mount issue](https://github.com/tolitius/mount/issues/19)
-  and [this presentation](https://www.youtube.com/watch?v=3oQTSP4FngY)).
+* I wanted a composable and data-driven API (see [this](https://github.com/tolitius/mount/issues/19)
+  and [this](https://github.com/tolitius/mount/issues/47) mount issue, and [this presentation](https://www.youtube.com/watch?v=3oQTSP4FngY)).
 * I had my own ideas about how to handle redefinition of states.
 * I don't need ClojureScript support (or its CLJC mode).
 * I don't need suspending (or [other](https://github.com/tolitius/mount/issues/16)
