@@ -25,7 +25,9 @@ Also make sure you use Clojure 1.7+, as the library uses transducers and volatil
 
 > NOTE: Clojure 1.8 - with its direct linking - is safe to use as well.
 
-You can find all the documentation about mount-lite, what makes it unique, and the API [here](http://aroemers.github.io/mount-lite/index.html).
+You can find all the documentation about mount-lite, what makes it unique, and the API by clicking on the link below:
+
+[GO TO DOCUMENTATION](http://aroemers.github.io/mount-lite/index.html).
 
 ## A primer
 
