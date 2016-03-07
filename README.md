@@ -1,4 +1,4 @@
-# Mount lite
+![logo](doc/logo.png)
 
 I like [Mount](https://github.com/tolitius/mount), a lot. But
 
