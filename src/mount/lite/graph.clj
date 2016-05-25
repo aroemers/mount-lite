@@ -53,6 +53,10 @@
               (if-let [deps (-> var meta :dependencies)]
                 (reduce (fn [g dep] (dep/depend g var dep)) g deps)
                 (let [ns (.ns var)]
+                  (when-not (-> ns-graph :dependencies (get ns))
+                    (throw (ex-info (str "Cannot find namespace declaration source for " ns
+                                         ", ensure the source file is on the classpath.")
+                                    {:ns ns})))
                   (-> (add-transitives g (dep/transitive-dependencies ns-graph ns) ns-vars var)
                       (add-same-ns var (get ns-vars ns))))))
             graph vars)))

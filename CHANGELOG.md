@@ -3,6 +3,7 @@
 ## [Unreleased][unreleased]
 ### Added
 - Setting a log function via `log-fn`, which is called on state changes.
+- An exception is thrown when the state graph cannot be created due to missing sources. This only affects functions such as `parallel` and `up-to`.
 
 ### Changed
 - The `defstate` macro now disallows defining a var that already exists and is not a defstate.
