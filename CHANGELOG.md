@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased][unreleased]
+### Added
+- Setting a log function via `log-fn`, which is called on state changes.
+
 ### Changed
 - The `defstate` macro now disallows defining a var that already exists and is not a defstate.
 - The documentation has moved to codox

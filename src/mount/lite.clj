@@ -16,13 +16,16 @@
 
 (defonce ^:private order (atom 0))
 (defonce ^:private on-reload-override (volatile! nil))
+(defonce ^:private log-fn* (volatile! nil))
 
 (defn- start* [var-state-map]
   (let [sorted (sort-by (comp ::order meta key) var-state-map)]
     (doseq [[var' state'] sorted]
       (try
         (if-let [start-fn (:start state')]
-          (alter-var-root var' (constantly (start-fn)))
+          (do (when-let [f @log-fn*] (f var' :starting))
+              (alter-var-root var' (constantly (start-fn)))
+              (when-let [f @log-fn*] (f var' :started)))
           (throw (IllegalArgumentException. "Missing :start expression.")))
         (catch Throwable t
           (throw (ex-info (str "Error while starting " var' ":") {:var var' :state state'} t))))
@@ -36,7 +39,9 @@
             :let [state' (meta var')]]
       (when-let [stop-fn (-> state' ::current :stop)]
         (try
+          (when-let [f @log-fn*] (f var' :stopping))
           (stop-fn)
+          (when-let [f @log-fn*] (f var' :stopped))
           (catch Throwable t
             (throw (ex-info (str "Error while stopping " var' ":") {:var var' :state state'} t)))))
       (alter-var-root var' (constantly (Unstarted. var')))
@@ -283,6 +288,14 @@
   those with :on-cascade set to :skip)."
   ([] @on-reload-override)
   ([val] (vreset! on-reload-override val)))
+
+(defn log-fn
+  "Get or set a log function, which is called whenever the status changes of a var.
+  The function receives a var and a keyword, where the latter is one
+  of :starting, :started, :stopping or :stopped. Default is nil, meaning no log
+  function will be called."
+  ([] @log-fn*)
+  ([val] (vreset! log-fn* val)))
 
 
 ;;; Defining states.
