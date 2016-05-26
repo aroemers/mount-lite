@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased][unreleased]
+nothing yet
+
+## [0.9.8] - 2016-05-25
 ### Added
 - Setting a log function via `log-fn`, which is called on state changes.
 - An exception is thrown when the state graph cannot be created due to missing sources. This only affects functions such as `parallel` and `up-to`.
@@ -83,7 +86,8 @@
 ## 0.9
 - Initial release
 
-[unreleased]: https://github.com/aroemers/mount-lite/compare/0.9.7...HEAD
+[unreleased]: https://github.com/aroemers/mount-lite/compare/0.9.8...HEAD
+[0.9.8]: https://github.com/aroemers/mount-lite/compare/0.9.7...0.9.8
 [0.9.7]: https://github.com/aroemers/mount-lite/compare/0.9.6...0.9.7
 [0.9.6]: https://github.com/aroemers/mount-lite/compare/0.9.5...0.9.6
 [0.9.5]: https://github.com/aroemers/mount-lite/compare/0.9.4...0.9.5
