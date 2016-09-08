@@ -341,9 +341,8 @@
                         `(throw (ex-info (str "Cannot define defstate for existing var that is not "
                                               "a defstate") {:var ~current})))
                       :stopped)
-           meta#   ~(if current
-                      `(select-keys (meta ~current) [::order ::current])
-                      `{::order (swap! @#'order + 10)})]
+           meta#  (let [selected# ~(if current `(select-keys (meta ~current) [::order ::current]) `{})]
+                    (merge {::order (swap! @#'order + 10)} selected#))]
        ~(when-not current `(defonce ~name (Unstarted. (var ~name))))
        (alter-meta! (var ~name) merge (state ~@(apply concat body)) meta#
                     {::status status# :redef true})
