@@ -1,5 +1,6 @@
 (ns mount.aot-test
-  (:require [mount.lite :as mount :refer (defstate)]))
+  (:require [mount.lite :as mount :refer (defstate)])
+  (:gen-class))
 
 (defstate aot
   :start "started")
