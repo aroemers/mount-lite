@@ -6,5 +6,10 @@
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/tools.namespace "0.3.0-alpha3"]
                  [org.clojure/java.classpath "0.2.3"]]
+  :profiles {:uberjar {:source-paths ["src" "test-aot"]
+                       :aot [mount.aot-test]
+                       :main mount.aot-test
+                       :omit-source true
+                       :uberjar-name "mount-lite-standalone.jar"}}
   :plugins [[lein-codox "0.9.1"]]
   :codox {:output-path "../mount-lite-gh-pages"})
