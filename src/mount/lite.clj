@@ -344,7 +344,12 @@
            meta#   ~(if current
                       `(select-keys (meta ~current) [::order ::current])
                       `{::order (swap! @#'order + 10)})]
-       ~(when-not current `(defonce ~name (Unstarted. (var ~name))))
+       ~(if current
+          (when *compile-files*
+            (throw (ex-info (str "Compiling already loaded defstate. "
+                                 "Make sure user.clj is excluded from your build.")
+                            {:var current})))
+          `(defonce ~name (Unstarted. (var ~name))))
        (alter-meta! (var ~name) merge (state ~@(apply concat body)) meta#
                     {::status status# :redef true})
        (var ~name))))
