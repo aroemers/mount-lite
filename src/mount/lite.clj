@@ -3,7 +3,9 @@
   (:require [clojure.set :as set]
             [clojure.tools.namespace.dependency :as dep]
             [mount.lite.graph :as graph]
-            [mount.lite.parallel :as parallel]))
+            [mount.lite.parallel :as parallel])
+  (:import [clojure.lang IDeref]
+           [java.util Map]))
 
 ;;; Types
 
@@ -14,7 +16,7 @@
 
 ;;; Private logic
 
-(defonce ^:private order (atom 0))
+#_(defonce ^:private order (atom 0))
 (defonce ^:private on-reload-override (volatile! nil))
 (defonce ^:private log-fn* (volatile! nil))
 
@@ -353,3 +355,100 @@
        (alter-meta! (var ~name) merge (state ~@(apply concat body)) meta#
                     {::status status# :redef true})
        (var ~name))))
+
+
+;;; Internals
+
+(defonce ^:private states (atom []))
+
+(defprotocol IState
+  (start* [_])
+  (stop* [_])
+  (status* [_]))
+
+(defn- throw-started
+  [name]
+  (throw (ex-info (format "state %s already started" name)
+                  {:name name})))
+
+(defn- throw-unstarted
+  [name]
+  (throw (ex-info (format "state %s not started (in this thread or parent threads)" name)
+                  {:name name})))
+
+(defrecord State [start-fn stop-fn name itl]
+  IState
+  (start* [this]
+    (if (= :stopped (status* this))
+      (.set itl {::value   (start-fn)
+                 ::stop-fn stop-fn})
+      (throw-started name)))
+  (stop* [this]
+    (if (= :started (status* this))
+      ((::stop-fn (.get itl)))
+      (throw-unstarted name))
+    (.set itl nil))
+
+  (status* [_]
+    (if (.get itl)
+      :started
+      :stopped))
+
+  IDeref
+  (deref [this]
+    (if (= :started (status* this))
+      (::value (.get itl))
+      (throw-unstarted name))))
+
+(prefer-method print-method Map IDeref)
+
+
+;;; Public API
+
+(defmacro state
+  [& {:keys [start stop name]
+      :or   {name "-anonymous-"}}]
+  `(map->State {:start-fn (fn [] ~start)
+                :stop-fn  (fn [] ~stop)
+                :itl      (InheritableThreadLocal.)
+                :name     ~name}))
+
+(defmacro defstate
+  [name & args]
+  (let [current (resolve name)]
+    (when (and current *compile-files*)
+      ;;---TODO Check if this is still a problem
+      (throw (ex-info (str "Compiling already loaded defstate. "
+                           "Make sure user.clj is excluded from your build.")
+                      {:var current})))
+    `(do (defonce ~name (map->State {:itl (InheritableThreadLocal.)}))
+         (let [local# (state ~@(concat [:name (str name)] args))]
+           (alter-var-root (var ~name) merge (dissoc local# :itl)))
+         (swap! @#'states #(vec (distinct (conj % (var ~name)))))
+         (var ~name))))
+
+(defn start
+  []
+  (let [vars @states]
+    (doseq [var   vars
+            :let  [state @var]
+            :when (= :stopped (status* state))]
+      (start* state)
+      vars)))
+
+(defn stop
+  []
+  (let [vars (reverse @states)]
+    (doseq [var   vars
+            :let  [state @var]
+            :when (= :started (status* state))]
+      (stop* state)
+      vars)))
+
+(defn status
+  "Retrieve status map for all states, or the given state vars."
+  ([]
+   (when (seq @states)
+     (apply status @states)))
+  ([& vars]
+   (reduce (fn [m v] (assoc m v (-> v deref status*))) {} vars)))
