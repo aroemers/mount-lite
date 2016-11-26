@@ -122,6 +122,7 @@
       (.set itl (volatile! {::value   (start-fn)
                             ::stop-fn stop-fn}))
       (throw-started name)))
+
   (stop* [this]
     (if (= :started (status* this))
       (let [m (.get itl)]
@@ -155,48 +156,19 @@
                            :otherwise                       [{} args])]
     [(with-meta name (merge (meta name) attrs)) args]))
 
-(defn- status=
+(defn- var-status=
   [status]
   (fn [var]
     (= (-> var deref status*) status)))
 
-(defn- find-state-index
-  [find states]
-  (first (keep-indexed (fn [i var]
-                         (when (= var find)
+(defn- find-index
+  [elem coll]
+  (first (keep-indexed (fn [i e]
+                         (when (= e elem)
                            i))
-                       states)))
-
-(defn- cycle
-  [var vars-fn operation-fn operation-name]
-  (if-let [index (find-state-index up-to-var @states)]
-    (let [vars (vars-fn index)]
-      (doseq [var vars]
-        (let [substitute (-> (get *substitutes* var)
-                             (select-keys [:start-fn :stop-fn]))
-              state      (merge @var substitute)]
-          (try
-            (operation-fn state)
-            (catch Throwable t
-              (throw (ex-info (format "error while %s state %s" operation-name var)
-                              {:var var} t))))))
-      vars)
-    (throw-not-found up-to-var)))
+                       coll)))
 
 (defonce ^:private states (atom []))
-
-(defn- vars-on-start
-  [index]
-  (->> @states
-       (take (inc index))
-       (filter (status= :stopped))))
-
-(defn- vars-on-stop
-  [index]
-  (->> @states
-       (drop index)
-       (filter (status= :started))
-       (reverse)))
 
 (def ^:dynamic *substitutes* nil)
 
@@ -228,6 +200,7 @@
       (throw (ex-info (str "Compiling already loaded defstate. "
                            "Make sure user.clj is excluded from your build.")
                       {:var current})))
+    ;;---TODO Add reloading behaviour
     `(do (defonce ~name (#'map->State {:itl (InheritableThreadLocal.)}))
          (let [local# (state ~@(concat [:name (str name)] args))]
            (alter-var-root (var ~name) merge (dissoc local# :itl)))
@@ -241,7 +214,20 @@
   ([]
    (start (last @states)))
   ([up-to-var]
-   (cycle up-to-var vars-on-start start* "starting")))
+   (let [states @states]
+     (if-let [index (find-index up-to-var states)]
+       (let [vars (->> states (take (inc index)) (filter (var-status= :stopped)))]
+         (doseq [var vars]
+           (let [substitute (-> (get *substitutes* var)
+                                (select-keys [:start-fn :stop-fn]))
+                 state      (merge @var substitute)]
+             (try
+               (start* state)
+               (catch Throwable t
+                 (throw (ex-info (format "error while starting state %s" var)
+                                 {:var var} t))))))
+         vars)
+       (throw-not-found up-to-var)))))
 
 (defn stop
   "Stop all the loaded defstates, or only the defstates down to the
@@ -251,7 +237,17 @@
   ([]
    (stop (first @states)))
   ([down-to-var]
-   (cycle down-to-var vars-on-stop stop* "stopping")))
+   (let [states @states]
+     (if-let [index (find-index down-to-var states)]
+       (let [vars (->> states (drop index) (filter (var-status= :started)) (reverse))]
+         (doseq [var vars]
+           (try
+             (stop* @var)
+             (catch Throwable t
+               (throw (ex-info (format "error while stopping state %s" var)
+                               {:var var} t)))))
+         vars)
+       (throw-not-found down-to-var)))))
 
 (defmacro with-substitutes
   "Given a vector with var-state pairs, an inner start function will
