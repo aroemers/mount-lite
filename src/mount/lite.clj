@@ -1,6 +1,6 @@
 (ns mount.lite
   "The core namespace providing the public API"
-  (:import [clojure.lang IDeref]
+  (:import [clojure.lang IDeref IRecord]
            [java.util Map]))
 
 
@@ -144,6 +144,7 @@
       (throw-unstarted name))))
 
 (prefer-method print-method Map IDeref)
+(prefer-method print-method IRecord IDeref)
 (alter-meta! #'->State assoc :private true)
 (alter-meta! #'map->State assoc :private true)
 
