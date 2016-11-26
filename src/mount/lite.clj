@@ -272,6 +272,6 @@
   and a :promise that will be set to the result of the body."
   [& body]
   `(let [p# (promise)]
-     {:thead  (doto (Thread. (fn [] (deliver p# ~@body)))
+     {:thead  (doto (Thread. (fn [] (deliver p# (do ~@body))))
                 (.start))
       :result p#}))
