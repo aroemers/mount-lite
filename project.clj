@@ -3,11 +3,9 @@
   :url "https://github.com/aroemers/mount-lite"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clojure/tools.namespace "0.3.0-alpha3"]
-                 [org.clojure/java.classpath "0.2.3"]]
+  :dependencies [[org.clojure/clojure "1.8.0"]]
   :profiles {:uberjar {:source-paths ["src" "test-aot"]
-                       :aot [mount.aot-test]
+                       :aot [mount.aot-test mount.lite]
                        :main mount.aot-test
                        :omit-source true
                        :uberjar-name "mount-lite-standalone.jar"}}

@@ -193,13 +193,7 @@
   attribute map."
   [name & args]
   (let [[name args] (name-with-attrs name args)
-
         current     (resolve name)]
-    (when (and current *compile-files*)
-      ;;---TODO Check if this is still a problem
-      (throw (ex-info (str "Compiling already loaded defstate. "
-                           "Make sure user.clj is excluded from your build.")
-                      {:var current})))
     ;;---TODO Add reloading behaviour
     `(do (defonce ~name (#'map->State {:itl (InheritableThreadLocal.)}))
          (let [local# (state ~@(concat [:name (str name)] args))]
@@ -261,8 +255,8 @@
 (defn status
   "Retrieve status map for all states, or the given state vars."
   ([]
-   (when (seq @states)
-     (apply status @states)))
+   (when-let [s (seq @states)]
+     (apply status s)))
   ([& vars]
    (reduce (fn [m v] (assoc m v (-> v deref status*))) {} vars)))
 

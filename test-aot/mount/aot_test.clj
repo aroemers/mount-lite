@@ -7,4 +7,4 @@
 
 (defn -main [& args]
   (mount/start)
-  (System/exit (compare aot "started")))
+  (System/exit (compare @aot "started")))
