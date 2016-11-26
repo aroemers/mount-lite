@@ -1,9 +1,5 @@
 (ns mount.lite
   "The core namespace providing the public API"
-  (:require [clojure.set :as set]
-            [clojure.tools.namespace.dependency :as dep]
-            [mount.lite.graph :as graph]
-            [mount.lite.parallel :as parallel])
   (:import [clojure.lang IDeref]
            [java.util Map]))
 
@@ -11,227 +7,6 @@
 ;;; Private logic
 
 ;; (defonce ^:private on-reload-override (volatile! nil))
-
-;; (defn- start* [var-state-map]
-;;   (let [sorted (sort-by (comp ::order meta key) var-state-map)]
-;;     (doseq [[var' state'] sorted]
-;;       (try
-;;         (if-let [start-fn (:start state')]
-;;           (do (when-let [f @log-fn*] (f var' :starting))
-;;               (alter-var-root var' (constantly (start-fn)))
-;;               (when-let [f @log-fn*] (f var' :started)))
-;;           (throw (IllegalArgumentException. "Missing :start expression.")))
-;;         (catch Throwable t
-;;           (throw (ex-info (str "Error while starting " var' ":") {:var var' :state state'} t))))
-;;       (alter-meta! var' assoc ::status :started)
-;;       (alter-meta! var' update-in [::current] merge state'))
-;;     (map key sorted)))
-
-;; (defn- stop* [vars]
-;;   (let [sorted-vars (sort-by (comp - ::order meta) vars)]
-;;     (doseq [var' sorted-vars
-;;             :let [state' (meta var')]]
-;;       (when-let [stop-fn (-> state' ::current :stop)]
-;;         (try
-;;           (when-let [f @log-fn*] (f var' :stopping))
-;;           (stop-fn)
-;;           (when-let [f @log-fn*] (f var' :stopped))
-;;           (catch Throwable t
-;;             (throw (ex-info (str "Error while stopping " var' ":") {:var var' :state state'} t)))))
-;;       (alter-var-root var' (constantly (Unstarted. var')))
-;;       (alter-meta! var' assoc ::status :stopped)
-;;       (alter-meta! var' dissoc ::current))
-;;     sorted-vars))
-
-;; (defn- merge-opts [optss]
-;;   (cond-> {}
-;;     (some :only optss)       (assoc :only (set (mapcat :only optss)))
-;;     (some :except optss)     (assoc :except (set (mapcat :except optss)))
-;;     (some :substitute optss) (assoc :substitute (apply conj {} (mapcat :substitute optss)))
-;;     (some :bindings optss)   (assoc :bindings (apply conj {} (mapcat :bindings optss)))
-;;     (some :up-to optss)      (assoc :up-to (last (keep :up-to optss)))
-;;     (some :parallel optss)   (assoc :parallel (last (keep :parallel optss)))))
-
-;; (defn- filtered-vars [status opts]
-;;   (let [filtered  (-> (set (or (:only opts) (all-states)))
-;;                       (set/difference (set (:except opts)))
-;;                       (->> (filter #(= (-> % meta ::status) status))))]
-;;     (if-let [upto (:up-to opts)]
-;;       (let [graph (graph/var-graph (conj (set filtered) upto))
-;;             deps (case status
-;;                    :stopped (dep/transitive-dependencies graph upto)
-;;                    :started (dep/transitive-dependents graph upto))]
-;;         (cond-> deps (= (-> upto meta ::status) status) (conj upto)))
-;;       filtered)))
-
-;; (defn- var-state-map [vars opts]
-;;   (into {} (for [var' vars] [var' (get (:substitute opts) var' (meta var'))])))
-
-;; (defn- var-bindings-map [vsm opts]
-;;   (let [bindings (:bindings opts)]
-;;     (reduce-kv (fn [m var state]
-;;                  (assoc m var
-;;                         (merge (select-keys state [:on-reload :on-cascade])
-;;                                {:start (let [start-fn (:start state)]
-;;                                          (fn [] (if (::bindings-form state)
-;;                                                   (let [boundp (promise)
-;;                                                         val (start-fn boundp (get bindings var))]
-;;                                                     (alter-meta! var assoc-in [::current :bindings]
-;;                                                                  (when (realized? boundp) @boundp))
-;;                                                     val)
-;;                                                   (start-fn))))
-;;                                 :stop  (when-let [stop-fn (:stop state)]
-;;                                          (fn [] (stop-fn (get bindings var))))})))
-;;                {} vsm)))
-
-
-
-
-;;; Public API
-
-(defn only
-  "Creates or updates start/stop option map, only starting or stopping the given
-  vars. Multiple uses of this function on the same option map are united."
-  {:arglists '([& vars] [opts & vars])}
-  [& [opts-or-var & vars]]
-  (let [[opts vars] (if (var? opts-or-var)
-                      [{} (conj (set vars) opts-or-var)]
-                      [opts-or-var (set vars)])]
-    (update-in opts [:only] set/union vars)))
-
-(defn except
-  "Creates or updates start/stop option map, starting or stopping all defstate
-  vars, except the given vars. Multiple uses of this function on the same option map
-  are united."
-  {:arglists '([& vars] [opts & vars])}
-  [& [opts-or-var & vars]]
-  (let [[opts vars] (if (var? opts-or-var)
-                      [{} (conj (set vars) opts-or-var)]
-                      [opts-or-var (set vars)])]
-    (update-in opts [:except] set/union vars)))
-
-(defn substitute
-  "Creates or updates start option map, supplying substitute states for the given
-  defstate vars. Multiple uses of this function on the same option map are merged."
-  {:arglists '([& var-state-seq] [opts & var-state-seq])}
-  [& [opts-or-var & var-state-seq]]
-  (let [[opts var-state-seq] (if (var? opts-or-var)
-                               [{} (cons opts-or-var var-state-seq)]
-                               [opts-or-var var-state-seq])]
-    (let [substitutes (apply hash-map var-state-seq)]
-      (update-in opts [:substitute] merge substitutes))))
-
-(defn up-to
-  "Creates or updates start/stop option map, starting or stopping only
-  those vars that depend on the given var and itself. Multiple uses of
-  this function on the same option map are overriding each other."
-  {:arglists '([var] [opts var])}
-  ([var]
-   {:up-to var})
-  ([opts var]
-   (assoc opts :up-to var)))
-
-(defn parallel
-  "Creates or updates start/stop option map, starting or stopping
-  independent vars in parallel using the given number of threads.
-  Multiple uses of this function on the same option map are overriding
-  each other."
-  {:arglists '([threads] [opts threads])}
-  ([threads]
-   {:parallel threads})
-  ([opts threads]
-   (assoc opts :parallel threads)))
-
-(defn bindings
-  "Creates or updates start option map, supplying binding vectors for
-  the given defstate vars. Make sure the symbols in the binding
-  vectors are quoted. Multiple uses of this function on the same
-  option map are merged."
-  {:arglists '([& var-binding-seq] [opts & var-binding-seq])}
-  [& [opts-or-var & var-binding-seq]]
-  (let [[opts var-binding-seq] (if (var? opts-or-var)
-                                 [{} (cons opts-or-var var-binding-seq)]
-                                 [opts-or-var var-binding-seq])]
-    (let [bindings (apply hash-map var-binding-seq)]
-      (update-in opts [:bindings] merge bindings))))
-
-;; (defn start
-;;   "Start all unstarted states (by default). One or more option maps
-;;   can be supplied. The maps can contain the following keys, applied in
-;;   the following order, and merged as specified:
-
-;;   :only - Collection of state vars that should be started, when not stopped.
-;;           Multiples of these collections are united.
-
-;;   :except - Collection of state vars that should not be started. Multiples
-;;             of these are united.
-
-;;   :up-to - A defstate var until which the states are started. In case multiple
-;;            option maps are supplied, only the last :up-to option is used.
-
-;;   :parallel - The number of threads to use for parallel starting of the
-;;               states. Default is nil, meaning the current thread will be
-;;               used. In case multiple option maps are supplied, only the
-;;               last :parallel option is used.
-
-;;   :substitute - A map of defstate vars to state-maps (see state macro) whose
-;;                 info is used instead of the defstate vars' state. Multiples
-;;                 of these maps are merged.
-
-;;   :bindings - A map of defstate vars to binding maps. Multiples of
-;;               these maps are merged.
-
-;;   These option maps are easily created using the only, except, up-to and
-;;   substitute functions."
-;;   [& optss]
-;;   (let [opts (merge-opts optss)
-;;         vars (filtered-vars :stopped opts)
-;;         vsm  (var-state-map vars opts)
-;;         vbm  (var-bindings-map vsm opts)]
-;;     (if-let [threads (:parallel opts)]
-;;       (parallel/start vars #(start* {% (get vbm %)}) threads)
-;;       (start* vbm))))
-
-;; (defn stop
-;;   "Stop all started states (by default). One or more option maps can be
-;;   supplied. These maps are merged. The maps can contain the following keys,
-;;   applied in the following order:
-
-;;   :only - Collection of state vars that should be stopped, when not started.
-;;           Multiples of these collections are united.
-
-;;   :except - Collection of state vars that should not be stopped. Multiples
-;;             of these are united.
-
-;;   :up-to - A defstate var until which the states are stopped. In case multiple
-;;            option maps are supplied, only the last :up-to option is used.
-
-;;   :parallel - The number of threads to use for parallel stopping of the
-;;               states. Default is nil, meaning the current thread will be
-;;               used. In case multiple option maps are supplied, only the
-;;               last :parallel option is used.
-
-;;   These option maps are easily created using the only, except and parallel
-;;   functions."
-;;   [& optss]
-;;   (let [opts (merge-opts optss)
-;;         vars (filtered-vars :started opts)]
-;;     (if-let [threads (:parallel opts)]
-;;       (parallel/stop vars #(stop* [%]) threads)
-;;       (stop* vars))))
-
-;; (defn dot
-;;   "Retuns a Graphviz dot representation of the state dependencies.
-;;   Currently no options available."
-;;   [& {:as options}]
-;;   (let [graph (graph/var-graph (all-states))
-;;         builder (StringBuilder. "digraph {\n")]
-;;     (doseq [state (dep/nodes graph)
-;;             dep (dep/immediate-dependencies graph state)]
-;;       (.append builder (str "  \"" (subs (str state) 2) "\" -> \"" (subs (str dep) 2) "\";\n")))
-;;     (.append builder "}")
-;;     (str builder)))
-
 
 ;; ;;; Reloading.
 
@@ -320,10 +95,8 @@
 
 ;;; Internals
 
-(defonce ^:private states (atom []))
-
 (defprotocol IState
-  (start* [_ bindings])
+  (start* [_])
   (stop* [_])
   (status* [_]))
 
@@ -337,75 +110,118 @@
   (throw (ex-info (format "state %s not started (in this thread or parent threads)" name)
                   {:name name})))
 
+(defn- throw-not-found
+  [var]
+  (throw (ex-info (format "var %s is not a state" var)
+                  {:var var})))
+
 (defrecord State [start-fn stop-fn name itl]
   IState
-  (start* [this bindings]
+  (start* [this]
     (if (= :stopped (status* this))
-      (.set itl {::value    (start-fn bindings)
-                 ::stop-fn  stop-fn
-                 ::bindings bindings})
+      (.set itl (volatile! {::value   (start-fn)
+                            ::stop-fn stop-fn}))
       (throw-started name)))
   (stop* [this]
     (if (= :started (status* this))
       (let [m (.get itl)]
-        ((::stop-fn m) (::bindings m)))
+        ((::stop-fn @m))
+        (vreset! m nil))
       (throw-unstarted name))
     (.set itl nil))
 
   (status* [_]
-    (if (.get itl)
-      :started
-      :stopped))
+    (let [m (.get itl)]
+      (if (and m @m)
+        :started
+        :stopped)))
 
   IDeref
   (deref [this]
     (if (= :started (status* this))
-      (::value (.get itl))
+      (::value @(.get itl))
       (throw-unstarted name))))
 
 (prefer-method print-method Map IDeref)
 (alter-meta! #'->State assoc :private true)
 (alter-meta! #'map->State assoc :private true)
 
-;;---TODO Introduce clojure.spec for checking?
-(defn- merge-opts [optss]
-  (cond-> {}
-    (some :only optss)       (assoc :only (set (mapcat :only optss)))
-    (some :except optss)     (assoc :except (set (mapcat :except optss)))
-    (some :substitute optss) (assoc :substitute (apply conj {} (mapcat :substitute optss)))
-    (some :bindings optss)   (assoc :bindings (apply conj {} (mapcat :bindings optss)))
-    (some :up-to optss)      (assoc :up-to (last (keep :up-to optss)))
-    (some :parallel optss)   (assoc :parallel (last (keep :parallel optss)))))
-
-(defn- determine-vars [{:keys [bindings]} status]
-  (map (fn [var] [var {:bindings (get bindings var)}]) @states))
-
 ;;---TODO Replace this with clojure.spec?
-(defn- name-with-attrs [name [arg1 arg2 & argx :as args]]
+(defn- name-with-attrs
+  [name [arg1 arg2 & argx :as args]]
   (let [[attrs args] (cond (and (string? arg1) (map? arg2)) [(assoc arg2 :doc arg1) argx]
                            (string? arg1)                   [{:doc arg1} (cons arg2 argx)]
                            (map? arg1)                      [arg1 (cons arg2 argx)]
                            :otherwise                       [{} args])]
     [(with-meta name (merge (meta name) attrs)) args]))
 
+(defn- status=
+  [status]
+  (fn [var]
+    (= (-> var deref status*) status)))
+
+(defn- find-state-index
+  [find states]
+  (first (keep-indexed (fn [i var]
+                         (when (= var find)
+                           i))
+                       states)))
+
+(defn- cycle
+  [var vars-fn operation-fn operation-name]
+  (if-let [index (find-state-index up-to-var @states)]
+    (let [vars (vars-fn index)]
+      (doseq [var vars]
+        (let [substitute (-> (get *substitutes* var)
+                             (select-keys [:start-fn :stop-fn]))
+              state      (merge @var substitute)]
+          (try
+            (operation-fn state)
+            (catch Throwable t
+              (throw (ex-info (format "error while %s state %s" operation-name var)
+                              {:var var} t))))))
+      vars)
+    (throw-not-found up-to-var)))
+
+(defonce ^:private states (atom []))
+
+(defn- vars-on-start
+  [index]
+  (->> @states
+       (take (inc index))
+       (filter (status= :stopped))))
+
+(defn- vars-on-stop
+  [index]
+  (->> @states
+       (drop index)
+       (filter (status= :started))
+       (reverse)))
+
+(def ^:dynamic *substitutes* nil)
+
+
 ;;; Public API
 
 (defmacro state
-  [& {:keys [start stop name bindings]
-      :or   {name     "-anonymous-"
-             bindings []}}]
-  (let [syms (mapv first (partition 2 bindings))]
-    `(#'map->State {:start-fn (fn [{:syms ~syms :or ~(apply hash-map bindings)}] ~start)
-                    :stop-fn  (fn [{:syms ~syms :or ~(apply hash-map bindings)}] ~stop)
+  "Create an anonymous state, useful for substituting. Supports three
+  keyword arguments. A required :start expression, an optional :stop
+  expression, and an optional :name for the state."
+  [& {:keys [start stop name] :or {name "-anonymous-"}}]
+  (if start
+    `(#'map->State {:start-fn (fn [] ~start)
+                    :stop-fn  (fn [] ~stop)
                     :itl      (InheritableThreadLocal.)
-                    :name     ~name})))
+                    :name     ~name})
+    (throw (ex-info "missing :start expression" {}))))
 
 (defmacro defstate
+  "Define a state. At least a :start expression should be supplied.
+  Optionally one can define a :stop expression. Supports docstring and
+  attribute map."
   [name & args]
   (let [[name args] (name-with-attrs name args)
-        args        (if (vector? (first args))
-                      (conj (rest args) (first args) :bindings)
-                      args)
+
         current     (resolve name)]
     (when (and current *compile-files*)
       ;;---TODO Check if this is still a problem
@@ -419,22 +235,32 @@
          (var ~name))))
 
 (defn start
-  [& optss]
-  (let [var-opts (-> (merge-opts optss)
-                     (determine-vars :stopped))]
-    (doseq [[var opts] var-opts]
-      (start* (merge @var (select-keys (:substitute opts) [:start-fn :stop-fn]))
-              (apply hash-map (:bindings opts))))
-    (map first var-opts)))
+  "Start all the loaded defstates, or only the defstates up to the
+  given state var. Only stopped defstates are started, and they are
+  started in the context of the current thread."
+  ([]
+   (start (last @states)))
+  ([up-to-var]
+   (cycle up-to-var vars-on-start start* "starting")))
 
 (defn stop
-  [& optss]
-  (let [var-opts (-> (merge-opts optss)
-                     (determine-vars :started)
-                     (reverse))]
-    (doseq [[var _] var-opts]
-      (stop* @var))
-    (map first var-opts)))
+  "Stop all the loaded defstates, or only the defstates down to the
+  given state var. Only started defstates are stopped, and they are
+  stopped in the context of the current or parent thread where they
+  were started."
+  ([]
+   (stop (first @states)))
+  ([down-to-var]
+   (cycle down-to-var vars-on-stop stop* "stopping")))
+
+(defmacro with-substitutes
+  "Given a vector with var-state pairs, an inner start function will
+  use the :start expression of the substitutes for the specified
+  vars. Nested `with-substitutes` are merged."
+  [var-sub-pairs & body]
+  `(let [merged# (merge *substitutes* (apply hash-map ~var-sub-pairs))]
+     (binding [*substitutes* merged#]
+       ~@body)))
 
 (defn status
   "Retrieve status map for all states, or the given state vars."
@@ -443,3 +269,13 @@
      (apply status @states)))
   ([& vars]
    (reduce (fn [m v] (assoc m v (-> v deref status*))) {} vars)))
+
+(defmacro thread
+  "Create a new thread and run the body. Useful for starting up
+  multiple instances of state systems. Returns a map with the :thread
+  and a :promise that will be set to the result of the body."
+  [& body]
+  `(let [p# (promise)]
+     {:thead  (doto (Thread. (fn [] (deliver p# ~@body)))
+                (.start))
+      :result p#}))
