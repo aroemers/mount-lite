@@ -1,29 +1,24 @@
 ![logo](doc/logo.png)
 
-I like [Mount](https://github.com/tolitius/mount), a lot. But
+A library resembling [mount](https://github.com/tolitius/mount), but different on some key things:
 
-* I wanted a composable and data-driven API (see [this](https://github.com/tolitius/mount/issues/19)
-  and [this](https://github.com/tolitius/mount/issues/47) mount issue, and [this presentation](https://www.youtube.com/watch?v=3oQTSP4FngY)).
-* I had my own ideas about how to handle redefinition of states.
-* I don't need ClojureScript support (or its CLJC mode).
-* I don't need suspending (or [other](https://github.com/tolitius/mount/issues/16)
-  [features](https://github.com/tolitius/mount/blob/dc5c89b3e9a47601242fbc79846460812f81407d/src/mount/core.cljc#L301)) -
-  but I did have some own feature ideas for a library like this.
+* *Clojure only*, dereferncing states only.
+* *Minimal API*, based on usage in several larger projects.
+* *Supports multiple system instances simultaneously*, enabling parallel testing for instance.
 
-Mount Lite is **Clojure only**, has a **flexible data-driven** API, **substitutions** are well supported
-(and cleaner in my opinion), states **stop automatically and cascadingly on redefinition**, states can define **bindings**
-for looser coupling and states can be started and stopped **in parallel**. That's it.
+The mount-lite library used to be larger in the 0.9 version.
+While still different from the original mount, with features such as a composable, data-driven API, parameterized states using bindings, and parallel starting and stopping.
+Version 0.10 introduced the ability to have multiple state systems simultaneously, which was a good opportunity to get rid of the excess, based on experience in several larger projects.
 
 You like it? Feel free to use it. Don't like it? The original Mount is great!
 
 > NOTE: [This blog post](http://www.functionalbytes.nl/clojure/mount/mount-lite/2016/02/11/mount-lite.html) explains in more detail why mount-lite was created and what it offers.
+> NOTE: A future blog post will explain what has changed in version 0.10.
 
 ## Documentation
 
-Put this in your dependencies `[functionalbytes/mount-lite "0.9.7"]` and make sure Clojars is one of your repositories.
+Put this in your dependencies `[functionalbytes/mount-lite "0.10.0-SNAPSHOT"]` and make sure Clojars is one of your repositories.
 Also make sure you use Clojure 1.7+, as the library uses transducers and volatiles.
-
-> NOTE: Clojure 1.8 - with its direct linking - is safe to use as well.
 
 You can find all the documentation about mount-lite, what makes it unique, and the API by clicking on the link below:
 
@@ -44,8 +39,8 @@ Define a defstate var, including the `:start` and `:stop` lifecycle expressions.
 
 ```clj
 (defstate db
-  :start (db/start (get-in config/config [:db :url]))
-  :stop  (db/stop db))
+  :start (db/start (get-in @config/config [:db :url]))
+  :stop  (db/stop @db))
 ;=> #'your.app/db
 ```
 
@@ -58,14 +53,14 @@ Calling `(stop)` stops all the states in reverse order.
 (mount/start)
 ;=> (#'your.app.config/config #'your.app/db)
 
-db
+@db
 ;=> object[some.db.Object 0x12345678]
 
 (mount/stop)
 ;=> (#'your.app/db #'your.app.config/config)
 
-db
-;=> #object[mount.lite.Unstarted 0x263571dd "State #'your.app/db is not started."]
+@db
+;=> ExceptionInfo: state db is not started (in this thread or parent thread.
 ```
 
 *That's it, enjoy!*
