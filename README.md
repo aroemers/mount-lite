@@ -2,17 +2,16 @@
 
 A library resembling [mount](https://github.com/tolitius/mount), but different on some key things:
 
-* **Clojure only**, dereferncing states only.
+* **Clojure only**, dereferencing states only.
 * **Minimal API**, based on usage in several larger projects.
 * **Supports multiple system instances simultaneously**, enabling parallel testing for instance.
 
-The mount-lite library used to be larger in the 0.9 version.
-It was still different from the original mount, with features such as a composable, data-driven API, parameterized states using bindings, and parallel starting and stopping.
-Version 0.10 introduced the ability to run multiple state systems simultaneously, which was a good opportunity to get rid of the excess, based on experience in several larger projects.
-
 You like it? Feel free to use it. Don't like it? The original Mount is great!
 
-> NOTE: [This blog post](http://www.functionalbytes.nl/clojure/mount/mount-lite/2016/02/11/mount-lite.html) explains in more detail why mount-lite was created and what it offers.
+> NOTE: The mount-lite library used to be larger in the 0.9 version.
+> It was still different from the original mount, with features such as a composable, data-driven API, parameterized states using bindings, and parallel starting and stopping.
+> Version 0.10 introduced the ability to run multiple state systems simultaneously, which was a good opportunity to get rid of the excess, based on experience in several larger projects.
+> [This blog post](http://www.functionalbytes.nl/clojure/mount/mount-lite/2016/02/11/mount-lite.html) explains in more detail why mount-lite was created and what it offered.
 
 > NOTE: A future blog post will explain what has changed in version 0.10, and why.
 
@@ -61,7 +60,7 @@ Calling `(stop)` stops all the states in reverse order.
 ;=> (#'your.app/db #'your.app.config/config)
 
 @db
-;=> ExceptionInfo: state db is not started (in this thread or parent thread.
+;=> ExceptionInfo: state db is not started (in this thread or parent thread).
 ```
 
 *That's it, enjoy!*
