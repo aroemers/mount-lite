@@ -3,22 +3,29 @@
   (:import [clojure.lang IDeref IRecord]
            [java.util Map]))
 
+;;;; Internals.
 
-;;; Internals
+;;; The state protocol.
 
 (defprotocol IState
   (start* [_])
   (stop* [_])
   (status* [_]))
 
+;;; The state protocol implementation.
+
+(defonce ^:private itl (InheritableThreadLocal.))
+
 (defn- throw-started
   [name]
-  (throw (ex-info (format "state %s already started" name)
+  (throw (ex-info (format "state %s already started %s" name
+                          (if (.get itl) "in this session" ""))
                   {:name name})))
 
 (defn- throw-unstarted
   [name]
-  (throw (ex-info (format "state %s not started (in this thread or parent threads)" name)
+  (throw (ex-info (format "state %s not started %s" name
+                          (if (.get itl) "in this session" ""))
                   {:name name})))
 
 (defn- throw-not-found
@@ -26,32 +33,30 @@
   (throw (ex-info (format "var %s is not a state" var)
                   {:var var})))
 
-(defrecord State [start-fn stop-fn name itl]
+(defrecord State [start-fn stop-fn name sessions]
   IState
   (start* [this]
     (if (= :stopped (status* this))
-      (.set itl (volatile! {::value   (start-fn)
-                            ::stop-fn stop-fn}))
+      (let [value (start-fn)]
+        (swap! sessions assoc (.get itl) {::value value ::stop-fn stop-fn}))
       (throw-started name)))
 
   (stop* [this]
     (if (= :started (status* this))
-      (let [m (.get itl)]
-        ((::stop-fn @m))
-        (vreset! m nil))
-      (throw-unstarted name))
-    (.set itl nil))
+      (let [stop-fn (get-in @sessions [(.get itl) ::stop-fn])]
+        (stop-fn)
+        (swap! sessions dissoc (.get itl)))
+      (throw-unstarted name)))
 
   (status* [_]
-    (let [m (.get itl)]
-      (if (and m @m)
-        :started
-        :stopped)))
+    (if (get @sessions (.get itl))
+      :started
+      :stopped))
 
   IDeref
   (deref [this]
     (if (= :started (status* this))
-      (::value @(.get itl))
+      (get-in @sessions [(.get itl) ::value])
       (throw-unstarted name))))
 
 (prefer-method print-method Map IDeref)
@@ -59,7 +64,8 @@
 (alter-meta! #'->State assoc :private true)
 (alter-meta! #'map->State assoc :private true)
 
-;;---TODO Replace this with clojure.spec?
+;;; Utility functions
+
 (defn- name-with-attrs
   [name [arg1 arg2 & argx :as args]]
   (let [[attrs args] (cond (and (string? arg1) (map? arg2)) [(assoc arg2 :doc arg1) argx]
@@ -80,12 +86,14 @@
                            i))
                        coll)))
 
+;;; Global state.
+
 (defonce ^:private states (atom []))
 
 (def ^:dynamic *substitutes* nil)
 
 
-;;; Public API
+;;;; Public API
 
 (defmacro state
   "Create an anonymous state, useful for substituting. Supports three
@@ -95,7 +103,6 @@
   (if start
     `(#'map->State {:start-fn (fn [] ~start)
                     :stop-fn  (fn [] ~stop)
-                    :itl      (InheritableThreadLocal.)
                     :name     ~name})
     (throw (ex-info "missing :start expression" {}))))
 
@@ -107,9 +114,9 @@
   (let [[name args] (name-with-attrs name args)
         current     (resolve name)]
     ;;---TODO Add reloading behaviour
-    `(do (defonce ~name (#'map->State {:itl (InheritableThreadLocal.)}))
-         (let [local# (state ~@(concat [:name (str name)] args))]
-           (alter-var-root (var ~name) merge (dissoc local# :itl)))
+    `(do (defonce ~name (#'map->State {:sessions (atom nil)}))
+         (let [local# (state :name ~(str name) ~@args)]
+           (alter-var-root (var ~name) merge (dissoc local# :sessions)))
          (swap! @#'states #(vec (distinct (conj % (var ~name)))))
          (var ~name))))
 
@@ -165,19 +172,32 @@
        ~@body)))
 
 (defn status
-  "Retrieve status map for all states, or the given state vars."
-  ([]
-   (when-let [s (seq @states)]
-     (apply status s)))
-  ([& vars]
-   (reduce (fn [m v] (assoc m v (-> v deref status*))) {} vars)))
+  "Retrieve status map for all states."
+  []
+  (reduce (fn [m v]
+            (assoc m v (-> v deref status*)))
+          {} @states))
 
-(defmacro thread
-  "Create a new thread and run the body. Useful for starting up
-  multiple instances of state systems. Returns a map with the :thread
-  and a :promise that will be set to the result of the body."
+(defmacro spawn-session
+  "Creates a new thread, with a brand new system of states. All states
+  are initially in the stopped status in this thread, regardless of
+  the status in the thread that calls this macro. This thread and
+  subthreads will use the states that are started within this thread
+  or subthreads. Exiting this thread will automatically stop all
+  states in this session.
+
+  Returns a map with the :thread and a :promise that will be set to
+  the result of the body or an exception."
   [& body]
   `(let [p# (promise)]
-     {:thead  (doto (Thread. (fn [] (deliver p# (do ~@body))))
+     {:thead  (doto (Thread. (fn []
+                               (.set @#'itl (Thread/currentThread))
+                               (try
+                                 (deliver p# (do ~@body))
+                                 (catch Throwable t#
+                                   (deliver p# t#)
+                                   (throw t#))
+                                 (finally
+                                   (stop)))))
                 (.start))
       :result p#}))
