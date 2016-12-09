@@ -202,9 +202,10 @@
 (defn status
   "Retrieve status map for all states."
   []
-  (reduce (fn [m v]
-            (assoc m v (-> v deref status*)))
-          {} @*states*))
+  (let [vars (map resolve-keyword (swap! *states* prune-states))]
+    (reduce (fn [m v]
+              (assoc m v (-> v deref status*)))
+            {} vars)))
 
 (defmacro spawn-session
   "Creates a new thread, with a brand new system of states. All states

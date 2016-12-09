@@ -91,7 +91,12 @@
   (throws (with-substitutes [#'state-1 (state :start (throw (ex-info "Boom!" {})))]
             (start))))
 
-;; (deftest test-unmapped
-;;   (ns-unmap 'mount.lite-test.test-state-3 'state-3)
-;;   (is (= [#'state-1 #'state-2] (start)))
-;;   (require 'mount.lite-test.test-state-3 :reload))
+#_(deftest test-unmapped
+  (ns-unmap 'mount.lite-test.test-state-3 'state-3)
+  (is (= [#'state-1 #'state-2] (start)))
+  (require 'mount.lite-test.test-state-3 :reload))
+
+(deftest test-status
+  (is (= {#'state-1 :stopped #'state-2 :stopped #'state-3 :stopped}))
+  (start)
+  (is (= {#'state-1 :started #'state-2 :started #'state-3 :started})))
