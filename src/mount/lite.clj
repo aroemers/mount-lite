@@ -190,6 +190,14 @@
            vars)
          (throw-not-found down-to-var))))))
 
+(defn status
+  "Retrieve status map for all states."
+  []
+  (let [vars (map resolve-keyword (swap! *states* prune-states))]
+    (reduce (fn [m v]
+              (assoc m v (-> v deref status*)))
+            {} vars)))
+
 (defmacro with-substitutes
   "Given a vector with var-state pairs, an inner start function will
   use the :start expression of the substitutes for the specified
@@ -199,24 +207,16 @@
      (binding [*substitutes* merged#]
        ~@body)))
 
-(defn status
-  "Retrieve status map for all states."
-  []
-  (let [vars (map resolve-keyword (swap! *states* prune-states))]
-    (reduce (fn [m v]
-              (assoc m v (-> v deref status*)))
-            {} vars)))
+(defmacro with-session
+  "Creates a new thread, with a new system of states. All states are
+  initially in the stopped status in this thread, regardless of the
+  status in the thread that spawns this new session. This spawned
+  thread and its subthreads will automatically use the states that are
+  started within this thread or subthreads. Exiting the spawned thread
+  will automatically stop all states in this session.
 
-(defmacro spawn-session
-  "Creates a new thread, with a brand new system of states. All states
-  are initially in the stopped status in this thread, regardless of
-  the status in the thread that calls this macro. This thread and
-  subthreads will use the states that are started within this thread
-  or subthreads. Exiting this thread will automatically stop all
-  states in this session.
-
-  Returns a map with the :thread and a :promise that will be set to
-  the result of the body or an exception."
+  Returns a map with the spawned :thread and a :promise that will be
+  set to the result of the body or an exception."
   [& body]
   `(let [p# (promise)]
      {:thead  (doto (Thread. (fn []
