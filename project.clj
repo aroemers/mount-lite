@@ -1,5 +1,5 @@
-(defproject functionalbytes/mount-lite "0.10.0-SNAPSHOT"
-  :description "Mount, but Clojure only and a more flexible API."
+(defproject functionalbytes/mount-lite "2.0.0-SNAPSHOT"
+  :description "Mount, but different"
   :url "https://github.com/aroemers/mount-lite"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
