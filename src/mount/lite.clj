@@ -86,11 +86,24 @@
                            i))
                        coll)))
 
+(defn- keyword->symbol
+  [kw]
+  (symbol (namespace kw) (name kw)))
+
+(defn- resolve-keyword
+  [kw]
+  (resolve (keyword->symbol kw)))
+
+(defn- prune-states
+  [states]
+  (->> states (filter resolve-keyword) (into (empty states))))
+
+
 ;;; Global state.
 
-(defonce ^:private states (atom []))
+(defonce ^:dynamic *states* (atom []))
 
-(def ^:dynamic *substitutes* nil)
+(defonce ^:dynamic *substitutes* nil)
 
 
 ;;;; Public API
@@ -113,34 +126,36 @@
   [name & args]
   (let [[name args] (name-with-attrs name args)
         current     (resolve name)]
-    ;;---TODO Add reloading behaviour
     `(do (defonce ~name (#'map->State {:sessions (atom nil)}))
-         (let [local# (state :name ~(str name) ~@args)]
-           (alter-var-root (var ~name) merge (dissoc local# :sessions)))
-         (swap! @#'states #(vec (distinct (conj % (var ~name)))))
-         (var ~name))))
+         (let [local# (state :name ~(str name) ~@args)
+               var#   (var ~name)
+               kw#    (keyword (str (.ns var#)) (str (.sym var#)))]
+           (alter-var-root var# merge (dissoc local# :sessions))
+           (swap! *states* #(vec (distinct (conj % kw#))))
+           var#))))
 
 (defn start
   "Start all the loaded defstates, or only the defstates up to the
   given state var. Only stopped defstates are started, and they are
   started in the context of the current thread."
   ([]
-   (start (last @states)))
+   (start nil))
   ([up-to-var]
-   (let [states @states]
-     (if-let [index (find-index up-to-var states)]
-       (let [vars (->> states (take (inc index)) (filter (var-status= :stopped)))]
-         (doseq [var vars]
-           (let [substitute (-> (get *substitutes* var)
-                                (select-keys [:start-fn :stop-fn]))
-                 state      (merge @var substitute)]
-             (try
-               (start* state)
-               (catch Throwable t
-                 (throw (ex-info (format "error while starting state %s" var)
-                                 {:var var} t))))))
-         vars)
-       (throw-not-found up-to-var)))))
+   (let [states (map resolve-keyword (swap! *states* prune-states))]
+     (when-let [up-to (or up-to-var (last states))]
+       (if-let [index (find-index up-to states)]
+         (let [vars (->> states (take (inc index)) (filter (var-status= :stopped)))]
+           (doseq [var vars]
+             (let [substitute (-> (get *substitutes* var)
+                                  (select-keys [:start-fn :stop-fn]))
+                   state      (merge @var substitute)]
+               (try
+                 (start* state)
+                 (catch Throwable t
+                   (throw (ex-info (format "error while starting state %s" var)
+                                   {:var var} t))))))
+           vars)
+         (throw-not-found up-to-var))))))
 
 (defn stop
   "Stop all the loaded defstates, or only the defstates down to the
@@ -148,19 +163,20 @@
   stopped in the context of the current or parent thread where they
   were started."
   ([]
-   (stop (first @states)))
+   (stop nil))
   ([down-to-var]
-   (let [states @states]
-     (if-let [index (find-index down-to-var states)]
-       (let [vars (->> states (drop index) (filter (var-status= :started)) (reverse))]
-         (doseq [var vars]
-           (try
-             (stop* @var)
-             (catch Throwable t
-               (throw (ex-info (format "error while stopping state %s" var)
-                               {:var var} t)))))
-         vars)
-       (throw-not-found down-to-var)))))
+   (let [states  (map resolve-keyword (swap! *states* prune-states))]
+     (when-let [down-to (or down-to-var (first states))]
+       (if-let [index (find-index down-to states)]
+         (let [vars (->> states (drop index) (filter (var-status= :started)) (reverse))]
+           (doseq [var vars]
+             (try
+               (stop* @var)
+               (catch Throwable t
+                 (throw (ex-info (format "error while stopping state %s" var)
+                                 {:var var} t)))))
+           vars)
+         (throw-not-found down-to-var))))))
 
 (defmacro with-substitutes
   "Given a vector with var-state pairs, an inner start function will
@@ -176,7 +192,7 @@
   []
   (reduce (fn [m v]
             (assoc m v (-> v deref status*)))
-          {} @states))
+          {} @*states*))
 
 (defmacro spawn-session
   "Creates a new thread, with a brand new system of states. All states

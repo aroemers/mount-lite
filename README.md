@@ -3,22 +3,24 @@
 A library resembling [mount](https://github.com/tolitius/mount), but different on some key things:
 
 * **Clojure only**, dereferencing states only.
-* **Minimal API**, based on usage in several larger projects.
+* **Minimal API**, based on usage in several larger projects. Less turned out to be more.
 * **Supports multiple system instances simultaneously**, enabling parallel testing for instance.
 
-You like it? Feel free to use it. Don't like it? The original Mount is great!
+You like it? Feel free to use it. Don't like it? The original mount is great!
 
-> NOTE: The mount-lite library used to be larger in the 0.9 version.
-> It was still different from the original mount, with features such as a composable, data-driven API, parameterized states using bindings, and parallel starting and stopping.
-> Version 0.10 introduced the ability to run multiple state systems simultaneously, which was a good opportunity to get rid of the excess, based on experience in several larger projects.
-> [This blog post](http://www.functionalbytes.nl/clojure/mount/mount-lite/2016/02/11/mount-lite.html) explains in more detail why mount-lite was created and what it offered.
+## Version 2.0
 
-> NOTE: A future blog post will explain what has changed in version 0.10, and why.
+Version 2.0 is breaking with the 0.9.x versions.
+This new version introduced the ability to run multiple systems of states simultaneously.
+This was an opportunity to get rid of the excess, based on experience in several larger projects.
+It has become really "lite".
+[This blog post](http://www.functionalbytes.nl/clojure/mount/mount-lite/2016/12/09/mount-lite-2.html) explains what has changed in version 2.0 in detail, and why.
 
-## Documentation
+Version 0.9.x will still be maintained.
 
-Put this in your dependencies `[functionalbytes/mount-lite "0.10.0-SNAPSHOT"]` and make sure Clojars is one of your repositories.
-Also make sure you use Clojure 1.7+, as the library uses transducers and volatiles.
+## Getting started
+
+Add `[functionalbytes/mount-lite "2.0.0-SNAPSHOT"]` to your dependencies and make sure Clojars is one of your repositories.
 
 You can find all the documentation about mount-lite, what makes it unique, and the API by clicking on the link below:
 
@@ -60,7 +62,7 @@ Calling `(stop)` stops all the states in reverse order.
 ;=> (#'your.app/db #'your.app.config/config)
 
 @db
-;=> ExceptionInfo: state db is not started (in this thread or parent thread).
+;=> ExceptionInfo: state db is not started
 ```
 
 *That's it, enjoy!*
