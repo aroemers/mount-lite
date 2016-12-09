@@ -7,7 +7,7 @@
 
 ;;; The state protocol.
 
-(defprotocol IState
+(defprotocol ^:no-doc IState
   (start* [_])
   (stop* [_])
   (status* [_]))
@@ -101,9 +101,21 @@
 
 ;;; Global state.
 
-(defonce ^:dynamic *states* (atom []))
+(defonce
+  ^{:dynamic true
+    :doc "Atom keeping track of defined states (by namespaced
+    keywords) internally. Declared public and dynamic here, as an
+    extension point to influence which states are started or stopped.
+    Do not fiddle with the root binding."}
+  *states* (atom []))
 
-(defonce ^:dynamic *substitutes* nil)
+(defonce
+  ^{:dynamic true
+    :doc "Can be bound to a map with vars as keys and State records as
+    values. The :start and :stop expressions of the State value will
+    be used when the corresponding var key is started. The
+    `with-substitutes` macro offers a nicer syntax."}
+  *substitutes* nil)
 
 
 ;;;; Public API
