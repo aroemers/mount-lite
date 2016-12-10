@@ -16,7 +16,7 @@ This was an opportunity to get rid of the excess, based on experience in several
 It has become really "lite".
 [This blog post](http://www.functionalbytes.nl/clojure/mount/mount-lite/2016/12/09/mount-lite-2.html) explains what has changed in version 2.0 in detail, and why.
 
-Version 0.9.x will still be maintained.
+Version 0.9.x will still be maintained, and can be found under the [1.x branch](https://github.com/aroemers/mount-lite/tree/1.x).
 
 ## Getting started
 
