@@ -9,7 +9,7 @@ It allows you to easily start or stop only a part of your application.
 
 > This "up-to" behaviour is unique to mount-lite.
 > There used to be other options to influence what is started or stopped, but those turned out to anti-patterns and rarely used.
-> If you need more options though, have a look at the "extension point" section.
+> If you need more options though, have a look at the [extension point](05-extension-point.html) section.
 
 An example:
 
