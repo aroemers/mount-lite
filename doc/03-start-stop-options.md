@@ -1,14 +1,14 @@
 # Start up to / stop down to
 
 In many cases, calling just `(mount/start)` or `(mount/stop)` is enough.
-But there may be circumstances, for instance in your tests, that you don't want to all of your global states.
+But there may be circumstances, for instance in your tests, that you don't want to start all of your global states.
 
-The `start` and `stop` functions can take one argument, a var.
-The var points to a defstate that should be started (or stopped), including all its dependencies (or dependents).
+The `start` and `stop` functions can take one optional argument, a var.
+The var points to a `defstate` that should be started (or stopped), including all its dependencies (or dependents).
 It allows you to easily start or stop only a part of your application.
 
 > This "up-to" behaviour is unique to mount-lite.
-> There used to be other options to influence what is started or stopped, but those turned out to anti-patterns and rarely used.
+> There used to be other options to influence what is started or stopped, but those turned out to anti-patterns and were rarely used.
 > If you need more options though, have a look at the [extension point](05-extension-point.html) section.
 
 An example:

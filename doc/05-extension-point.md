@@ -6,10 +6,10 @@ You could tell mount to determine the dependencies of a state more accurately by
 
 These features have been removed from the API, for [various reasons](http://www.functionalbytes.nl/clojure/mount/mount-lite/2016/12/09/mount-lite-2.html).
 However, an extension point is available, in case you want these or other features that influence what is started or stopped.
-Future versions may even provide implementations for these, using the extension point discussed below.
+Future versions of mount-lite may even provide implementations for these, using the extension point discussed below.
 In any case, the core API and implementation is not affected by these features and can be kept simple and lite.
 
-### The *states* dynamic var
+### The \*states\* dynamic var
 
 The root binding of the dynamic `*states*` var is used by the internals of mount-lite to keep track of what global `defstates` have been defined, and in what order.
 The root binding is an atom of namespaced keywords, which can be resolved back to the `defstate` vars.

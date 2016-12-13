@@ -14,16 +14,17 @@ For more info on why mount-lite was created, see [this blog post](http://www.fun
 
 That blog post covers the 0.9.x version, and quite some things have changed with version 2.0.
 In short, the API has been simplified and the feature to have multiple systems of states simultaneously has been added.
-See [this blog post](http://www.functionalbytes.nl/clojure/mount/mount-lite/2016/12/09/mount-lite-2.html) for more info on what has changed, and why.
+See [this blog post](http://www.functionalbytes.nl/clojure/mount/mount-lite/2016/12/10/mount-lite-2.html) for more info on what has changed, and why.
 
 This documentation covers the functionality of version 2.x.
-Version 0.9.x is still supported though, and its documentation can be found in the source repository.
+Version 0.9.x is still supported though, and its documentation can be found in the [source repository](https://github.com/aroemers/mount-lite/tree/1.x).
 
 
 ## Defining states
 
 First, require the `mount.lite` namespace.
 Also require the namespaces which hold the states that the states in the current namespace depend upon.
+This is how mount-lite figures out what states should be started before the states in the current namespace is started.
 
 ```clj
 (ns your.app
@@ -46,14 +47,15 @@ In this example we also supply a `:stop` expression.
 As you can see, the var `#'your.app/db` has been defined.
 It currently is in the `:stopped` status.
 
-The `:start` expression above uses another global state - `config/config` - which it dereferences to get its value.
+The `:start` expression above uses another global state - `your.app.config/config` - which it dereferences to get its value.
 The `:stop` expression uses its own value in the same way.
+This dereferencing is the way you get the value of a started state, anywhere in your application.
 
 ## Starting and stopping the states
 
 To start all the global states, just call `(mount/start)`.
 A sequence of started global state vars is returned.
-The order in which the states are started is determined by their load order by the Clojure compiler.
+As said before, the order in which the states are started is determined by their load order by the Clojure compiler.
 Using `(mount/stop)` stops all the started defstates in reverse order.
 
 ```clj
@@ -70,7 +72,7 @@ Using `(mount/stop)` stops all the started defstates in reverse order.
 ;=> (#'your.app/db #'your.app.config/config)
 ```
 
-> NOTE: To get an overview of the status of the defstates, you can use the `status` function.
+To get an overview of the status of the defstates, you can call the `(status)` function.
 
 *Now you know the basics. Go on, try it! I will see you in 10 minutes.*
 
@@ -96,6 +98,10 @@ Consider the following in your design when using mount-lite (or mount for that m
 
 * Only use `defstate` when either the stateful object needs some stop logic before the application can be reloaded/restarted, or whenever the state depends on another `defstate`.
   In other cases, just use a def.
+
+* Try to use your `defstate` as if it were private.
+  Better yet, declare it as private.
+  This will keep you from refering to your state from every corner of your application, making it more componentized.
 
 ## Further reading
 

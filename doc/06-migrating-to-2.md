@@ -14,6 +14,21 @@ If you were using the `only` or `except` options, see if you can replace them wi
 To use the value of a started state, you need to dereference it by using `@` or `deref` now.
 Dereferencing a stopped state yields an exception.
 
+## Substitutes need to be defined with the _state_ macro
+
+Substitutes cannot be defined as a simple map anymore.
+Please use the `state` macro to create anonymous states.
+The syntax for the `state` macro has not changed though, with respect to versions before 2.0.
+For example:
+
+```clj
+;; This is not supported anymore
+(def sub {:start (fn [] ...)})
+
+;; This is the only supported syntax now
+(def sub (state :start ...))
+```
+
 ## No more reloading behaviour
 
 States are not automatically stopped anymore on redefinition.

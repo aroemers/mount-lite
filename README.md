@@ -74,4 +74,4 @@ Copyright © 2016 Functional Bytes
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
 
-> Master branch: [![Circle CI](https://circleci.com/gh/aroemers/mount-lite/tree/master.svg?style=svg)](https://circleci.com/gh/aroemers/mount-lite/tree/master)
+> 2.x branch: [![Circle CI](https://circleci.com/gh/aroemers/mount-lite/tree/2.x.svg?style=svg)](https://circleci.com/gh/aroemers/mount-lite/tree/2.x)

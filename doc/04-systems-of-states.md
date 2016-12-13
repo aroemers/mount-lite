@@ -4,8 +4,7 @@ The 2.0 of mount-lite version introduced the ability to run multiple systems of 
 In other words, a single `defstate` can be started multiple times in different contexts.
 
 The mount-lite library does this in a transparent way, i.e. there is no difference in how the library is used, whether this feature is utilized or not.
-
-> This is in contrast with the [yurt](https://github.com/tolitius/yurt) library from the original `mount`.
+This is in contrast with the [yurt](https://github.com/tolitius/yurt) library from the original `mount`.
 
 When you just `(start)` your states, you start them in the "root" context.
 The entire application accesses those states as normal.
@@ -16,6 +15,8 @@ The spawned thread and its subthreads will automatically use the states that are
 The states themselves and the code that uses them does not change a bit.
 
 Exiting the spawned thread - i.e. when the body is done - automatically stops all states in this session.
+
+## Example
 
 For example, below we are use the `with-session` macro to spin up a new thread and execute its body.
 The example starts up two systems of states, and the use of [`CountDownLatch`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CountDownLatch.html)es ensures the systems run concurrently when printing the value of the `foo` state.
@@ -73,3 +74,10 @@ The order in which `1` and `2` are printed, or the order in which `stopping` and
 stopping
 sub stopping
 ```
+
+## Watch out for ThreadPools
+
+By spawning a new thread with a new system of states using the `with-session` macro, the subthreads created from that session automatically use the system of states from that session.
+But, if you use threads in your session that were created _outside_ of your session, those threads use the system of states from the (possibly default root) session in which they were created.
+So, do keep in mind that `future`s and `agent`s use global ThreadPools from the Clojure runtime.
+There are simple ways to work around this though, and mount-lite may even provide utilities for this at a later stage.
