@@ -148,8 +148,8 @@
 
 (defn start
   "Start all the loaded defstates, or only the defstates up to the
-  given state var. Only stopped defstates are started, and they are
-  started in the context of the current thread."
+  given state var. Only stopped defstates are started. They are
+  started in the context of the current session."
   ([]
    (start nil))
   ([up-to-var]
@@ -171,9 +171,8 @@
 
 (defn stop
   "Stop all the loaded defstates, or only the defstates down to the
-  given state var. Only started defstates are stopped, and they are
-  stopped in the context of the current or parent thread where they
-  were started."
+  given state var. Only started defstates are stopped. They are
+  stopped in the context of the current session."
   ([]
    (stop nil))
   ([down-to-var]
