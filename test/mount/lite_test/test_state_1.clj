@@ -4,4 +4,5 @@
 
 (defstate state-1
   :start "state-1"
-  :stop @state-1)
+  :stop @state-1
+  :extra 'data)

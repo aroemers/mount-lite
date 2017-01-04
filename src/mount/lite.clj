@@ -1,5 +1,6 @@
 (ns mount.lite
   "The core namespace providing the public API"
+  (:require [mount.utils :as utils])
   (:import [clojure.lang IDeref IRecord]
            [java.util Map]))
 
@@ -66,37 +67,14 @@
 
 ;;; Utility functions
 
-(defn- name-with-attrs
-  [name [arg1 arg2 & argx :as args]]
-  (let [[attrs args] (cond (and (string? arg1) (map? arg2)) [(assoc arg2 :doc arg1) argx]
-                           (string? arg1)                   [{:doc arg1} (cons arg2 argx)]
-                           (map? arg1)                      [arg1 (cons arg2 argx)]
-                           :otherwise                       [{} args])]
-    [(with-meta name (merge (meta name) attrs)) args]))
-
 (defn- var-status=
   [status]
   (fn [var]
     (= (-> var deref status*) status)))
 
-(defn- find-index
-  [elem coll]
-  (first (keep-indexed (fn [i e]
-                         (when (= e elem)
-                           i))
-                       coll)))
-
-(defn- keyword->symbol
-  [kw]
-  (symbol (namespace kw) (name kw)))
-
-(defn- resolve-keyword
-  [kw]
-  (resolve (keyword->symbol kw)))
-
 (defn- prune-states
   [states]
-  (->> states (filter resolve-keyword) (into (empty states))))
+  (filter utils/resolve-keyword states))
 
 
 ;;; Global state.
@@ -124,11 +102,12 @@
   "Create an anonymous state, useful for substituting. Supports three
   keyword arguments. A required :start expression, an optional :stop
   expression, and an optional :name for the state."
-  [& {:keys [start stop name] :or {name "-anonymous-"}}]
+  [& {:keys [start stop name] :or {name "-anonymous-"} :as fields}]
   (if start
-    `(#'map->State {:start-fn (fn [] ~start)
-                    :stop-fn  (fn [] ~stop)
-                    :name     ~name})
+    `(#'map->State (merge ~(dissoc fields :start :stop :name)
+                          {:start-fn (fn [] ~start)
+                           :stop-fn  (fn [] ~stop)
+                           :name     ~name}))
     (throw (ex-info "missing :start expression" {}))))
 
 (defmacro defstate
@@ -136,12 +115,12 @@
   Optionally one can define a :stop expression. Supports docstring and
   attribute map."
   [name & args]
-  (let [[name args] (name-with-attrs name args)
+  (let [[name args] (utils/name-with-attrs name args)
         current     (resolve name)]
     `(do (defonce ~name (#'map->State {:sessions (atom nil)}))
          (let [local# (state :name ~(str name) ~@args)
                var#   (var ~name)
-               kw#    (keyword (str (.ns var#)) (str (.sym var#)))]
+               kw#    (utils/var->keyword var#)]
            (alter-var-root var# merge (dissoc local# :sessions))
            (swap! *states* #(vec (distinct (conj % kw#))))
            var#))))
@@ -153,9 +132,9 @@
   ([]
    (start nil))
   ([up-to-var]
-   (let [states (map resolve-keyword (swap! *states* prune-states))]
+   (let [states (map utils/resolve-keyword (swap! *states* prune-states))]
      (when-let [up-to (or up-to-var (last states))]
-       (if-let [index (find-index up-to states)]
+       (if-let [index (utils/find-index up-to states)]
          (let [vars (->> states (take (inc index)) (filter (var-status= :stopped)))]
            (doseq [var vars]
              (let [substitute (-> (get *substitutes* var)
@@ -176,9 +155,9 @@
   ([]
    (stop nil))
   ([down-to-var]
-   (let [states  (map resolve-keyword (swap! *states* prune-states))]
+   (let [states  (map utils/resolve-keyword (swap! *states* prune-states))]
      (when-let [down-to (or down-to-var (first states))]
-       (if-let [index (find-index down-to states)]
+       (if-let [index (utils/find-index down-to states)]
          (let [vars (->> states (drop index) (filter (var-status= :started)) (reverse))]
            (doseq [var vars]
              (try
@@ -192,7 +171,7 @@
 (defn status
   "Retrieve status map for all states."
   []
-  (let [vars (map resolve-keyword (swap! *states* prune-states))]
+  (let [vars (map utils/resolve-keyword (swap! *states* prune-states))]
     (reduce (fn [m v]
               (assoc m v (-> v deref status*)))
             {} vars)))

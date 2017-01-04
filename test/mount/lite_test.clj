@@ -100,3 +100,6 @@
   (is (= {#'state-1 :stopped #'state-2 :stopped #'state-3 :stopped}))
   (start)
   (is (= {#'state-1 :started #'state-2 :started #'state-3 :started})))
+
+(deftest extra-data
+  (is (= (:extra state-1) 'data)))
