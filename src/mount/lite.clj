@@ -85,7 +85,7 @@
     keywords) internally. Declared public and dynamic here, as an
     extension point to influence which states are started or stopped.
     Do not fiddle with the root binding."}
-  *states* (atom []))
+  *states* (atom ()))
 
 (defonce
   ^{:dynamic true
@@ -122,7 +122,7 @@
                var#   (var ~name)
                kw#    (utils/var->keyword var#)]
            (alter-var-root var# merge (dissoc local# :sessions))
-           (swap! *states* #(vec (distinct (conj % kw#))))
+           (swap! *states* #(distinct (concat % [kw#])))
            var#))))
 
 (defn start
@@ -197,7 +197,7 @@
   set to the result of the body or an exception."
   [& body]
   `(let [p# (promise)]
-     {:thead  (doto (Thread. (fn []
+     {:thread (doto (Thread. (fn []
                                (.set @#'itl (Thread/currentThread))
                                (try
                                  (deliver p# (do ~@body))
