@@ -1,4 +1,0 @@
-test:
-  post:
-    - lein uberjar
-    - java -jar target/mount-lite-standalone.jar
