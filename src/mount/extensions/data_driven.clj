@@ -12,7 +12,6 @@
                          (reduce (fn [m [state substitute]]
                                    (assoc m (resolve state) (deref (resolve substitute))))
                                  {}))]
-    (prn substitutes)
     (binding [mount/*states*      (atom states)
               mount/*substitutes* substitutes]
       (f))))
