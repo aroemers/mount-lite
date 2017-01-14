@@ -11,7 +11,8 @@
 (defprotocol ^:no-doc IState
   (start* [_])
   (stop* [_])
-  (status* [_]))
+  (status* [_])
+  (as-started [_]))
 
 ;;; The state protocol implementation.
 
@@ -39,12 +40,12 @@
   (start* [this]
     (if (= :stopped (status* this))
       (let [value (start-fn)]
-        (swap! sessions assoc (.get itl) {::value value ::stop-fn stop-fn}))
+        (swap! sessions assoc (.get itl) (assoc (dissoc this :sessions) ::value value)))
       (throw-started name)))
 
   (stop* [this]
     (if (= :started (status* this))
-      (let [stop-fn (get-in @sessions [(.get itl) ::stop-fn])]
+      (let [stop-fn (get-in @sessions [(.get itl) :stop-fn])]
         (stop-fn)
         (swap! sessions dissoc (.get itl)))
       (throw-unstarted name)))
@@ -53,6 +54,11 @@
     (if (get @sessions (.get itl))
       :started
       :stopped))
+
+  (as-started [this]
+    (-> this
+        (merge (get @sessions (.get itl)))
+        (dissoc ::value :sessions)))
 
   IDeref
   (deref [this]
@@ -121,7 +127,8 @@
          (let [local# (state :name ~(str name) ~@args)
                var#   (var ~name)
                kw#    (utils/var->keyword var#)]
-           (alter-var-root var# merge (dissoc local# :sessions))
+           (alter-var-root var# (fn [{sessions# :sessions}]
+                                  (assoc local# :sessions sessions#)))
            (swap! *states* #(distinct (concat % [kw#])))
            var#))))
 
@@ -137,8 +144,7 @@
        (if-let [index (utils/find-index up-to states)]
          (let [vars (->> states (take (inc index)) (filter (var-status= :stopped)))]
            (doseq [var vars]
-             (let [substitute (-> (get *substitutes* var)
-                                  (select-keys [:start-fn :stop-fn]))
+             (let [substitute (some-> (get *substitutes* var) (dissoc :sessions))
                    state      (merge @var substitute)]
                (try
                  (start* state)
