@@ -4,4 +4,4 @@
 
 (defstate state-2
   :start (str @state-1 " + state-2")
-  :on-cascade :skip)
+  :dependencies [#'state-1])

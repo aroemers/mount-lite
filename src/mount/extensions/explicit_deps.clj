@@ -10,9 +10,10 @@
   values are the dependencies or dependents of the keys."
   []
   (->> (for [kw  @mount/*states*
-             var (let [state (utils/resolve-keyword kw)]
-                   (if (contains? @state :dependencies)
-                     (:dependencies @state)
+             var (let [var   (utils/resolve-keyword kw)
+                       state (get mount/*substitutes* var (mount/as-started @var))]
+                   (if (contains? state :dependencies)
+                     (:dependencies state)
                      (throw (ex-info (format "state %s is missing a :dependencies field" state)
                                      {:state state}))))]
          (let [var-kw (utils/var->keyword var)]
@@ -51,7 +52,11 @@
 
 (defmacro with-transitives
   "Wraps the `body` having the `*states*` extension point bound to the
-  transitive dependencies and dependents of the given state `var`."
+  transitive dependencies and dependents of the given state `var`.
+
+  Make sure you wrap this with `with-substitutes` if applicable, in
+  case you want `with-transitives` to use the `:dependencies` of the
+  substitute states."
   [var & body]
   `(with-transitives* ~var (fn [] ~@body)))
 
@@ -66,5 +71,6 @@
   "Just like the core `stop` with a `down-to-var`, but now only stops
   the explicit transitive dependents of that state."
   [down-to-var]
-  (with-transitives down-to-var
-    (mount/stop down-to-var)))
+  (mount/with-substitutes []
+    (with-transitives down-to-var
+      (mount/stop down-to-var))))

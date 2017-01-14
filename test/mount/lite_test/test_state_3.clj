@@ -4,4 +4,4 @@
 
 (defstate state-3
   :start (str @state-2 " + state-3")
-  :on-reload :lifecycle)
+  :dependencies #{#'state-2})
