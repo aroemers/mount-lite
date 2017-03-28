@@ -12,7 +12,7 @@
   (start* [_])
   (stop* [_])
   (status* [_])
-  (as-started [_]))
+  (properties [_]))
 
 ;;; The state protocol implementation.
 
@@ -55,7 +55,7 @@
       :started
       :stopped))
 
-  (as-started [this]
+  (properties [this]
     (-> this
         (merge (get @sessions (.get itl)))
         (dissoc ::value :sessions)))

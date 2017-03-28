@@ -1,7 +1,10 @@
 (ns mount.extensions.explicit-deps
   "This extension offers more advanced up-to starting and down-to
   stopping, by declaring the dependencies of defstates explicitly. It
-  will only start or stop the transitive dependencies or dependents."
+  will only start or stop the transitive dependencies or dependents.
+
+  Using these functions, the defstates or substitute states *must*
+  declare a `:dependencies` field, which may be nil."
   (:require [mount.lite :as mount]
             [mount.utils :as utils]))
 
@@ -11,7 +14,7 @@
   []
   (->> (for [kw  @mount/*states*
              var (let [var   (utils/resolve-keyword kw)
-                       state (get mount/*substitutes* var (mount/as-started @var))]
+                       state (get mount/*substitutes* var (mount/properties @var))]
                    (if (contains? state :dependencies)
                      (:dependencies state)
                      (throw (ex-info (format "state %s is missing a :dependencies field" state)
