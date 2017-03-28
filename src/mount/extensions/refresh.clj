@@ -6,7 +6,8 @@
   library."
   {:clojure.tools.namespace.repl/load   false
    :clojure.tools.namespace.repl/unload false}
-  (:require [mount.lite :as mount]
+  (:require [mount.extensions.basic :as basic]
+            [mount.lite :as mount]
             [mount.utils :as utils]))
 
 ;;; Vars from tools.namespace, which may not be loaded as a dependency.
@@ -38,41 +39,13 @@
             @mount/*states*))
     (throw (UnsupportedOperationException. "Could not find tools.namespace dependency"))))
 
-
-;;; Refresh wrapper
-
-(def ^:private restart)
-
-(defn- do-lifecycle
-  [lifecycle-fn vars]
-  (loop [vars   vars
-         result ()]
-    (if-let [var (first vars)]
-      (let [affected (lifecycle-fn var)]
-        (recur (remove (set affected) vars)
-               (concat result affected)))
-      result)))
-
-(defn- restarter
-  [_ stopped-keywords start-fn]
-  (fn []
-    (let [vars    (keep utils/resolve-keyword stopped-keywords)
-          started (do-lifecycle start-fn vars)]
-      (println :started started))))
-
 (defn refresh
   "Wrapper around clojure.tools.namespace.repl/refresh, which stops
-  the affected defstate vars before reloading, and restarts the stopped
-  states afterwards.
-
-  One can optionally supply your own start-fn and/or stop-fn, for
-  instance when using the explicit-deps extension."
-  [& {:keys [start-fn stop-fn]
-      :or   {start-fn mount/start
-             stop-fn  mount/stop}}]
-  (let [affected    (affected-vars)
-        stopped     (do-lifecycle stop-fn affected)
-        stopped-kws (mapv utils/var->keyword stopped)]
+  the affected defstate vars before reloading, and restarts the
+  stopped states afterwards."
+  []
+  (let [stopped (basic/with-only (affected-vars) (mount/stop))]
     (println :stopped stopped)
-    (alter-var-root #'restart restarter stopped-kws start-fn)
-    (refresh* :after 'mount.extensions.refresh/restart)))
+    (refresh*)
+    (let [started (basic/with-only stopped (mount/start))]
+      (println :started started))))
