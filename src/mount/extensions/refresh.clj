@@ -27,16 +27,15 @@
 ;;; Helper functions.
 
 (defn affected-vars
-  "Returns a set of defstate vars that will be reloaded by
+  "Returns a list of defstate vars that will be reloaded by
   clojure.tools.namespace.repl/refresh."
   []
   (if refresh-tracker
     (let [nss (-> refresh-tracker deref scan remove-disabled :clojure.tools.namespace.track/unload set)]
-      (->> @mount/*states*
-           (keep (fn [kw]
-                   (when (nss (symbol (namespace kw)))
-                     (utils/resolve-keyword kw))))
-           (set)))
+      (keep (fn [kw]
+              (when (nss (symbol (namespace kw)))
+                (utils/resolve-keyword kw)))
+            @mount/*states*))
     (throw (UnsupportedOperationException. "Could not find tools.namespace dependency"))))
 
 
@@ -44,15 +43,22 @@
 
 (def ^:private restart)
 
+(defn- do-lifecycle
+  [lifecycle-fn vars]
+  (loop [vars   vars
+         result ()]
+    (if-let [var (first vars)]
+      (let [affected (lifecycle-fn var)]
+        (recur (remove (set affected) vars)
+               (concat result affected)))
+      result)))
+
 (defn- restarter
   [_ stopped-keywords start-fn]
   (fn []
-    (->> (for [kw    stopped-keywords
-               :let  [state (utils/resolve-keyword kw)]
-               :when state]
-           (start-fn state))
-         (apply concat)
-         (println :started))))
+    (let [vars    (keep utils/resolve-keyword stopped-keywords)
+          started (do-lifecycle start-fn vars)]
+      (println :started started))))
 
 (defn refresh
   "Wrapper around clojure.tools.namespace.repl/refresh, which stops
@@ -65,9 +71,7 @@
       :or   {start-fn mount/start
              stop-fn  mount/stop}}]
   (let [affected    (affected-vars)
-        stopped     (->> (for [state affected]
-                           (stop-fn state))
-                         (apply concat))
+        stopped     (do-lifecycle stop-fn affected)
         stopped-kws (mapv utils/var->keyword stopped)]
     (println :stopped stopped)
     (alter-var-root #'restart restarter stopped-kws start-fn)
