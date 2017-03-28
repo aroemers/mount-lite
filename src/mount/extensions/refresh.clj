@@ -57,14 +57,19 @@
 (defn refresh
   "Wrapper around clojure.tools.namespace.repl/refresh, which stops
   the affected defstate vars before reloading, and restarts the stopped
-  states afterwards."
-  []
+  states afterwards.
+
+  One can optionally supply your own start-fn and/or stop-fn, for
+  instance when using the explicit-deps extension."
+  [& {:keys [start-fn stop-fn]
+      :or   {start-fn mount/start
+             stop-fn  mount/stop}}]
   (let [affected    (affected-vars)
         stopped     (->> (for [state affected]
-                           (mount/stop state))
+                           (stop-fn state))
                          (apply concat)
                          (doall))
         stopped-kws (mapv utils/var->keyword stopped)]
     (println :stopped stopped)
-    (alter-var-root #'restart restarter stopped-kws mount/start)
+    (alter-var-root #'restart restarter stopped-kws start-fn)
     (refresh* :after 'mount.extensions.refresh/restart)))
