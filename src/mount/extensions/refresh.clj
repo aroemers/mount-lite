@@ -46,6 +46,8 @@
   []
   (let [stopped (basic/with-only (affected-vars) (mount/stop))]
     (println :stopped stopped)
-    (refresh*)
-    (let [started (basic/with-only stopped (mount/start))]
-      (println :started started))))
+    (let [result (refresh*)]
+      (if (= result :ok)
+        (let [started (basic/with-only stopped (mount/start))]
+          (println :started started))
+        result))))
