@@ -1,5 +1,7 @@
 (ns mount.lite
   "The core namespace providing the public API"
+  {:clojure.tools.namespace.repl/load   false
+   :clojure.tools.namespace.repl/unload false}
   (:require [mount.utils :as utils])
   (:import [clojure.lang IDeref IRecord]
            [java.util Map]))
