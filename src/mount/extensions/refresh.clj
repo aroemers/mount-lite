@@ -35,7 +35,7 @@
       (->> @mount/*states*
            (keep (fn [kw]
                    (when (nss (symbol (namespace kw)))
-                     (resolve (utils/keyword->symbol kw)))))
+                     (utils/resolve-keyword kw))))
            (set)))
     (throw (UnsupportedOperationException. "Could not find tools.namespace dependency"))))
 
@@ -67,8 +67,7 @@
   (let [affected    (affected-vars)
         stopped     (->> (for [state affected]
                            (stop-fn state))
-                         (apply concat)
-                         (doall))
+                         (apply concat))
         stopped-kws (mapv utils/var->keyword stopped)]
     (println :stopped stopped)
     (alter-var-root #'restart restarter stopped-kws start-fn)
