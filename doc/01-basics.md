@@ -50,6 +50,7 @@ It currently is in the `:stopped` status.
 The `:start` expression above uses another global state - `your.app.config/config` - which it dereferences to get its value.
 The `:stop` expression uses its own value in the same way.
 This dereferencing is the way you get the value of a started state, anywhere in your application.
+Note that in the stop expression the `this` symbol is bound its start value as well, which is particularly useful in anonymous states (more on anonymous states in the [substituting](02-substitutions.html) section).
 
 ## Starting and stopping the states
 

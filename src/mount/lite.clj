@@ -46,11 +46,10 @@
       (throw-started name)))
 
   (stop* [this]
-    (if (= :started (status* this))
-      (let [stop-fn (get-in @sessions [(.get itl) :stop-fn])]
-        (stop-fn)
-        (swap! sessions dissoc (.get itl)))
-      (throw-unstarted name)))
+    (let [value   (deref this)
+          stop-fn (get-in @sessions [(.get itl) :stop-fn])]
+      (stop-fn value)
+      (swap! sessions dissoc (.get itl))))
 
   (status* [_]
     (if (get @sessions (.get itl))
@@ -114,7 +113,7 @@
   (if start
     `(#'map->State (merge ~(dissoc fields :start :stop :name)
                           {:start-fn (fn [] ~start)
-                           :stop-fn  (fn [] ~stop)
+                           :stop-fn  (fn [~'this] ~stop)
                            :name     ~name}))
     (throw (ex-info "missing :start expression" {}))))
 

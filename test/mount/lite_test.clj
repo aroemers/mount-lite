@@ -58,3 +58,11 @@
 
 (deftest extra-data
   (is (= (:extra state-1) 'data)))
+
+(deftest test-anonymous
+  (let [stopped   (promise)
+        anonymous (state :start 1 :stop (deliver stopped this))]
+    (with-substitutes [#'state-1 anonymous]
+      (start #'state-1)
+      (stop))
+    (is (and (realized? stopped) (= 1 @stopped)) "this is bound")))
