@@ -23,3 +23,12 @@
   [state-vars & body]
   `(#'with-states (remove (set (map utils/var->keyword ~state-vars)) @mount/*states*)
      (fn [] ~@body)))
+
+(defn ns-states
+  "Returns a sequence of the state vars that reside in the given
+  namespaces (symbols, strings and/or actual namespace objects)."
+  [& nss]
+  (let [ns-strs (set (map str nss))
+        xform   (comp (filter (comp ns-strs namespace))
+                      (map utils/resolve-keyword))]
+    (sequence xform @mount/*states*)))
