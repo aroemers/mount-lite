@@ -1,7 +1,9 @@
 # Change Log
 
-## [Unreleased][unreleased]
-nothing yet
+## [2.0.0] - 2017-08-24 - BREAKING
+
+- See README and documentation for changes and migration guide.
+
 
 ## [0.9.8] - 2016-05-25
 ### Added
@@ -86,7 +88,7 @@ nothing yet
 ## 0.9
 - Initial release
 
-[unreleased]: https://github.com/aroemers/mount-lite/compare/0.9.8...HEAD
+[2.0.0]: https://github.com/aroemers/mount-lite/compare/2.0.0...0.9.8
 [0.9.8]: https://github.com/aroemers/mount-lite/compare/0.9.7...0.9.8
 [0.9.7]: https://github.com/aroemers/mount-lite/compare/0.9.6...0.9.7
 [0.9.6]: https://github.com/aroemers/mount-lite/compare/0.9.5...0.9.6
