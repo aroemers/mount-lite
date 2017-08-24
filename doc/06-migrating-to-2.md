@@ -33,12 +33,14 @@ For example:
 
 States are not automatically stopped anymore on redefinition.
 You need to manually `stop` and `start` your states, or use the [tools.namespace](https://github.com/clojure/tools.namespace) library.
-This also means that the `:on-reload` and `:on-cascade` options of `defstate` are gone, just as the `on-reload` function
+This also means that the `:on-reload` and `:on-cascade` options of `defstate` are gone, just as the `on-reload` function.
+
+A [refresh](mount.extensions.refresh.html) extension has been added for an easy integration with tools.namespace library.
 
 ## No more graphs
 
-Detecting the dependency graph for the `defstates` has been removed.
-It may return in a future version, as an opt-in extension.
+Detecting the dependency graph for the `defstates` has been removed from the core.
+It has returned as an another form as the [explicit-deps](mount.extensions.explicit-deps.html) extension.
 This means that the "up-to" behaviour may now start or stop more states than you were used to.
 
 ## No more parallel

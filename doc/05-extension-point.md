@@ -22,7 +22,7 @@ Do not fiddle with the root binding of the `*states*` var directly!
 
 ### Bringing back "only"
 
-For example, if you'd really need the `only` option back, you could do the following:
+For example, if you'd really need the [`only`](mount.extensions.basic.html#var-with-only) option back, you could do the following:
 
 ```clj
 (defmacro with-only
