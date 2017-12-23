@@ -5,7 +5,8 @@
 
   Using these functions, the defstates or substitute states *must*
   declare a `:dependencies` field, which may be nil."
-  (:require [mount.lite :as mount]
+  (:require [mount.extensions.common-deps :as common-deps]
+            [mount.lite :as mount]
             [mount.utils :as utils]))
 
 (defn build-graphs
@@ -30,44 +31,11 @@
                  {:dependencies base-map
                   :dependents   base-map}))))
 
-(defn- transitive
-  [graph node]
-  (loop [unexpanded (graph node)
-         expanded #{}]
-    (if-let [[node & more] (seq unexpanded)]
-      (if (contains? expanded node)
-        (recur more expanded)
-        (recur (concat more (graph node))
-               (conj expanded node)))
-      expanded)))
-
-(defn ^:no-doc with-transitives*
-  "Calls 0-arity function `f`, while `*states*` has been bound to the
-  transitive dependencies and dependents of the given state `var`."
-  [var f]
-  (let [var-kw       (utils/var->keyword var)
-        graphs       (build-graphs)
-        dependencies (transitive (:dependencies graphs) var-kw)
-        dependents   (transitive (:dependents graphs) var-kw)
-        concatted    (set (concat dependencies dependents))]
-    (binding [mount/*states* (atom (filter (conj concatted var-kw) @mount/*states*))]
-      (f))))
-
-(defmacro with-transitives
-  "Wraps the `body` having the `*states*` extension point bound to the
-  transitive dependencies and dependents of the given state `var`.
-
-  Make sure you wrap this with `with-substitutes` if applicable, in
-  case you want `with-transitives` to use the `:dependencies` of the
-  substitute states."
-  [var & body]
-  `(with-transitives* ~var (fn [] ~@body)))
-
 (defn start
   "Just like the core `start` with an `up-to-var`, but now only starts
   the explicit transitive dependencies of that state."
   [up-to-var]
-  (with-transitives up-to-var
+  (common-deps/with-transitives up-to-var (build-graphs)
     (mount/start up-to-var)))
 
 (defn stop
@@ -75,5 +43,5 @@
   the explicit transitive dependents of that state."
   [down-to-var]
   (mount/with-substitutes []
-    (with-transitives down-to-var
+    (common-deps/with-transitives down-to-var (build-graphs)
       (mount/stop down-to-var))))
