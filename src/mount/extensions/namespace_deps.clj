@@ -22,16 +22,22 @@
     (catch Exception e)))
 
 (defn- ns-graph->state-graph
-  "Take a namespace-to-namespace dependencies graph, and a
-  namespace-to-states map, and generate a state-to-state dependencies
-  graph (where states are represented by keywords)."
-  [ns-graph ns-states]
+  "Take two graphs with namespace-to-namespace `:dependencies` and
+  `:dependents` in the `ns-deps` map, and a namespace-to-states map,
+  and generate a state-to-state dependencies graph (where states are
+  represented by keywords). The direction argument should be one of
+  `:dependencies` or `:dependents`."
+  [ns-deps ns-states direction]
   (let [empty-graph (zipmap @mount/*states* (repeat #{}))]
-    (reduce-kv (fn [graph ns ns-deps]
-                 (into graph (for [state (get ns-states ns)]
-                               [state (set (apply concat (keep ns-states ns-deps)))])))
+    (reduce-kv (fn [graph ns deps]
+                 (let [states (get ns-states ns)]
+                   (into graph (for [state states]
+                                 (let [same-ns (case direction
+                                                 :dependencies (take-while #(not= % state) states)
+                                                 :dependents   (rest (drop-while #(not= % state) states)))]
+                                   [state (set (apply concat same-ns (keep ns-states deps)))])))))
                empty-graph
-               ns-graph)))
+               (get ns-deps direction))))
 
 (defn build-graphs
   "Build two graphs of state keywords, represented as maps where the
@@ -42,8 +48,8 @@
   (alter-var-root #'deps-tracker scan-all)
   (let [ns-deps   (:clojure.tools.namespace.track/deps deps-tracker)
         ns-states (group-by (comp symbol namespace) @mount/*states*)]
-    {:dependencies (ns-graph->state-graph (:dependencies ns-deps) ns-states)
-     :dependents   (ns-graph->state-graph (:dependents ns-deps) ns-states)}))
+    {:dependencies (ns-graph->state-graph ns-deps ns-states :dependencies)
+     :dependents   (ns-graph->state-graph ns-deps ns-states :dependents)}))
 
 (defn start
   "Just like the core `start` with an `up-to-var`, but now only starts
