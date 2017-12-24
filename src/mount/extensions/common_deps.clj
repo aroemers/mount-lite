@@ -8,7 +8,7 @@
   "Given a graph and a node, returns all the transitive nodes."
   [graph node]
   (loop [unexpanded (graph node)
-         expanded #{}]
+         expanded   #{}]
     (if-let [[node & more] (seq unexpanded)]
       (if (contains? expanded node)
         (recur more expanded)
@@ -23,8 +23,9 @@
   (let [var-kw       (utils/var->keyword var)
         dependencies (transitive (:dependencies graphs) var-kw)
         dependents   (transitive (:dependents graphs) var-kw)
-        concatted    (set (concat dependencies dependents))]
-    (binding [mount/*states* (atom (filter (conj concatted var-kw) @mount/*states*))]
+        neighbors    (filter #(= (namespace var-kw) (namespace %)) @mount/*states*)
+        concatted    (set (concat dependencies dependents neighbors))]
+    (binding [mount/*states* (atom (filter concatted @mount/*states*))]
       (f))))
 
 (defmacro with-transitives
