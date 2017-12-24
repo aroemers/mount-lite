@@ -47,14 +47,14 @@
 
 (defn start
   "Just like the core `start` with an `up-to-var`, but now only starts
-  the explicit transitive dependencies of that state."
+  the transitive dependencies of that state."
   [up-to-var]
   (common-deps/with-transitives up-to-var (build-graphs)
     (mount/start up-to-var)))
 
 (defn stop
   "Just like the core `stop` with a `down-to-var`, but now only stops
-  the explicit transitive dependents of that state."
+  the transitive dependents of that state."
   [down-to-var]
   (common-deps/with-transitives down-to-var (build-graphs)
     (mount/stop down-to-var)))
