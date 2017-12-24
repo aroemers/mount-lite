@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.1.0] - unreleased
+### Added
+- Extension for inferred dependency graph among defstates using the optional [tools.namespace](https://github.com/clojure/tools.namespace#reloading-code-usage) library.
+
 ## [2.0.0] - 2017-08-24 - BREAKING
 
 - See README and documentation for changes and migration guide.
@@ -88,6 +92,7 @@
 ## 0.9
 - Initial release
 
+[2.0.0]: https://github.com/aroemers/mount-lite/compare/2.1.0...2.0.0
 [2.0.0]: https://github.com/aroemers/mount-lite/compare/2.0.0...0.9.8
 [0.9.8]: https://github.com/aroemers/mount-lite/compare/0.9.7...0.9.8
 [0.9.7]: https://github.com/aroemers/mount-lite/compare/0.9.6...0.9.7
