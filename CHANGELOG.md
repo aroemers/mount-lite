@@ -92,7 +92,7 @@
 ## 0.9
 - Initial release
 
-[2.0.0]: https://github.com/aroemers/mount-lite/compare/2.1.0...2.0.0
+[2.1.0]: https://github.com/aroemers/mount-lite/compare/2.1.0...2.0.0
 [2.0.0]: https://github.com/aroemers/mount-lite/compare/2.0.0...0.9.8
 [0.9.8]: https://github.com/aroemers/mount-lite/compare/0.9.7...0.9.8
 [0.9.7]: https://github.com/aroemers/mount-lite/compare/0.9.6...0.9.7
