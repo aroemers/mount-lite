@@ -1,6 +1,6 @@
 # Change Log
 
-## [2.1.0] - unreleased
+## [2.1.0] - 2017-12-30
 ### Added
 - Extension for inferred dependency graph among defstates using the optional [tools.namespace](https://github.com/clojure/tools.namespace#reloading-code-usage) library.
 
