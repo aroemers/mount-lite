@@ -41,7 +41,8 @@
 
 (defn build-graphs
   "Build two graphs of state keywords, represented as maps where the
-  values are the dependencies or dependents of the keys."
+  values are the dependencies or dependents of the keys. See also
+  `mount.extensions.common-deps/with-transitives`."
   []
   (when-not scan-all
     (throw (UnsupportedOperationException. "Could not find tools.namespace dependency")))
@@ -52,15 +53,19 @@
      :dependents   (ns-graph->state-graph ns-deps ns-states :dependents)}))
 
 (defn start
-  "Just like the core `start` with an `up-to-var`, but now only starts
-  the transitive dependencies of that state."
-  [up-to-var]
-  (common-deps/with-transitives up-to-var (build-graphs)
-    (mount/start up-to-var)))
+  "Just like the core `start`, except with an `up-to-var`, it only
+  starts the transitive dependencies of that state."
+  ([]
+   (mount/start))
+  ([up-to-var]
+   (common-deps/with-transitives up-to-var (build-graphs)
+     (mount/start up-to-var))))
 
 (defn stop
-  "Just like the core `stop` with a `down-to-var`, but now only stops
-  the transitive dependents of that state."
-  [down-to-var]
-  (common-deps/with-transitives down-to-var (build-graphs)
-    (mount/stop down-to-var)))
+  "Just like the core `stop`, except with a `down-to-var`, it only
+  stops the transitive dependents of that state."
+  ([]
+   (mount/stop))
+  ([down-to-var]
+   (common-deps/with-transitives down-to-var (build-graphs)
+     (mount/stop down-to-var))))
