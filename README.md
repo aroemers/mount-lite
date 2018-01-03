@@ -21,7 +21,7 @@ Version 0.9.x will still be maintained, and can be found under the [1.x branch](
 
 ## Getting started
 
-Add `[functionalbytes/mount-lite "2.1.0"]` to your dependencies and make sure Clojars is one of your repositories.
+Add `[functionalbytes/mount-lite "2.1.1"]` to your dependencies and make sure Clojars is one of your repositories.
 
 You can find all the documentation about mount-lite, what makes it unique, and the API by clicking on the link below:
 

@@ -1,8 +1,15 @@
 # Change Log
 
+
+## [2.1.1] - 2018-01-06
+### Added
+- The `explicit-deps` and `namespace-deps` extension's `start` and `stop` functions now support 0-arity, just like the standard start/stop functions.
+
+
 ## [2.1.0] - 2017-12-30
 ### Added
 - Extension for inferred dependency graph among defstates using the optional [tools.namespace](https://github.com/clojure/tools.namespace#reloading-code-usage) library.
+
 
 ## [2.0.0] - 2017-08-24 - BREAKING
 
