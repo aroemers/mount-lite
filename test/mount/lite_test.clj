@@ -47,6 +47,9 @@
                (with-substitutes [#'state-1 (state :start (throw (ex-info "Boom!" {})))]
                  (start)))))
 
+(deftest accessing-unstarted-throws-error
+  (is (thrown? Error @state-1)))
+
 (deftest test-status
   (is (= (status) {#'state-1 :stopped #'state-2 :stopped #'state-2-a :stopped #'state-2-b :stopped #'state-3 :stopped}))
   (start)

@@ -22,20 +22,17 @@
 
 (defn- throw-started
   [name]
-  (throw (ex-info (format "state %s already started %s" name
-                          (if (.get itl) "in this session" ""))
-                  {:name name})))
+  (throw (Error. (format "state %s already started %s" name
+                          (if (.get itl) "in this session" "")))))
 
 (defn- throw-unstarted
   [name]
-  (throw (ex-info (format "state %s not started %s" name
-                          (if (.get itl) "in this session" ""))
-                  {:name name})))
+  (throw (Error. (format "state %s not started %s" name
+                          (if (.get itl) "in this session" "")))))
 
 (defn- throw-not-found
   [var]
-  (throw (ex-info (format "var %s is not a state" var)
-                  {:var var})))
+  (throw (Error. (format "var %s is not a state" var))))
 
 (defrecord State [start-fn stop-fn name sessions]
   IState
