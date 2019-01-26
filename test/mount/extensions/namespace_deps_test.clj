@@ -15,17 +15,15 @@
 ;;; Tests.
 
 (deftest build-graphs-test
-  (is (= (sut/build-graphs)
-         {:dependencies {::ts1/state-1         #{}
-                         ::ts2/state-2         #{::ts1/state-1}
+  (is (= {:dependencies {::ts2/state-2         #{::ts1/state-1}
                          ::ts2-extra/state-2-a #{::ts1/state-1}
                          ::ts2-extra/state-2-b #{::ts2-extra/state-2-a ::ts1/state-1}
-                         ::ts3/state-3         #{::ts2-extra/state-2-b ::ts2/state-2 ::ts2-extra/state-2-a}}
-          :dependents   {::ts1/state-1         #{::ts2-extra/state-2-b ::ts2/state-2 ::ts2-extra/state-2-a}
+                         ::ts3/state-3         #{::ts2-extra/state-2-b ::ts2/state-2 ::ts2-extra/state-2-a ::ts1/state-1}}
+          :dependents   {::ts1/state-1         #{::ts2-extra/state-2-b ::ts2/state-2 ::ts2-extra/state-2-a ::ts3/state-3}
                          ::ts2/state-2         #{::ts3/state-3}
                          ::ts2-extra/state-2-a #{::ts2-extra/state-2-b ::ts3/state-3}
-                         ::ts2-extra/state-2-b #{::ts3/state-3}
-                         ::ts3/state-3         #{}}})))
+                         ::ts2-extra/state-2-b #{::ts3/state-3}}}
+         (into {} (sut/build-graphs)))))
 
 (deftest start-test
   (is (= (sut/start #'state-2) [#'state-1 #'state-2]))

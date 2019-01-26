@@ -21,23 +21,33 @@
     (resolve 'clojure.tools.namespace.dir/scan-all)
     (catch Exception e)))
 
+(def ^:private dependency
+  (try
+    (require 'clojure.tools.namespace.dependency)
+    {:graph                   (resolve 'clojure.tools.namespace.dependency/graph)
+     :transitive-dependencies (resolve 'clojure.tools.namespace.dependency/transitive-dependencies)
+     :depend                  (resolve 'clojure.tools.namespace.dependency/depend)}
+    (catch Exception e)))
+
 (defn- ns-graph->state-graph
   "Take two graphs with namespace-to-namespace `:dependencies` and
   `:dependents` in the `ns-deps` map, and a namespace-to-states map,
   and generate a state-to-state dependencies graph (where states are
   represented by keywords). The direction argument should be one of
   `:dependencies` or `:dependents`."
-  [ns-deps ns-states direction]
-  (let [empty-graph (zipmap @mount/*states* (repeat #{}))]
-    (reduce-kv (fn [graph ns deps]
-                 (let [states (get ns-states ns)]
-                   (into graph (for [state states]
-                                 (let [same-ns (case direction
-                                                 :dependencies (take-while #(not= % state) states)
-                                                 :dependents   (rest (drop-while #(not= % state) states)))]
-                                   [state (set (apply concat same-ns (keep ns-states deps)))])))))
-               empty-graph
-               (get ns-deps direction))))
+  [ns-deps ns-states]
+  (let [{:keys [graph transitive-dependencies depend]} dependency
+        g                                              (atom (graph))]
+    (doseq [[ns states] ns-states
+            dep-ns      (transitive-dependencies ns-deps ns)
+            state       states
+            dep-state   (get ns-states dep-ns)]
+      (swap! g depend state dep-state))
+    (doseq [[_ states] ns-states
+            state      states
+            dep-state  (take-while #(not= state %) states)]
+      (swap! g depend state dep-state))
+    @g))
 
 (defn build-graphs
   "Build two graphs of state keywords, represented as maps where the
@@ -49,8 +59,7 @@
   (alter-var-root #'deps-tracker scan-all)
   (let [ns-deps   (:clojure.tools.namespace.track/deps deps-tracker)
         ns-states (group-by (comp symbol namespace) @mount/*states*)]
-    {:dependencies (ns-graph->state-graph ns-deps ns-states :dependencies)
-     :dependents   (ns-graph->state-graph ns-deps ns-states :dependents)}))
+    (ns-graph->state-graph ns-deps ns-states)))
 
 (defn start
   "Just like the core `start`, except with an `up-to-var`, it only
