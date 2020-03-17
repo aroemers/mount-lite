@@ -1,4 +1,4 @@
-(defproject functionalbytes/mount-lite "2.1.1"
+(defproject functionalbytes/mount-lite "2.1.2"
   :description "mount, but different and light"
   :url "https://github.com/aroemers/mount-lite"
   :license {:name "Eclipse Public License"

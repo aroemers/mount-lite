@@ -1,5 +1,12 @@
 # Change Log
 
+## [2.1.2] - 2020-03-17
+### Fixed
+- Fixed #18 - mount.extensions.namespace-deps does not discover state dependencies via empty namespaces
+
+### Changed
+- Merged #17 - Throw Error when accessing an unstarted state
+
 
 ## [2.1.1] - 2018-01-06
 ### Added
@@ -99,6 +106,8 @@
 ## 0.9
 - Initial release
 
+[2.1.2]: https://github.com/aroemers/mount-lite/compare/2.1.2...2.1.1
+[2.1.1]: https://github.com/aroemers/mount-lite/compare/2.1.1...2.1.0
 [2.1.0]: https://github.com/aroemers/mount-lite/compare/2.1.0...2.0.0
 [2.0.0]: https://github.com/aroemers/mount-lite/compare/2.0.0...0.9.8
 [0.9.8]: https://github.com/aroemers/mount-lite/compare/0.9.7...0.9.8
