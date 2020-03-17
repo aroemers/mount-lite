@@ -25,7 +25,7 @@ Add `[functionalbytes/mount-lite "2.1.2"]` or `functionalbytes/mount-lite {:mvn/
 
 You can find all the documentation about mount-lite, what makes it unique, and the API by clicking on the link below:
 
-[**GO TO DOCUMENTATION**](http://aroemers.github.io/mount-lite/index.html).
+&gt;>> [**FULL DOCUMENTATION**](https://cljdoc.org/d/functionalbytes/mount-lite/) <<<
 
 ## A primer
 
