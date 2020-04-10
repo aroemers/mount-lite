@@ -7,18 +7,6 @@ A library resembling [mount](https://github.com/tolitius/mount), but different o
 * **Supports multiple system instances simultaneously**, enabling parallel testing for instance.
 * **Easily extensible**, without touching the core. Several extensions are provided, such as [tools.namespace](https://github.com/clojure/tools.namespace#reloading-code-usage) integration and inferred dependency graphs.
 
-You like it? Feel free to use it. Don't like it? The original mount is great!
-
-## Version 2.x
-
-Version 2.x is breaking with the 0.9.x versions.
-Version 2.0 introduced the ability to run multiple systems of states simultaneously.
-This was an opportunity to get rid of the excess, based on experience in several larger projects.
-It has become really "lite", especially the core, while providing an easy to understand extension point for more advanced features.
-[This blog post](http://www.functionalbytes.nl/clojure/mount/mount-lite/2016/12/10/mount-lite-2.html) explains what has changed in version 2.0 in detail, and why.
-
-Version 0.9.x will still be maintained, and can be found under the [1.x branch](https://github.com/aroemers/mount-lite/tree/1.x).
-
 ## Getting started
 
 Add `[functionalbytes/mount-lite "2.1.2"]` or `functionalbytes/mount-lite {:mvn/version "2.1.2"}` to your dependencies and make sure Clojars is one of your repositories.
@@ -72,26 +60,36 @@ Calling `(stop)` stops all the states in reverse order.
 
 Next to above basic usage, the core provides three more concepts:
 
-- **[Substitutes](http://aroemers.github.io/mount-lite/02-substitutions.html)**: replace default defstate implementations with substitutes, for testing or REPL sessions.
+- **[Substitutes](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/doc/substitutions)**: replace default defstate implementations with substitutes, for testing or REPL sessions.
 
-- **[Start/stop "up-to"](http://aroemers.github.io/mount-lite/03-start-stop-options.html)**: only start (or stop) the defstates sequence to a certain defstate.
+- **[Start/stop "up-to"](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/doc/start-up-to-stop-down-tol)**: only start (or stop) the defstates sequence to a certain defstate.
 
-- **[Multiple systems](http://aroemers.github.io/mount-lite/04-systems-of-states.html)**: start multiple instances of defstate systems concurrently.
+- **[Multiple systems](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/doc/multiple-systems-of-states)**: start multiple instances of defstate systems concurrently.
 
 ## Extensions
 
-The core provides an easy [extension point](http://aroemers.github.io/mount-lite/05-extension-point.html).
+The core provides an easy [extension point](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/doc/extension-point).
 The following extensions are currently provided:
 
-- **[Basic](http://aroemers.github.io/mount-lite/mount.extensions.basic.html)**: start only certain states, or all states except certain states.
+- **[Basic](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/api/mount.extensions.basicl)**: start only certain states, or all states except certain states.
 
-- **[Data-driven](http://aroemers.github.io/mount-lite/mount.extensions.data-driven.html)**: start the states according to an EDN specification.
+- **[Data-driven](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/api/mount.extensions.data-driven)**: start the states according to an EDN specification.
 
-- **[Refresh](http://www.functionalbytes.nl/mount-lite/mount.extensions.refresh.html)**: use mount-lite in combination with the "refresh" functionality of the [tools.namespace](https://github.com/clojure/tools.namespace#reloading-code-usage) library.
+- **[Refresh](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/api/mount.extensions.refresh)**: use mount-lite in combination with the "refresh" functionality of the [tools.namespace](https://github.com/clojure/tools.namespace#reloading-code-usage) library.
 
-- **[Inferred dependencies](http://aroemers.github.io/mount-lite/mount.extensions.namespace-deps.html)**: only start (or stop) states based on an inferred dependency graph using the tools.namespace library.
+- **[Inferred dependencies](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/api/mount.extensions.namespace-deps)**: only start (or stop) states based on an inferred dependency graph using the tools.namespace library.
 
-- **[Explicit dependencies](http://aroemers.github.io/mount-lite/mount.extensions.explicit-deps.html)**: only start (or stop) states based on an explicitly declared dependency graph.
+- **[Explicit dependencies](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/api/mount.extensions.explicit-deps)**: only start (or stop) states based on an explicitly declared dependency graph.
+
+## Version 2.x
+
+Version 2.x is breaking with the 0.9.x versions.
+Version 2.0 introduced the ability to run multiple systems of states simultaneously.
+This was an opportunity to get rid of the excess, based on experience in several larger projects.
+It has become really "lite", especially the core, while providing an easy to understand extension point for more advanced features.
+[This blog post](https://www.functionalbytes.nl/clojure/mount/mount-lite/2016/12/10/mount-lite-2.html) explains what has changed in version 2.0 in detail, and why.
+
+Version 0.9.x will still be maintained, and can be found under the [1.x branch](https://github.com/aroemers/mount-lite/tree/1.x).
 
 ## License
 

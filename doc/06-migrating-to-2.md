@@ -5,9 +5,9 @@ This guide sums up what has changed.
 
 ## Simplified start/stop
 
-Where the `start` and `stop` functions used to take zero to multiple "option maps", they now take [one optional argument](03-start-stop-options.html): the "up to" var.
+Where the `start` and `stop` functions used to take zero to multiple "option maps", they now take [one optional argument](03-start-stop-options.md): the "up to" var.
 
-If you were using the `only` or `except` options, see if you can replace them with the "up to" approach, or with the [extension point](05-extension-point.html), or keep using the 0.9.x version.
+If you were using the `only` or `except` options, see if you can replace them with the "up to" approach, or with the [extension point](05-extension-point.md), or keep using the 0.9.x version.
 
 ## Dereferencing
 
@@ -35,12 +35,12 @@ States are not automatically stopped anymore on redefinition.
 You need to manually `stop` and `start` your states, or use the [tools.namespace](https://github.com/clojure/tools.namespace) library.
 This also means that the `:on-reload` and `:on-cascade` options of `defstate` are gone, just as the `on-reload` function.
 
-A [refresh](mount.extensions.refresh.html) extension has been added for an easy integration with tools.namespace library.
+A [[mount.extensions.refresh]] extension has been added for an easy integration with tools.namespace library.
 
 ## No more graphs
 
 Detecting the dependency graph for the `defstates` has been removed from the core.
-It has returned as an another form as the [explicit-deps](mount.extensions.explicit-deps.html) extension.
+It has returned as an another form as the [[mount.extensions.explicit-deps]] extension.
 This means that the "up-to" behaviour may now start or stop more states than you were used to.
 
 ## No more parallel

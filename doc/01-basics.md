@@ -10,11 +10,11 @@ Using this lifecycle, you can quickly bring up the application state, and bring 
 The mount and mount-lite libraries give you an easy and non-intrusive way of adding such lifecycles to the stateful parts of your application.
 
 The mount-lite library has some unique features and approach with respect to mount.
-For more info on why mount-lite was created, see [this blog post](http://www.functionalbytes.nl/clojure/mount/mount-lite/2016/02/11/mount-lite.html).
+For more info on why mount-lite was created, see [this blog post](https://www.functionalbytes.nl/clojure/mount/mount-lite/2016/02/11/mount-lite.html).
 
 That blog post covers the 0.9.x version, and quite some things have changed with version 2.0.
 In short, the API has been simplified and the feature to have multiple systems of states simultaneously has been added.
-See [this blog post](http://www.functionalbytes.nl/clojure/mount/mount-lite/2016/12/10/mount-lite-2.html) for more info on what has changed, and why.
+See [this blog post](https://www.functionalbytes.nl/clojure/mount/mount-lite/2016/12/10/mount-lite-2.html) for more info on what has changed, and why.
 
 This documentation covers the functionality of version 2.x.
 Version 0.9.x is still supported though, and its documentation can be found in the [source repository](https://github.com/aroemers/mount-lite/tree/1.x).
@@ -50,7 +50,7 @@ It currently is in the `:stopped` status.
 The `:start` expression above uses another global state - `your.app.config/config` - which it dereferences to get its value.
 The `:stop` expression uses its own value in the same way.
 This dereferencing is the way you get the value of a started state, anywhere in your application.
-Note that in the stop expression the `this` symbol is bound its start value as well, which is particularly useful in anonymous states (more on anonymous states in the [substituting](02-substitutions.html) section).
+Note that in the stop expression the `this` symbol is bound its start value as well, which is particularly useful in anonymous states (more on anonymous states in the [substituting](02-substitutions.md) section).
 
 ## Starting and stopping the states
 
@@ -106,4 +106,4 @@ Consider the following in your design when using mount-lite (or mount for that m
 
 ## Further reading
 
-Now that you know the basics, it is advised to learn about at least one other feature of mount-lite: [substituting](02-substitutions.html). You could also read on how to [start up to or stop down](03-start-stop-options.html) to a certain state, or how to start [multiple systems of states](04-systems-of-states.html) simultaneously.
+Now that you know the basics, it is advised to learn about at least one other feature of mount-lite: [substituting](02-substitutions.md). You could also read on how to [start up to or stop down](03-start-stop-options.md) to a certain state, or how to start [multiple systems of states](04-systems-of-states.md) simultaneously.
