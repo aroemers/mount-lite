@@ -9,7 +9,7 @@ A library resembling [mount](https://github.com/tolitius/mount), but different o
 
 ## Getting started
 
-Add `[functionalbytes/mount-lite "2.1.2"]` or `functionalbytes/mount-lite {:mvn/version "2.1.2"}` to your dependencies and make sure Clojars is one of your repositories.
+Add `[functionalbytes/mount-lite "2.1.3"]` or `functionalbytes/mount-lite {:mvn/version "2.1.3"}` to your dependencies and make sure Clojars is one of your repositories.
 
 You can find all the documentation about mount-lite, what makes it unique, and the API by clicking on the link below:
 
