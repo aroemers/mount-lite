@@ -62,7 +62,7 @@ Next to above basic usage, the core provides three more concepts:
 
 - **[Substitutes](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/doc/substitutions)**: replace default defstate implementations with substitutes, for testing or REPL sessions.
 
-- **[Start/stop "up-to"](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/doc/start-up-to-stop-down-tol)**: only start (or stop) the defstates sequence to a certain defstate.
+- **[Start/stop "up-to"](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/doc/start-up-to-stop-down-to)**: only start (or stop) the defstates sequence to a certain defstate.
 
 - **[Multiple systems](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/doc/multiple-systems-of-states)**: start multiple instances of defstate systems concurrently.
 
@@ -71,7 +71,7 @@ Next to above basic usage, the core provides three more concepts:
 The core provides an easy [extension point](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/doc/extension-point).
 The following extensions are currently provided:
 
-- **[Basic](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/api/mount.extensions.basicl)**: start only certain states, or all states except certain states.
+- **[Basic](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/api/mount.extensions.basic)**: start only certain states, or all states except certain states.
 
 - **[Data-driven](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/api/mount.extensions.data-driven)**: start the states according to an EDN specification.
 
