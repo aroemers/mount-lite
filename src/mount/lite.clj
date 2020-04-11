@@ -101,9 +101,9 @@
 
 (defmacro with-substitutes
   "Executes the given body while the given defstates' start/stop logic
-  have been substituted."
+  have been substituted. These can be nested."
   [substitutes & body]
-  `(binding [*substitutes* ~substitutes]
+  `(binding [*substitutes* (merge *substitutes* ~substitutes)]
      ~@body))
 
 (defmacro with-system-key
@@ -116,7 +116,7 @@
 
 (defmacro with-system-map
   "Executes the given body while the given system map has been merged in
-  the (possibly empty) existing system."
+  the (possibly empty) existing system. These can be nested."
   [system & body]
-  `(binding [*system* ~system]
+  `(binding [*system* (merge *system* ~system)]
      ~@body))
