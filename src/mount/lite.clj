@@ -79,17 +79,27 @@
 
 (defn start
   "Starts all the unstarted global defstates, in the context of the
-  current system key."
-  []
-  (doseq [state-var (sort-by :order (keys @states))]
-    (start* state-var)))
+  current system key. Takes an optional state, starting the system
+  only up to that particular state."
+  ([] (start nil))
+  ([up-to]
+   (let [ordered        (sort-by :order (keys @states))
+         [before after] (split-with (complement #{up-to}) ordered)
+         state-vars     (concat before (take 1 after))]
+     (doseq [state-var state-vars]
+       (start* state-var)))))
 
 (defn stop
   "Stops all the started global defstates, in the context of the current
-  system key."
-  []
-  (doseq [state-var (sort-by (comp - :order) (keys @states))]
-    (stop* state-var)))
+  system key. Takes an optional state, stopping the system
+  only up to that particular state."
+  ([] (stop nil))
+  ([up-to]
+   (let [ordered        (sort-by (comp - :order) (keys @states))
+         [before after] (split-with (complement #{up-to}) ordered)
+         state-vars     (concat before (take 1 after))]
+     (doseq [state-var state-vars]
+       (stop* state-var)))))
 
 (defn status
   "Returns a status map of all the states."
