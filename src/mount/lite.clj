@@ -9,30 +9,31 @@
 (defonce ^:dynamic *substitutes* {})
 (defonce ^:dynamic *system* {})
 
-(defonce systems  (atom {}))
-(defonce stoppers (atom {}))
-(defonce states   (atom {}))
+(defonce ^:private states  (java.util.LinkedHashSet.))
+(defonce ^:private systems (atom {}))
+(defonce ^:private started (atom {}))
 
 (defprotocol IState
   (start* [this])
   (stop* [this])
   (status* [this]))
 
-(defrecord StateVar [name order]
+(defrecord StateVar [name]
   IState
   (start* [this]
     (when (= :stopped (status* this))
-      (let [state  (or (get *substitutes* this) (get @states this))
+      (let [state (or (get *substitutes* this)
+                       (:state (meta (resolve name))))
             result (start* state)]
-        (swap! systems  update *system-key* assoc this result)
-        (swap! stoppers update *system-key* assoc this state))))
+        (swap! systems update *system-key* assoc this result)
+        (swap! started update *system-key* assoc this state))))
 
   (stop* [this]
     (when (= :started (status* this))
-      (when-let [state (get-in @stoppers [*system-key* this])]
+      (when-let [state (get-in @started [*system-key* this])]
         (stop* state))
-      (swap! systems  update *system-key* dissoc this)
-      (swap! stoppers update *system-key* dissoc this)))
+      (swap! systems update *system-key* dissoc this)
+      (swap! started update *system-key* dissoc this)))
 
   (status* [this]
     (if (or (contains? *system* this)
@@ -47,14 +48,21 @@
         (get *system* this)
         (get-in @systems [*system-key* this]))
       (throw (ex-info (str "Cannot deref state " name " when not started (system " *system-key* ")")
-                      {:state this :system *system-key*})))))
+                      {:state this :system *system-key*}))))
+
+  Object
+  (toString [_]
+    (str "#StateVar[" name "]")))
 
 (defrecord State [start-fn stop-fn]
   IState
   (start* [_] (start-fn))
   (stop*  [_] (stop-fn)))
 
-(prefer-method print-method clojure.lang.IRecord clojure.lang.IDeref)
+;;; Printing
+
+(defmethod print-method StateVar [sv ^java.io.Writer writer]
+  (.write writer (str sv)))
 
 
 ;;; Core public API
@@ -70,11 +78,11 @@
   Redefining a defstate does not affect the stop logic of an already
   started defstate."
   [name & {:keys [start stop]}]
-  `(let [var#       (or (defonce ~name (StateVar. ~(str *ns* "/" name) (clojure.lang.RT/nextID)))
-                        (resolve '~name))
-         state-var# (deref var#)
-         state#     (state :start ~start :stop ~stop)]
-     (swap! states assoc state-var# state#)
+  `(let [statevar# (StateVar. (symbol ~(str *ns*) ~(str name)))
+         var#      (or (defonce ~name statevar#) (resolve '~name))
+         state#    (state :start ~start :stop ~stop)]
+     (alter-meta! var# assoc :state state#)
+     (.add @#'states statevar#)
      var#))
 
 (defn start
@@ -83,11 +91,8 @@
   only up to that particular state."
   ([] (start nil))
   ([up-to]
-   (let [ordered        (sort-by :order (keys @states))
-         [before after] (split-with (complement #{up-to}) ordered)
-         state-vars     (concat before (take 1 after))]
-     (doseq [state-var state-vars]
-       (start* state-var)))))
+   (let [[before after] (split-with (complement #{up-to}) states)]
+     (doall (filter start* (concat before (take 1 after)))))))
 
 (defn stop
   "Stops all the started global defstates, in the context of the current
@@ -95,16 +100,13 @@
   only up to that particular state."
   ([] (stop nil))
   ([up-to]
-   (let [ordered        (sort-by (comp - :order) (keys @states))
-         [before after] (split-with (complement #{up-to}) ordered)
-         state-vars     (concat before (take 1 after))]
-     (doseq [state-var state-vars]
-       (stop* state-var)))))
+   (let [[before after] (split-with (complement #{up-to}) states)]
+     (doall (filter stop* (concat before (take 1 after)))))))
 
 (defn status
   "Returns a status map of all the states."
   []
-  (reduce #(assoc %1 (:name %2) (status* %2)) {} (keys @states)))
+  (reduce #(assoc %1 %2 (status* %2)) {} states))
 
 
 ;;; Advanced public API
