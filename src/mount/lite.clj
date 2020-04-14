@@ -100,7 +100,7 @@
   only up to that particular state."
   ([] (stop nil))
   ([up-to]
-   (let [[before after] (split-with (complement #{up-to}) states)]
+   (let [[before after] (split-with (complement #{up-to}) (reverse states))]
      (doall (filter stop* (concat before (take 1 after)))))))
 
 (defn status
