@@ -5,9 +5,9 @@
 
 ;;; Internals
 
-(defonce ^:dynamic *system-key* :default)
+(defonce ^:dynamic *system-key*  :default)
+(defonce ^:dynamic *system-map*  {})
 (defonce ^:dynamic *substitutes* {})
-(defonce ^:dynamic *system* {})
 
 (defonce ^:private states  (java.util.LinkedHashSet.))
 (defonce ^:private systems (atom {}))
@@ -36,7 +36,7 @@
       (swap! started update *system-key* dissoc this)))
 
   (status* [this]
-    (if (or (contains? *system* this)
+    (if (or (contains? *system-map* this)
             (contains? (get @systems *system-key*) this))
       :started
       :stopped))
@@ -44,8 +44,8 @@
   clojure.lang.IDeref
   (deref [this]
     (if (= :started (status* this))
-      (if (contains? *system* this)
-        (get *system* this)
+      (if (contains? *system-map* this)
+        (get *system-map* this)
         (get-in @systems [*system-key* this]))
       (throw (ex-info (str "Cannot deref state " name " when not started (system " *system-key* ")")
                       {:state this :system *system-key*}))))
@@ -130,5 +130,5 @@
   "Executes the given body while the given system map has been merged in
   the (possibly empty) existing system. These can be nested."
   [system & body]
-  `(binding [*system* (merge *system* ~system)]
+  `(binding [*system-map* (merge *system-map* ~system)]
      ~@body))
