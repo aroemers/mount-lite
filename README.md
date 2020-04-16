@@ -8,6 +8,7 @@ A library resembling [mount](https://github.com/tolitius/mount), but with differ
 * **Supports custom system maps**, no need for start/stop/substitute fuss in your unit tests.
 * **Small, simple and composable implementation**, less magic and less code is less bugs.
 
+
 ## Getting started
 
 Add [![Clojars Project](https://img.shields.io/clojars/v/functionalbytes/mount-lite.svg)](https://clojars.org/functionalbytes/mount-lite) to your dependencies.
@@ -15,6 +16,7 @@ Add [![Clojars Project](https://img.shields.io/clojars/v/functionalbytes/mount-l
 You can find all the documentation about mount-lite, its unique features, and how to use the API by clicking on the link below:
 
 [![cljdoc badge](https://cljdoc.org/badge/functionalbytes/mount-lite)](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT)
+
 
 ## A primer
 
@@ -59,6 +61,32 @@ Calling `(stop)` stops all the states in reverse order.
 
 *These are the basics you need. Enjoy!*
 
+
+## Starting and stopping part of system
+
+A unique feature of mount-lite is that you can start your system up to a certain defstate.
+It will start all the dependencies for that defstate and then the specified defstate itself.
+The same goes for stopping the system up to a certain defstate, stopping the dependents for that defstate and then the defstate itself.
+You do this by supplying that particular defstate to the `start` or `stop` function.
+For example, let's imagine three defstates: `state-a`, `state-b` and `state-c`, the latter depending on the former:
+
+```clj
+(start state-b)
+;=> (StateVar[user/state-a] StateVar[user/state-b])
+
+(start)
+;=> (StateVar[user/state-c])
+
+(stop state-b)
+;=> (StateVar[user/state-c] StateVar[user/state-b])
+
+(stop)
+;=> (StateVar[user/state-a])
+```
+
+This feature is mainly used while developing in your REPL and for testing.
+
+
 ## Testing
 
 Below you'll find a basic explanation of the testing features in mount-lite.
@@ -84,7 +112,7 @@ In the example above, whenever the `your.app/db` defstate is consulted within th
 
 Substituting is still supported, and also still desired for unit or integration tests on a more "live" system.
 The example below shows how the former example would be written with substitutes.
-It also shows that it adds more fluff to the actual test.
+It also shows that it adds more fluff to the actual test, and how you could start your system "up-to" the `db` defstate.
 
 ```clj
 (deftest with-substitutes-test
@@ -92,7 +120,7 @@ It also shows that it adds more fluff to the actual test.
                      your.app/db            (state :start (derby/embedded-db)
                                                    :stop  (derby/stop-db @your.app/db))}
     (try
-      (start)
+      (start your.app/db)
       (is (= 1 (count-records-in-db)))
       (finally
         (stop)))))
@@ -102,11 +130,12 @@ Note that these two concepts can be used together in flexible ways.
 For example, you can supply a partial system map, and start the rest of the - possibly and/or partially substituted - defstates.
 The states already in the system map will not be started in that case.
 
+
 ## Multiple systems
 
 Another unique feature of mount-lite is that supports running multiple systems in parallel.
 This feature was added in mount-lite 2.0, and it has been improved upon in version 3.0.
-Where the former version was based on spinning up a "session" thread, now you simply specify a system by its key.
+Where the former version was based on spinning up a "session" thread, now you simply specify a system by its key, whatever thread you're in.
 If not specified, the key is `:default`.
 
 To specify a key, you use the `with-system-key` macro.

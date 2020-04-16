@@ -23,7 +23,7 @@
   (start* [this]
     (when (= :stopped (status* this))
       (let [state (or (get *substitutes* this)
-                       (:state (meta (resolve name))))
+                      (:state (meta (resolve name))))
             result (start* state)]
         (swap! systems update *system-key* assoc this result)
         (swap! started update *system-key* assoc this state))))
@@ -128,7 +128,12 @@
 
 (defmacro with-system-map
   "Executes the given body while the given system map has been merged in
-  the (possibly empty) existing system. These can be nested."
+  the (possibly empty) existing system. These can be nested.
+
+  Note that calling `start` within the scope of `with-system-map`
+  deliberately does not \"move\" the state values from the system map
+  to the global system. This means that one can end up with a
+  partially running system when leaving the `with-system-map` scope."
   [system & body]
   `(binding [*system-map* (merge *system-map* ~system)]
      ~@body))
