@@ -1,7 +1,8 @@
 (ns mount.lite
   "The core namespace providing the public API"
   {:clojure.tools.namespace.repl/load   false
-   :clojure.tools.namespace.repl/unload false})
+   :clojure.tools.namespace.repl/unload false}
+  (:require [clojure.pprint :refer [simple-dispatch]]))
 
 ;;; Internals
 
@@ -52,7 +53,7 @@
 
   Object
   (toString [_]
-    (str "#StateVar[" name "]")))
+    (str name)))
 
 (defrecord State [start-fn stop-fn]
   IState
@@ -63,6 +64,9 @@
 
 (defmethod print-method StateVar [sv ^java.io.Writer writer]
   (.write writer (str sv)))
+
+(defmethod simple-dispatch StateVar [sv]
+  (.write *out* (str sv)))
 
 
 ;;; Core public API

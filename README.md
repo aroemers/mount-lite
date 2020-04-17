@@ -47,13 +47,15 @@ Calling `(stop)` stops all the states in reverse order.
 
 ```clj
 (mount/start)
-;=> (StateVar[your.app.config/config] StateVar[your.app/db])
+;=> (your.app.config/config
+     your.app/db)
 
 @db
 ;=> object[some.db.Object 0x12345678]
 
 (mount/stop)
-;=> (StateVar[your.app/db] StateVar[your.app.config/config])
+;=> (your.app/db
+     your.app.config/config)
 
 @db
 ;=> ExceptionInfo: Cannot deref state your.app/db when not started (system :default)
@@ -72,16 +74,16 @@ For example, let's imagine three defstates: `state-a`, `state-b` and `state-c`, 
 
 ```clj
 (start state-b)
-;=> (StateVar[user/state-a] StateVar[user/state-b])
+;=> (user/state-a user/state-b)
 
 (start)
-;=> (StateVar[user/state-c])
+;=> (user/state-c)
 
 (stop state-b)
-;=> (StateVar[user/state-c] StateVar[user/state-b])
+;=> (user/state-c user/state-b)
 
 (stop)
-;=> (StateVar[user/state-a])
+;=> (user/state-a)
 ```
 
 This feature is mainly used while developing in your REPL and for testing.
@@ -145,12 +147,12 @@ For example:
 
 ```clj
 (start)
-;=> (StateVar[your.app.config/config] StateVar[your.app/db])
+;=> (your.app.config/config your.app/db)
 
 (with-system-key :empty-db
   (with-substitutes {your.app/db your.app.integration-test/empty-db}
     (start)))
-;=> (StateVar[your.app.config/config] StateVar[your.app/db])
+;=> (your.app.config/config your.app/db)
 
 (count-records-in-db)
 ;=> 4321
