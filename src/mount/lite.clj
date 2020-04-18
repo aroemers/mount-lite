@@ -2,7 +2,8 @@
   "The core namespace providing the public API"
   {:clojure.tools.namespace.repl/load   false
    :clojure.tools.namespace.repl/unload false}
-  (:require [clojure.pprint :refer [simple-dispatch]]))
+  (:require [clojure.pprint :refer [simple-dispatch]]
+            [mount.extensions.up-to :as up-to]))
 
 ;;; Internals
 
@@ -53,6 +54,12 @@
       (throw (ex-info (str "Cannot deref state " name " when not started (system " *system-key* ")")
                       {:state this :system *system-key*}))))
 
+  clojure.lang.Named
+  (getNamespace [_]
+    (namespace name))
+  (getName [_]
+    (clojure.core/name name))
+
   Object
   (toString [_]
     (str name)))
@@ -78,10 +85,6 @@
   [factory-fn & body]
   `(binding [*state-filters* (conj *state-filters* (~factory-fn @#'states))]
      ~@body))
-
-(defn- up-to-filter [states up-to]
-  (let [[before after] (split-with (complement #{up-to}) states)]
-    (set (concat before (take 1 after)))))
 
 
 ;;; Core public API
@@ -111,7 +114,7 @@
   ([]
    (doall (filter (apply every-pred (concat *state-filters* [start*])) states)))
   ([up-to]
-   (with-state-filter #(up-to-filter % up-to)
+   (with-state-filter (up-to/start-filter up-to)
      (start))))
 
 (defn stop
@@ -121,7 +124,7 @@
   ([]
    (doall (filter (apply every-pred (concat *state-filters* [stop*])) (reverse states))))
   ([up-to]
-   (with-state-filter #(up-to-filter (reverse %) up-to)
+   (with-state-filter (up-to/stop-filter up-to)
      (stop))))
 
 (defn status

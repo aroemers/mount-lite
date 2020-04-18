@@ -5,13 +5,13 @@
             [clojure.tools.namespace.dependency :as dependency]))
 
 (defn- state-filter [transitive-fn up-to]
-  (let [up-to-ns   (symbol (namespace (:name up-to)))
+  (let [up-to-ns   (symbol (namespace up-to))
         graph      (::track/deps (dir/scan-all {}))
         transitive (transitive-fn graph up-to-ns)]
     (fn [_]
       (fn [state]
-        (or (transitive (symbol (namespace (:name state))))
-            (= up-to-ns (symbol (namespace (:name state)))))))))
+        (or (transitive (symbol (namespace state)))
+            (= up-to-ns (symbol (namespace state))))))))
 
 (defn start
   ([]
