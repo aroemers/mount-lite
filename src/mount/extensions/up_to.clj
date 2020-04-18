@@ -1,4 +1,8 @@
-(ns mount.extensions.up-to)
+(ns mount.extensions.up-to
+  {:clojure.tools.namespace.repl/load   false
+   :clojure.tools.namespace.repl/unload false})
+
+;; Loaded by default by the core.
 
 (defn predicate-factory
   [{:keys [states start? up-to]}]

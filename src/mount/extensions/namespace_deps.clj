@@ -1,4 +1,6 @@
 (ns mount.extensions.namespace-deps
+  {:clojure.tools.namespace.repl/load   false
+   :clojure.tools.namespace.repl/unload false}
   (:require [clojure.tools.namespace.dependency :as dependency]
             [clojure.tools.namespace.dir :as dir]
             [clojure.tools.namespace.track :as track]
@@ -17,16 +19,19 @@
       (set (filter predicate states)))
     identity))
 
+(swap! mount/predicate-factories conj predicate-factory)
+
+
+;;; Legacy, for compatibility with mount-lite 2.
+
 (defn start
   ([]
    (mount/start))
   ([up-to]
-   (swap! mount/predicate-factories conj predicate-factory)
    (mount/start up-to)))
 
 (defn stop
   ([]
    (mount/start))
   ([up-to]
-   (swap! mount/predicate-factories conj predicate-factory)
    (mount/stop up-to)))
