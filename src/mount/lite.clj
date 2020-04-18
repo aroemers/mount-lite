@@ -11,11 +11,11 @@
 (defonce ^:dynamic *system-map*  {})
 (defonce ^:dynamic *substitutes* {})
 
-(defonce ^:dynamic *state-filters* ())
-
 (defonce ^:private states  (java.util.LinkedHashSet.))
 (defonce ^:private systems (atom {}))
 (defonce ^:private started (atom {}))
+
+(defonce predicate-factories (atom #{up-to/predicate-factory}))
 
 (defprotocol IState
   (start* [this])
@@ -79,14 +79,6 @@
   (.write *out* (str sv)))
 
 
-;;; Extension point
-
-(defmacro with-state-filter
-  [factory-fn & body]
-  `(binding [*state-filters* (conj *state-filters* (~factory-fn @#'states))]
-     ~@body))
-
-
 ;;; Core public API
 
 (defmacro state
@@ -112,20 +104,20 @@
   current system key. Takes an optional state, starting the system
   only up to that particular state."
   ([]
-   (doall (filter (apply every-pred (concat *state-filters* [start*])) states)))
+   (start nil))
   ([up-to]
-   (with-state-filter (up-to/start-filter up-to)
-     (start))))
+   (let [predicates (mapv #(% {:states (seq states) :start? true :up-to up-to}) @predicate-factories)]
+     (doall (filter (apply every-pred (conj predicates start*)) states)))))
 
 (defn stop
   "Stops all the started global defstates, in the context of the current
   system key. Takes an optional state, stopping the system
   only up to that particular state."
   ([]
-   (doall (filter (apply every-pred (concat *state-filters* [stop*])) (reverse states))))
+   (stop nil))
   ([up-to]
-   (with-state-filter (up-to/stop-filter up-to)
-     (stop))))
+   (let [predicates (mapv #(% {:states (seq states) :start? false :up-to up-to}) @predicate-factories)]
+     (doall (filter (apply every-pred (conj predicates stop*)) (reverse states))))))
 
 (defn status
   "Returns a status map of all the states."
