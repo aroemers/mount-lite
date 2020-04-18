@@ -10,6 +10,8 @@
 (defonce ^:dynamic *system-map*  {})
 (defonce ^:dynamic *substitutes* {})
 
+(defonce ^:dynamic *state-filters* ())
+
 (defonce ^:private states  (java.util.LinkedHashSet.))
 (defonce ^:private systems (atom {}))
 (defonce ^:private started (atom {}))
@@ -60,6 +62,7 @@
   (start* [_] (start-fn))
   (stop*  [_] (stop-fn)))
 
+
 ;;; Printing
 
 (defmethod print-method StateVar [sv ^java.io.Writer writer]
@@ -67,6 +70,18 @@
 
 (defmethod simple-dispatch StateVar [sv]
   (.write *out* (str sv)))
+
+
+;;; Extension point
+
+(defmacro with-state-filter
+  [factory-fn & body]
+  `(binding [*state-filters* (conj *state-filters* (~factory-fn @#'states))]
+     ~@body))
+
+(defn- up-to-filter [states up-to]
+  (let [[before after] (split-with (complement #{up-to}) states)]
+    (set (concat before (take 1 after)))))
 
 
 ;;; Core public API
@@ -93,19 +108,21 @@
   "Starts all the unstarted global defstates, in the context of the
   current system key. Takes an optional state, starting the system
   only up to that particular state."
-  ([] (start nil))
+  ([]
+   (doall (filter (apply every-pred (concat *state-filters* [start*])) states)))
   ([up-to]
-   (let [[before after] (split-with (complement #{up-to}) states)]
-     (doall (filter start* (concat before (take 1 after)))))))
+   (with-state-filter #(up-to-filter % up-to)
+     (start))))
 
 (defn stop
   "Stops all the started global defstates, in the context of the current
   system key. Takes an optional state, stopping the system
   only up to that particular state."
-  ([] (stop nil))
+  ([]
+   (doall (filter (apply every-pred (concat *state-filters* [stop*])) (reverse states))))
   ([up-to]
-   (let [[before after] (split-with (complement #{up-to}) (reverse states))]
-     (doall (filter stop* (concat before (take 1 after)))))))
+   (with-state-filter #(up-to-filter (reverse %) up-to)
+     (stop))))
 
 (defn status
   "Returns a status map of all the states."
