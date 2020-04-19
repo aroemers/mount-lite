@@ -3,7 +3,9 @@
   {:clojure.tools.namespace.repl/load   false
    :clojure.tools.namespace.repl/unload false}
   (:require [clojure.pprint :refer [simple-dispatch]]
-            [mount.extensions.up-to :as up-to]))
+            [mount.extensions :as extensions]
+            ;; Always load the following extensions:
+            mount.extensions.up-to))
 
 ;;; Internals
 
@@ -14,8 +16,6 @@
 (defonce ^:private states  (java.util.LinkedHashSet.))
 (defonce ^:private systems (atom {}))
 (defonce ^:private started (atom {}))
-
-(defonce predicate-factories (atom #{up-to/predicate-factory}))
 
 (defprotocol IState
   (start* [this])
@@ -106,8 +106,8 @@
   ([]
    (start nil))
   ([up-to]
-   (let [predicates (mapv #(% {:states (seq states) :start? true :up-to up-to}) @predicate-factories)]
-     (doall (filter (apply every-pred (conj predicates start*)) states)))))
+   (let [state-filter (extensions/state-filter (seq states) true up-to)]
+     (doall (filter (every-pred state-filter start*) states)))))
 
 (defn stop
   "Stops all the started global defstates, in the context of the current
@@ -116,8 +116,8 @@
   ([]
    (stop nil))
   ([up-to]
-   (let [predicates (mapv #(% {:states (seq states) :start? false :up-to up-to}) @predicate-factories)]
-     (doall (filter (apply every-pred (conj predicates stop*)) (reverse states))))))
+   (let [state-filter (extensions/state-filter (seq states) false up-to)]
+     (doall (filter (every-pred state-filter stop*) (reverse states))))))
 
 (defn status
   "Returns a status map of all the states."

@@ -4,6 +4,7 @@
   (:require [clojure.tools.namespace.dependency :as dependency]
             [clojure.tools.namespace.dir :as dir]
             [clojure.tools.namespace.track :as track]
+            [mount.extensions :as extensions]
             [mount.lite :as mount]))
 
 (defn- predicate-factory
@@ -19,7 +20,7 @@
       (set (filter predicate states)))
     identity))
 
-(swap! mount/predicate-factories conj predicate-factory)
+(swap! extensions/predicate-factories conj predicate-factory)
 
 
 ;;; Legacy, for compatibility with mount-lite 2.

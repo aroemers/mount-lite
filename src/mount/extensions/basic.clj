@@ -2,6 +2,7 @@
   {:clojure.tools.namespace.repl/load   false
    :clojure.tools.namespace.repl/unload false}
   (:require [clojure.set :as set]
+            [mount.extensions :as extensions]
             [mount.lite :as mount]))
 
 (def ^:dynamic *only*   nil)
@@ -29,4 +30,4 @@
     (filter (comp ns-strs namespace)
             (keys (mount/status)))))
 
-(swap! mount/predicate-factories conj predicate-factory)
+(swap! extensions/predicate-factories conj predicate-factory)
