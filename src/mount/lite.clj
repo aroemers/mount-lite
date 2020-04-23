@@ -1,11 +1,9 @@
 (ns mount.lite
-  "The core namespace providing the public API"
+  "The core namespace providing the public API."
   {:clojure.tools.namespace.repl/load   false
    :clojure.tools.namespace.repl/unload false}
   (:require [clojure.pprint :refer [simple-dispatch]]
-            [mount.extensions :as extensions]
-            ;; Always load the following extensions:
-            mount.extensions.up-to))
+            [mount.extensions :as extensions]))
 
 ;;; Internals
 
@@ -148,8 +146,13 @@
 
   Note that calling `start` within the scope of `with-system-map`
   deliberately does not \"move\" the state values from the system map
-  to the global system. This means that one can end up with a
+  to the started system. This means that one can end up with a
   partially running system when leaving the `with-system-map` scope."
   [system & body]
   `(binding [*system-map* (merge *system-map* ~system)]
      ~@body))
+
+
+;;; Default extensions
+
+(require 'mount.extensions.up-to)
