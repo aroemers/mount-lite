@@ -1,8 +1,9 @@
 (ns mount.extensions.up-to
-  "Extension supplying the default logic for mount-lite's up-to feature.
+  "Extension supplying the standard logic for mount-lite's up-to feature.
   Loaded by default."
   {:clojure.tools.namespace.repl/load   false
-   :clojure.tools.namespace.repl/unload false}
+   :clojure.tools.namespace.repl/unload false
+   :no-doc                              true}
   (:require [mount.extensions :as extensions]))
 
 (defn- predicate-factory

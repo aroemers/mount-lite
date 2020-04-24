@@ -5,9 +5,11 @@
   are defined. Using this graph, mount-lite will only start or stop
   the transitive dependencies or dependents.
 
-  Using these functions, your project *must* include the
+  To use this extension, your project *must* include the
   org.clojure/tools.namespace library. This extension has been tested
-  with version 0.2.11 of that library."
+  with version 0.2.11 of that library.
+
+  To activate this extension, simply load this namespace."
   {:clojure.tools.namespace.repl/load   false
    :clojure.tools.namespace.repl/unload false}
   (:require [clojure.tools.namespace.dependency :as dependency]
@@ -36,14 +38,14 @@
 
 ;;; Legacy, for compatibility with mount-lite 2.
 
-(defn start
+(defn ^:deprecated start
   "Legacy function, simply forwarding to mount.lite/start."
   ([]
    (mount/start))
   ([up-to]
    (mount/start up-to)))
 
-(defn stop
+(defn ^:deprecated stop
   "Legacy function, simply forwarding to mount.lite/stop."
   ([]
    (mount/stop))
