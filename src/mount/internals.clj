@@ -1,5 +1,5 @@
 (ns mount.internals
-  "The core namespace providing the public API."
+  "Core implementation."
   {:clojure.tools.namespace.repl/load   false
    :clojure.tools.namespace.repl/unload false
    :no-doc                              true}
