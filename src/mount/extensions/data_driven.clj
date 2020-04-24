@@ -39,6 +39,17 @@
     (mount/with-system-key system-key
       (f))))
 
+(defn- key->fn [key]
+  (if-let [f (some-> (namespace key)
+                     (doto (-> symbol require))
+                     (symbol (name key))
+                     resolve
+                     deref)]
+    (if (fn? f)
+      f
+      (throw (RuntimeException. (str "key " key " does not resolve to a function."))))
+    (throw (RuntimeException. (str "cannot resolve key " key ".")))))
+
 (def ^:private predefined-keys
   {:only        ::wrap-with-only
    :except      ::wrap-with-except
@@ -53,9 +64,9 @@
   "Same as the `with-config` macro, but now the body is in a 0-arity
   function."
   [config f]
+  (assert (map? config) "config must be a map.")
   ((reduce-kv (fn [f k v]
-                (require (symbol (namespace k)))
-                (let [wrapper (resolve (symbol (namespace k) (name k)))]
+                (let [wrapper (key->fn k)]
                   (wrapper f v)))
               f
               (set/rename-keys config predefined-keys))))

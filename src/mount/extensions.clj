@@ -20,6 +20,7 @@
   "Register a predicate factory function to extend mount-lite
   start/stop logic."
   [f]
+  (assert (fn? f) "predicate factory must be a function.")
   (swap! predicate-factories conj f))
 
 (defn ^:no-doc state-filter
