@@ -17,7 +17,18 @@
    :clojure.tools.namespace.repl/unload false}
   (:require [mount.validations.extensions :as validations]))
 
-(defonce predicate-factories (atom #{}))
+;;; Internals.
+
+(defonce ^:no-doc predicate-factories (atom #{}))
+
+(defn ^:no-doc state-filter
+  "Implementation detail; called by mount-lite's core."
+  [states start? up-to]
+  (let [info {:states states :start? start? :up-to up-to}]
+    (apply every-pred (map #(% info) @predicate-factories))))
+
+
+;;; Public API.
 
 (defn register-predicate-factory
   "Register a predicate factory function to extend mount-lite
@@ -25,9 +36,3 @@
   [f]
   (validations/validate-register-predicate-factory f)
   (swap! predicate-factories conj f))
-
-(defn ^:no-doc state-filter
-  "Implementation detail; called by mount-lite's core."
-  [states start? up-to]
-  (let [info {:states states :start? start? :up-to up-to}]
-    (apply every-pred (map #(% info) @predicate-factories))))
