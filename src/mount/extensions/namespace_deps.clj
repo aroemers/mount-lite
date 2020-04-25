@@ -37,7 +37,7 @@
 
 ;;; Validation.
 
-(defn validate-start-stop [up-to]
+(defn- validate-start-stop [up-to]
   (let [conformed (validations/maybe-deref up-to)]
     (assert (validations/defstate? conformed)
             "supplied up-to parameter must be a known state")
