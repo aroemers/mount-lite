@@ -17,22 +17,31 @@
             [clojure.tools.namespace.dir :as dir]
             [clojure.tools.namespace.track :as track]
             [mount.extensions :as extensions]
-            [mount.lite :as mount]))
+            [mount.lite :as mount]
+            [mount.validations :as validations]))
 
 ;;; Internals.
 
 (defn- predicate-factory
   [start? up-to]
-  (if up-to
-    (let [up-to-ns      (symbol (namespace up-to))
-          graph         (::track/deps (dir/scan-all {}))
-          transitive-fn (if start?
-                          dependency/transitive-dependencies
-                          dependency/transitive-dependents)
-          transitive    (transitive-fn graph up-to-ns)]
-      (fn [state]
-        (or (transitive (symbol (namespace state)))
-            (= up-to-ns (symbol (namespace state))))))))
+  (let [up-to-ns      (symbol (namespace up-to))
+        graph         (::track/deps (dir/scan-all {}))
+        transitive-fn (if start?
+                        dependency/transitive-dependencies
+                        dependency/transitive-dependents)
+        transitive    (transitive-fn graph up-to-ns)]
+    (fn [state]
+      (or (transitive (symbol (namespace state)))
+          (= up-to-ns (symbol (namespace state)))))))
+
+
+;;; Validation.
+
+(defn validate-start-stop [up-to]
+  (let [conformed (validations/maybe-deref up-to)]
+    (assert (validations/defstate? conformed)
+            "supplied up-to parameter must be a known state")
+    conformed))
 
 
 ;;; Public API.
@@ -43,8 +52,9 @@
   ([]
    (mount/start))
   ([up-to]
-   (extensions/with-predicate (predicate-factory true up-to)
-     (mount/start up-to))))
+   (let [conformed (validate-start-stop up-to)]
+     (extensions/with-predicate (predicate-factory true conformed)
+       (mount/start up-to)))))
 
 (defn stop
   "Like mount.lite/stop, but when an up-to parameter is supplied, this
@@ -52,5 +62,6 @@
   ([]
    (mount/stop))
   ([up-to]
-   (extensions/with-predicate (predicate-factory false up-to)
-     (mount/stop up-to))))
+   (let [conformed (validate-start-stop up-to)]
+     (extensions/with-predicate (predicate-factory false conformed)
+       (mount/stop up-to)))))

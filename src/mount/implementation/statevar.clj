@@ -32,14 +32,16 @@
                        (get statevars this))
             result (start state)]
         (swap! systems update *system-key* assoc this result)
-        (swap! started update *system-key* assoc this state))))
+        (swap! started update *system-key* assoc this state)
+        :started)))
 
   (stop [this]
     (when (and (= :started (status this)) (extensions/*predicate* this))
       (when-let [state (get-in @started [*system-key* this])]
         (stop state))
       (swap! systems update *system-key* dissoc this)
-      (swap! started update *system-key* dissoc this)))
+      (swap! started update *system-key* dissoc this)
+      :stopped))
 
   protocols/IStatus
   (status [this]

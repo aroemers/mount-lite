@@ -3,7 +3,7 @@
   {:clojure.tools.namespace.repl/load   false
    :clojure.tools.namespace.repl/unload false
    :no-doc                              true}
-  (:require [mount.validations :refer [state? defstate?]]))
+  (:require [mount.validations :as validations]))
 
 (defn validate-state [exprs]
   (let [other-keys (keys (dissoc exprs :start :stop))]
@@ -17,32 +17,28 @@
   (assert (not (namespace name))
           (str "name of defstate must not be namespaced.")))
 
-(defn validate-start [up-to]
-  (assert (defstate? up-to)
-          "up-to parameter of start must be a defstate."))
-
-(defn validate-stop [up-to]
-  (assert (defstate? up-to)
-          "up-to parameter of stop must be a defstate."))
+(defn validate-start-stop [up-to]
+  (let [conformed (validations/maybe-deref up-to)]
+    (assert (validations/defstate? conformed)
+            "up-to parameter must be a defstate.")
+    conformed))
 
 (defn validate-with-substitutes [substitutes]
-  (assert (or (map? substitutes)
-              (and (vector? substitutes)
-                   (even? (count substitutes))))
+  (assert (or (map? substitutes) (vector? substitutes))
           "substitutes must be a map or vector.")
-  (let [conformed (cond->> substitutes (vector? substitutes) (apply hash-map))]
-    (assert (every? defstate? (keys conformed))
+  (let [conformed (->> (validations/maybe-hash-map substitutes)
+                       (validations/map-keys validations/maybe-deref))]
+    (assert (every? validations/defstate? (keys conformed))
             "all keys of the substitutes map must be a known defstate.")
-    (assert (every? state? (vals conformed))
+    (assert (every? validations/state? (vals conformed))
             "all values of the substitutes map must be an (anonymous) state.")
     conformed))
 
 (defn validate-with-system-map [system]
-  (assert (or (map? system)
-              (and (vector? system)
-                   (even? (count system))))
+  (assert (or (map? system) (vector? system))
           "system must be a map or vector.")
-  (let [conformed (cond->> system (vector? system) (apply hash-map))]
-    (assert (every? defstate? (keys conformed))
+  (let [conformed (->> (validations/maybe-hash-map system)
+                       (validations/map-keys validations/maybe-deref))]
+    (assert (every? validations/defstate? (keys conformed))
             "all keys of the system map must be a known defstate.")
     conformed))

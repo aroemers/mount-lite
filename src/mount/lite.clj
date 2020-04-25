@@ -33,9 +33,8 @@
   (validations/validate-defstate name)
   `(let [state#    (state ~@exprs)
          fqname#   (symbol ~(str *ns*) ~(str name))
-         statevar# (impl/upsert fqname# state#)
-         var#      (def ~name statevar#)]
-     var#))
+         statevar# (impl/upsert fqname# state#)]
+     (def ~name statevar#)))
 
 (defn start
   "Starts all the unstarted global defstates, in the context of the
@@ -44,8 +43,8 @@
   ([]
    (doall (filter protocols/start (impl/states))))
   ([up-to]
-   (validations/validate-start up-to)
-   (let [up-to-filter (up-to/predicate-factory (impl/states) true up-to)]
+   (let [conformed    (validations/validate-start-stop up-to)
+         up-to-filter (up-to/predicate-factory (impl/states) true conformed)]
      (extensions/with-predicate up-to-filter
        (start)))))
 
@@ -56,8 +55,8 @@
   ([]
    (doall (filter protocols/stop (reverse (impl/states)))))
   ([up-to]
-   (validations/validate-stop up-to)
-   (let [up-to-filter (up-to/predicate-factory (impl/states) false up-to)]
+   (let [conformed    (validations/validate-start-stop up-to)
+         up-to-filter (up-to/predicate-factory (impl/states) false conformed)]
      (extensions/with-predicate up-to-filter
        (stop)))))
 
@@ -97,8 +96,3 @@
   `(let [conformed# (validations/validate-with-system-map ~system)]
      (binding [impl/*system-map* (merge impl/*system-map* conformed#)]
        ~@body)))
-
-
-;;; Default extensions
-
-(require 'mount.extensions.up-to)
