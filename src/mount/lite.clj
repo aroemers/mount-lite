@@ -3,6 +3,7 @@
   {:clojure.tools.namespace.repl/load   false
    :clojure.tools.namespace.repl/unload false}
   (:require [mount.extensions :as extensions]
+            [mount.extensions.up-to :as up-to]
             [mount.implementation.statevar :as impl]
             [mount.protocols :as protocols]
             [mount.validations.lite :as validations]))
@@ -41,24 +42,24 @@
   current system key. Takes an optional state, starting the system
   only up to that particular state."
   ([]
-   (start nil))
+   (doall (filter protocols/start (impl/states))))
   ([up-to]
    (validations/validate-start up-to)
-   (let [states       (impl/states)
-         state-filter (extensions/state-filter states true up-to)]
-     (doall (filter (every-pred state-filter protocols/start) states)))))
+   (let [up-to-filter (up-to/predicate-factory (impl/states) true up-to)]
+     (extensions/with-predicate up-to-filter
+       (start)))))
 
 (defn stop
   "Stops all the started global defstates, in the context of the current
   system key. Takes an optional state, stopping the system
   only up to that particular state."
   ([]
-   (stop nil))
+   (doall (filter protocols/stop (reverse (impl/states)))))
   ([up-to]
    (validations/validate-stop up-to)
-   (let [states       (impl/states)
-         state-filter (extensions/state-filter states false up-to)]
-     (doall (filter (every-pred state-filter protocols/stop) (reverse states))))))
+   (let [up-to-filter (up-to/predicate-factory (impl/states) false up-to)]
+     (extensions/with-predicate up-to-filter
+       (stop)))))
 
 (defn status
   "Returns a status map of all the states."

@@ -4,6 +4,7 @@
    :clojure.tools.namespace.repl/unload false
    :no-doc                              true}
   (:require [clojure.pprint :refer [simple-dispatch]]
+            [mount.extensions :as extensions]
             [mount.protocols :as protocols :refer [start stop status]]))
 
 ;;; Global state.
@@ -20,10 +21,13 @@
 
 ;;; StateVar implementation.
 
+(defn throw-error [state & msg]
+  (throw (ex-info (apply str (interpose " " msg)) {:state state :system-key *system-key*})))
+
 (defrecord StateVar [name]
   protocols/IState
   (start [this]
-    (when (= :stopped (status this))
+    (when (and (= :stopped (status this)) (extensions/*predicate* this))
       (let [state  (or (get *substitutes* this)
                        (get statevars this))
             result (start state)]
@@ -31,7 +35,7 @@
         (swap! started update *system-key* assoc this state))))
 
   (stop [this]
-    (when (= :started (status this))
+    (when (and (= :started (status this)) (extensions/*predicate* this))
       (when-let [state (get-in @started [*system-key* this])]
         (stop state))
       (swap! systems update *system-key* dissoc this)
@@ -51,11 +55,12 @@
         (get *system-map* this)
         (get-in @systems [*system-key* this]))
       (if *lazy-mode*
-        (do (println "Lazily starting" this "...")
-            (start this)
-            (deref this))
-        (throw (ex-info (str "Cannot deref state " this " when not started (system " *system-key* ")")
-                        {:state this :system *system-key*})))))
+        (if (extensions/*predicate* this)
+          (do (println "Lazily starting" this "...")
+              (start this)
+              (deref this))
+          (throw-error this "Not allowed to lazy start state" this))
+        (throw-error this "Cannot deref state" this " when not started"))))
 
   clojure.lang.Named
   (getNamespace [_]

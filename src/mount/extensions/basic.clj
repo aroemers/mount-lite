@@ -3,32 +3,15 @@
   for starting or stopping."
   {:clojure.tools.namespace.repl/load   false
    :clojure.tools.namespace.repl/unload false}
-  (:require [clojure.set :as set]
-            [mount.extensions :as extensions]
+  (:require [mount.extensions :as extensions]
             [mount.lite :as mount]))
-
-;;; Internals.
-
-(def ^:dynamic ^:no-doc *only*   nil)
-(def ^:dynamic ^:no-doc *except* nil)
-
-(defn- predicate-factory
-  [{:keys [states]}]
-  (cond-> (set states)
-    *only*   (set/intersection *only*)
-    *except* (set/difference *except*)))
-
-(extensions/register-predicate-factory predicate-factory)
-
-
-;;; Public API.
 
 (defmacro with-only
   "When starting or stopping within the given body, only the given
   collection of states are considered. Can be nested and composes with
   `with-except`."
   [states & body]
-  `(binding [*only* (cond-> (set ~states) *only* (set/intersection *only*))]
+  `(extensions/with-predicate (set ~states)
      ~@body))
 
 (defmacro with-except
@@ -36,7 +19,7 @@
   of states are excluded from consideration. Can be nested and
   composes with `with-only`."
   [states & body]
-  `(binding [*except* (set/union *except* (set ~states))]
+  `(extensions/with-predicate (complement (set ~states))
      ~@body))
 
 (defn ns-states

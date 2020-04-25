@@ -4,5 +4,6 @@
    :clojure.tools.namespace.repl/unload false
    :no-doc                              true})
 
-(defn validate-register-predicate-factory [f]
-  (assert (fn? f) "predicate factory must be a function."))
+(defn validate-with-predicate [f]
+  (assert (instance? clojure.lang.IFn f)
+          "predicate must be a function, i.e. implement clojure.lang.IFn."))

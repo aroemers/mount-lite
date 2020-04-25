@@ -18,12 +18,12 @@
           (str "name of defstate must not be namespaced.")))
 
 (defn validate-start [up-to]
-  (assert (or (nil? up-to) (defstate? up-to))
-          "up-to parameter of start must be nil or an actual defstate."))
+  (assert (defstate? up-to)
+          "up-to parameter of start must be a defstate."))
 
 (defn validate-stop [up-to]
-  (assert (or (nil? up-to) (defstate? up-to))
-          "up-to parameter of stop must be nil or an actual defstate."))
+  (assert (defstate? up-to)
+          "up-to parameter of stop must be a defstate."))
 
 (defn validate-with-substitutes [substitutes]
   (assert (or (map? substitutes)
