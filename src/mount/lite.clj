@@ -31,7 +31,8 @@
   [name & exprs]
   (validations/validate-defstate name)
   `(let [state#    (state ~@exprs)
-         statevar# (impl/upsert (symbol ~(str *ns*) ~(str name)) state#)
+         fqname#   (symbol ~(str *ns*) ~(str name))
+         statevar# (impl/upsert fqname# state#)
          var#      (or (defonce ~name statevar#) (resolve '~name))]
      var#))
 
