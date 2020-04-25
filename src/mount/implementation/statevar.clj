@@ -22,12 +22,14 @@
 ;;; StateVar implementation.
 
 (defn throw-error [state & msg]
-  (throw (ex-info (apply str (interpose " " msg)) {:state state :system-key *system-key*})))
+  (throw (ex-info (apply str (interpose " " msg)) 
+                  {:state state :system-key *system-key*})))
 
 (defrecord StateVar [name]
   protocols/IState
   (start [this]
-    (when (and (= :stopped (status this)) (extensions/*predicate* this))
+    (when (and (= :stopped (status this))
+               (extensions/*predicate* this))
       (let [state  (or (get *substitutes* this)
                        (get statevars this))
             result (start state)]
@@ -36,7 +38,8 @@
         :started)))
 
   (stop [this]
-    (when (and (= :started (status this)) (extensions/*predicate* this))
+    (when (and (= :started (status this))
+               (extensions/*predicate* this))
       (when-let [state (get-in @started [*system-key* this])]
         (stop state))
       (swap! systems update *system-key* dissoc this)
