@@ -34,7 +34,7 @@
   `(let [state#    (state ~@exprs)
          fqname#   (symbol ~(str *ns*) ~(str name))
          statevar# (impl/upsert fqname# state#)
-         var#      (or (defonce ~name statevar#) (resolve '~name))]
+         var#      (def ~name statevar#)]
      var#))
 
 (defn start
