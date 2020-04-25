@@ -6,22 +6,26 @@
   (:require [clojure.pprint :refer [simple-dispatch]]
             [mount.protocols :as protocols :refer [start stop status]]))
 
-;;; Internals
+;;; Global state.
 
 (defonce ^:dynamic *system-key*  :default)
 (defonce ^:dynamic *system-map*  {})
 (defonce ^:dynamic *substitutes* {})
+(defonce ^:dynamic *lazy-mode*   false)
 
 (defonce statevars (java.util.LinkedHashMap.))
 (defonce systems   (atom {}))
 (defonce started   (atom {}))
 
+
+;;; StateVar implementation.
+
 (defrecord StateVar [name]
   protocols/IState
   (start [this]
     (when (= :stopped (status this))
-      (let [state (or (get *substitutes* this)
-                      (get statevars this))
+      (let [state  (or (get *substitutes* this)
+                       (get statevars this))
             result (start state)]
         (swap! systems update *system-key* assoc this result)
         (swap! started update *system-key* assoc this state))))
@@ -46,8 +50,12 @@
       (if (contains? *system-map* this)
         (get *system-map* this)
         (get-in @systems [*system-key* this]))
-      (throw (ex-info (str "Cannot deref state " name " when not started (system " *system-key* ")")
-                      {:state this :system *system-key*}))))
+      (if *lazy-mode*
+        (do (println "Lazily starting" this "...")
+            (start this)
+            (deref this))
+        (throw (ex-info (str "Cannot deref state " this " when not started (system " *system-key* ")")
+                        {:state this :system *system-key*})))))
 
   clojure.lang.Named
   (getNamespace [_]
