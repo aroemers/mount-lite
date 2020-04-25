@@ -9,8 +9,8 @@
 
 ;;; Internals.
 
-(def ^:dynamic *only*   nil)
-(def ^:dynamic *except* nil)
+(def ^:dynamic ^:no-doc *only*   nil)
+(def ^:dynamic ^:no-doc *except* nil)
 
 (defn- predicate-factory
   [{:keys [states]}]

@@ -1,7 +1,8 @@
 (ns mount.validations.lite
   "Validation functions for mount.lite namespace."
   {:clojure.tools.namespace.repl/load   false
-   :clojure.tools.namespace.repl/unload false}
+   :clojure.tools.namespace.repl/unload false
+   :no-doc                              true}
   (:require [mount.validations :refer [state? defstate?]]))
 
 (defn validate-state [exprs]
