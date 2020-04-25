@@ -3,8 +3,17 @@
   {:clojure.tools.namespace.repl/load   false
    :clojure.tools.namespace.repl/unload false}
   (:require [mount.extensions :as extensions]
-            [mount.internals :as internals]
-            [mount.validations :as validations]))
+            [mount.implementation.statevar :as impl]
+            [mount.protocols :as protocols]
+            [mount.validations.lite :as validations]))
+
+;;; Internals.
+
+(defrecord State [start-fn stop-fn]
+  protocols/IState
+  (start [_] (start-fn))
+  (stop  [_] (stop-fn)))
+
 
 ;;; Public API.
 
@@ -13,7 +22,7 @@
   and a :stop expression."
   [& {:keys [start stop] :as exprs}]
   (validations/validate-state exprs)
-  `(internals/->State (fn [] ~start) (fn [] ~stop)))
+  `(->State (fn [] ~start) (fn [] ~stop)))
 
 (defmacro defstate
   "Define a global state. Takes a :start and a :stop expression.
@@ -21,11 +30,9 @@
   started defstate."
   [name & exprs]
   (validations/validate-defstate name)
-  `(let [statevar# (internals/->StateVar (symbol ~(str *ns*) ~(str name)))
-         var#      (or (defonce ~name statevar#) (resolve '~name))
-         state#    (state ~@exprs)]
-     (alter-meta! var# assoc :state state#)
-     (.add internals/states statevar#)
+  `(let [state#    (state ~@exprs)
+         statevar# (impl/upsert (symbol ~(str *ns*) ~(str name)) state#)
+         var#      (or (defonce ~name statevar#) (resolve '~name))]
      var#))
 
 (defn start
@@ -36,8 +43,9 @@
    (start nil))
   ([up-to]
    (validations/validate-start up-to)
-   (let [state-filter (extensions/state-filter (seq internals/states) true up-to)]
-     (doall (filter (every-pred state-filter internals/start*) internals/states)))))
+   (let [states       (impl/states)
+         state-filter (extensions/state-filter states true up-to)]
+     (doall (filter (every-pred state-filter protocols/start) states)))))
 
 (defn stop
   "Stops all the started global defstates, in the context of the current
@@ -47,13 +55,14 @@
    (stop nil))
   ([up-to]
    (validations/validate-stop up-to)
-   (let [state-filter (extensions/state-filter (seq internals/states) false up-to)]
-     (doall (filter (every-pred state-filter internals/stop*) (reverse internals/states))))))
+   (let [states       (impl/states)
+         state-filter (extensions/state-filter states false up-to)]
+     (doall (filter (every-pred state-filter protocols/stop) (reverse states))))))
 
 (defn status
   "Returns a status map of all the states."
   []
-  (reduce #(assoc %1 %2 (internals/status* %2)) {} internals/states))
+  (reduce #(assoc %1 %2 (protocols/status %2)) {} (impl/states)))
 
 
 ;;; Advanced public API
@@ -63,7 +72,7 @@
   have been substituted. These can be nested."
   [substitutes & body]
   `(let [conformed# (validations/validate-with-substitutes ~substitutes)]
-     (binding [internals/*substitutes* (merge internals/*substitutes* conformed#)]
+     (binding [impl/*substitutes* (merge impl/*substitutes* conformed#)]
        ~@body)))
 
 (defmacro with-system-key
@@ -71,7 +80,7 @@
   starting/stopping a system or dereferencing a defstate in that
   system. This allows multiple parallel state systems."
   [key & body]
-  `(binding [internals/*system-key* ~key]
+  `(binding [impl/*system-key* ~key]
      ~@body))
 
 (defmacro with-system-map
@@ -84,7 +93,7 @@
   partially running system when leaving the `with-system-map` scope."
   [system & body]
   `(let [conformed# (validations/validate-with-system-map ~system)]
-     (binding [internals/*system-map* (merge internals/*system-map* conformed#)]
+     (binding [impl/*system-map* (merge impl/*system-map* conformed#)]
        ~@body)))
 
 

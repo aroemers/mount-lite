@@ -12,7 +12,10 @@
 
   {:states (state-1 ...)  ;; sequence of all states, in start order
    :start? true/false     ;; whether start or stop is called
-   :up-to  state/nil}     ;; the supplied up-to parameter, if any")
+   :up-to  state/nil}     ;; the supplied up-to parameter, if any"
+  {:clojure.tools.namespace.repl/load   false
+   :clojure.tools.namespace.repl/unload false}
+  (:require [mount.validations.extensions :as validations]))
 
 (defonce predicate-factories (atom #{}))
 
@@ -20,7 +23,7 @@
   "Register a predicate factory function to extend mount-lite
   start/stop logic."
   [f]
-  (assert (fn? f) "predicate factory must be a function.")
+  (validations/validate-register-predicate-factory f)
   (swap! predicate-factories conj f))
 
 (defn ^:no-doc state-filter

@@ -1,9 +1,10 @@
-(ns mount.internals
+(ns mount.implementation.statevar
   "Core implementation."
   {:clojure.tools.namespace.repl/load   false
    :clojure.tools.namespace.repl/unload false
    :no-doc                              true}
-  (:require [clojure.pprint :refer [simple-dispatch]]))
+  (:require [clojure.pprint :refer [simple-dispatch]]
+            [mount.protocols :as protocols :refer [start stop status]]))
 
 ;;; Internals
 
@@ -11,34 +12,29 @@
 (defonce ^:dynamic *system-map*  {})
 (defonce ^:dynamic *substitutes* {})
 
-(defonce states  (java.util.LinkedHashSet.))
-(defonce systems (atom {}))
-(defonce started (atom {}))
-
-(defprotocol IState
-  :extend-via-metadata true
-  (start* [this])
-  (stop* [this])
-  (status* [this]))
+(defonce statevars (java.util.LinkedHashMap.))
+(defonce systems   (atom {}))
+(defonce started   (atom {}))
 
 (defrecord StateVar [name]
-  IState
-  (start* [this]
-    (when (= :stopped (status* this))
+  protocols/IState
+  (start [this]
+    (when (= :stopped (status this))
       (let [state (or (get *substitutes* this)
-                      (:state (meta (resolve name))))
-            result (start* state)]
+                      (get statevars this))
+            result (start state)]
         (swap! systems update *system-key* assoc this result)
         (swap! started update *system-key* assoc this state))))
 
-  (stop* [this]
-    (when (= :started (status* this))
+  (stop [this]
+    (when (= :started (status this))
       (when-let [state (get-in @started [*system-key* this])]
-        (stop* state))
+        (stop state))
       (swap! systems update *system-key* dissoc this)
       (swap! started update *system-key* dissoc this)))
 
-  (status* [this]
+  protocols/IStatus
+  (status [this]
     (if (or (contains? *system-map* this)
             (contains? (get @systems *system-key*) this))
       :started
@@ -46,7 +42,7 @@
 
   clojure.lang.IDeref
   (deref [this]
-    (if (= :started (status* this))
+    (if (= :started (status this))
       (if (contains? *system-map* this)
         (get *system-map* this)
         (get-in @systems [*system-key* this]))
@@ -63,11 +59,6 @@
   (toString [_]
     (str name)))
 
-(defrecord State [start-fn stop-fn]
-  IState
-  (start* [_] (start-fn))
-  (stop*  [_] (stop-fn)))
-
 
 ;;; Printing
 
@@ -76,3 +67,14 @@
 
 (defmethod simple-dispatch StateVar [sv]
   (.write *out* (str sv)))
+
+
+;;; API
+
+(defn states []
+  (keys statevars))
+
+(defn upsert [symbol state]
+  (let [statevar (->StateVar symbol)]
+    (.put statevars statevar state)
+    statevar))
