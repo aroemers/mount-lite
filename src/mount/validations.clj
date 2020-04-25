@@ -17,8 +17,9 @@
   [obj]
   (satisfies? protocols/IState obj))
 
-(defn defstate? [obj]
+(defn defstate?
   "Test whether an object is a known statevar."
+  [obj]
   (contains? (set (keys (@status))) obj))
 
 
