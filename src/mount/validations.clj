@@ -2,8 +2,13 @@
   "Validation helper functions."
   {:clojure.tools.namespace.repl/load   false
    :clojure.tools.namespace.repl/unload false}
-  (:require [mount.implementation.statevar :as impl]
-            [mount.protocols :as protocols]))
+  (:require [mount.protocols :as protocols]))
+
+;;; Internals
+
+(def ^:private status
+  (delay @(resolve 'mount.lite/status)))
+
 
 ;;; Helper functions
 
@@ -12,4 +17,4 @@
 
 (defn defstate? [obj]
   (and (state? obj)
-       (contains? (set (impl/states)) obj)))
+       (contains? (set (keys (@status))) obj)))
