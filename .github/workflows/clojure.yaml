@@ -13,4 +13,4 @@ jobs:
       - name: Install dependencies
         run: lein deps
       - name: Run tests
-        run: lein compile :all
+        run: lein test
