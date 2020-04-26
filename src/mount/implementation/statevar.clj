@@ -92,7 +92,7 @@
 (defn states []
   (keys statevars))
 
-(defn upsert [symbol state]
-  (let [statevar (->StateVar symbol)]
+(defn defstate [ns name state]
+  (let [statevar (->StateVar (symbol (str ns) (str name)))]
     (.put statevars statevar state)
-    statevar))
+    (intern ns name statevar)))

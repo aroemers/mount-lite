@@ -10,20 +10,31 @@
 
 ;;; Internals.
 
-(defrecord State [start-fn stop-fn]
+(defrecord State [start-fn stop-fn value]
   protocols/IState
-  (start [_] (start-fn))
-  (stop  [_] (stop-fn)))
+  (start [_]
+    (reset! value (start-fn)))
+  (stop [_]
+    (let [result (stop-fn @value)]
+      (reset! value nil)
+      result)))
 
 
 ;;; Public API.
 
 (defmacro state
   "Create an anonymous state, useful for substituting. Takes a :start
-  and a :stop expression."
+  and a :stop expression. The stop expression has an implicit `this`
+  argument, set to the result of the start expression."
   [& {:keys [start stop] :as exprs}]
   (validations/validate-state exprs)
-  `(->State (fn [] ~start) (fn [] ~stop)))
+  `(->State (fn [] ~start) (fn [~'this] ~stop) (atom nil)))
+
+(def ^{:doc "Low-level function to define a global state, given a
+  namespace (symbol or Namespace object), a name (symbol) and state
+  implementation. Returns the var it has created/updated."
+       :arglists '([ns name state])}
+  defstate* impl/defstate)
 
 (defmacro defstate
   "Define a global state. Takes a :start and a :stop expression.
@@ -31,10 +42,7 @@
   started defstate."
   [name & exprs]
   (validations/validate-defstate name)
-  `(let [state#    (state ~@exprs)
-         fqname#   (symbol ~(str *ns*) ~(str name))
-         statevar# (impl/upsert fqname# state#)]
-     (def ~name statevar#)))
+  `(defstate* *ns* '~name (state ~@exprs)))
 
 (defn start
   "Starts all the unstarted global defstates, in the context of the

@@ -1,1 +1,2 @@
-{:known-macros [mount.lite/defstate]}
+{:known-macros [mount.lite/defstate
+                [mount.lite/state [this]]]}
