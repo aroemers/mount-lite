@@ -31,9 +31,9 @@
   (validations/validate-state exprs)
   `(->State (fn [] ~start) (fn [~name] ~stop) (atom nil)))
 
-(def ^{:doc "Low-level function to define a global state, given a
+(def ^{:doc "Low-level function to create a global state, given a
   namespace (symbol or Namespace object), a name (symbol) and state
-  implementation. Returns the var it has created/updated."
+  implementation. Returns the object that should be bound to a var."
        :arglists '([ns name state])}
   defstate* impl/defstate)
 
@@ -43,7 +43,7 @@
   started defstate."
   [name & exprs]
   (validations/validate-defstate name)
-  `(defstate* *ns* '~name (state :name ~name ~@exprs)))
+  `(def ~name (defstate* *ns* '~name (state ~@exprs))))
 
 (defn start
   "Starts all the unstarted global defstates, in the context of the

@@ -95,4 +95,4 @@
 (defn defstate [ns name state]
   (let [statevar (->StateVar (symbol (str ns) (str name)))]
     (.put statevars statevar state)
-    (intern ns name statevar)))
+    statevar))
