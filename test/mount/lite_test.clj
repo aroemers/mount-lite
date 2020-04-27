@@ -13,3 +13,12 @@
 
       (testing "which should stop, with access to this"
         (is (= (protocols/stop state) 1))))))
+
+(deftest test-defstate
+  (testing "defstate should define a global state"
+    (let [var (sut/defstate foo :start 1 :stop @foo)]
+      (is (var? var))
+
+      (testing "which should start"
+        (let [started (sut/start)]
+          (is (contains? (set started) foo)))))))

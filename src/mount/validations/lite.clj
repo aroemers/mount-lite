@@ -6,7 +6,7 @@
   (:require [mount.validations :as validations]))
 
 (defn validate-state [exprs]
-  (let [other-keys (keys (dissoc exprs :start :stop))]
+  (let [other-keys (keys (dissoc exprs :start :stop :name))]
     (assert (empty? other-keys)
             (apply str "unknown expression key(s) supplied to state: "
                    (interpose ", " other-keys)))))
