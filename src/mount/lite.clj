@@ -31,10 +31,9 @@
   `(->State (fn [] ~start) (fn [~'this] ~stop) (atom nil)))
 
 (def ^{:doc "Low-level function to create a global state, given a
-  namespace (symbol or Namespace object), a name (symbol) and state
-  implementation. Returns the object that provides access to the
-  global state's value."
-       :arglists '([ns name state])}
+  named object (e.g. a symbol) and a state implementation. Returns the
+  object that provides access to the global state's value."
+       :arglists '([named state])}
   defstate* impl/defstate)
 
 (defmacro defstate
@@ -43,7 +42,7 @@
   started defstate."
   [name & exprs]
   (validations/validate-defstate name)
-  `(def ~name (defstate* *ns* '~name (state ~@exprs))))
+  `(def ~name (defstate* '~(symbol (str *ns*) (str name)) (state ~@exprs))))
 
 (defn start
   "Starts all the unstarted global defstates, in the context of the

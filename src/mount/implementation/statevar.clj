@@ -22,7 +22,7 @@
 ;;; StateVar implementation.
 
 (defn throw-error [state & msg]
-  (throw (ex-info (apply str (interpose " " msg)) 
+  (throw (ex-info (apply str (interpose " " msg))
                   {:state state :system-key *system-key*})))
 
 (defrecord StateVar [name]
@@ -92,7 +92,7 @@
 (defn states []
   (keys statevars))
 
-(defn defstate [ns name state]
-  (let [statevar (->StateVar (symbol (str ns) (str name)))]
+(defn defstate [name state]
+  (let [statevar (->StateVar name)]
     (.put statevars statevar state)
     statevar))
