@@ -24,12 +24,11 @@
 
 (defmacro state
   "Create an anonymous state, useful for substituting. Takes a :start
-  and a :stop expression. It also takes a :name symbol, by which the
-  stop expression can access the result of the start expression. All
-  expressions are optional."
-  [& {:keys [start stop name] :as exprs :or {name (gensym)}}]
+  and a :stop expression. The stop expression gets an implicit `this`
+  argument, bound to the result of the start expression."
+  [& {:keys [start stop] :as exprs}]
   (validations/validate-state exprs)
-  `(->State (fn [] ~start) (fn [~name] ~stop) (atom nil)))
+  `(->State (fn [] ~start) (fn [~'this] ~stop) (atom nil)))
 
 (def ^{:doc "Low-level function to create a global state, given a
   namespace (symbol or Namespace object), a name (symbol) and state
