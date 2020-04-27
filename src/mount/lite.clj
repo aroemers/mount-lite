@@ -32,7 +32,8 @@
 
 (def ^{:doc "Low-level function to create a global state, given a
   namespace (symbol or Namespace object), a name (symbol) and state
-  implementation. Returns the object that should be bound to a var."
+  implementation. Returns the object that provides access to the
+  global state's value."
        :arglists '([ns name state])}
   defstate* impl/defstate)
 
