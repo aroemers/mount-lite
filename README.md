@@ -10,7 +10,7 @@ A library resembling [mount](https://github.com/tolitius/mount), but with differ
 * **Clojure only**, dereferencing states only.
 * **Minimal API**, based on usage in several larger projects. Less turned out to be more.
 * **Supports parallel systems**, enabling parallel testing for example.
-* **Supports plain system maps**, no need for start/stop/substitute fuss in your unit tests.
+* **Supports plain system maps**, no need for start/stop/substitute fuss in basic unit tests.
 * **Supports extensions**, some powerful ones are provided, such as data-driven system configs and tools.namespace integration.
 * **Small, simple and composable implementation**, less magic and less code is less bugs.
 
