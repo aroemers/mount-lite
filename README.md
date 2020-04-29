@@ -65,7 +65,7 @@ Calling `(stop)` stops all the states in reverse order.
 ;=> ExceptionInfo: Cannot deref state your.app/db when not started (system :default)
 ```
 
-*These are the basics you need. Enjoy!*
+*These are the basics you need. Enjoy!* 🚀
 
 
 ## Starting and stopping part of system
