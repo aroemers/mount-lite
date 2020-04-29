@@ -2,6 +2,7 @@
 [![Clojure CI](https://github.com/aroemers/mount-lite/workflows/Clojure%20CI/badge.svg?branch=3.x)](https://github.com/aroemers/mount-lite/actions?query=workflow%3A%22Clojure+CI%22)
 [![cljdoc badge](https://cljdoc.org/badge/functionalbytes/mount-lite)](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT)
 [![Clojars Project](https://img.shields.io/clojars/dt/functionalbytes/mount-lite?color=blue)](https://clojars.org/functionalbytes/mount-lite)
+![Weight](https://img.shields.io/badge/weight-lite-brightgreen)
 
 ![logo](doc/logo.png)
 
