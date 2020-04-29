@@ -9,7 +9,7 @@ A library resembling [mount](https://github.com/tolitius/mount), but with differ
 
 * **Clojure only**, dereferencing states only.
 * **Minimal API**, based on usage in several larger projects. Less turned out to be more.
-* **Supports multiple systems simultaneously**, enabling parallel testing for example.
+* **Supports parallel systems**, enabling parallel testing for example.
 * **Supports plain system maps**, no need for start/stop/substitute fuss in your unit tests.
 * **Supports extensions**, some powerful ones are provided, such as data-driven system configs and tools.namespace integration.
 * **Small, simple and composable implementation**, less magic and less code is less bugs.
@@ -18,10 +18,8 @@ A library resembling [mount](https://github.com/tolitius/mount), but with differ
 ## Getting started
 
 Add [![Clojars Project](https://img.shields.io/clojars/v/functionalbytes/mount-lite.svg)](https://clojars.org/functionalbytes/mount-lite) to your dependencies.
-
-You can find all the documentation about mount-lite, its unique features, and how to use the API by clicking on the link below:
-
-[![cljdoc badge](https://cljdoc.org/badge/functionalbytes/mount-lite)](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT)
+Read the primer below for a quick start.
+Next, read the extensive documentation to make the most of mount-lite at [![cljdoc badge](https://cljdoc.org/badge/functionalbytes/mount-lite)](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT).
 
 
 ## A primer
@@ -126,7 +124,7 @@ It also shows that it adds more fluff to the actual test, and how you could star
 (deftest with-substitutes-test
   (with-substitutes {your.app.config/config (state :start (read-config "config.test.edn"))
                      your.app/db            (state :start (derby/embedded-db)
-                                                   :stop  (derby/stop-db @your.app/db))}
+                                                   :stop  (derby/stop-db this))}
     (try
       (start your.app/db)
       (is (= 1 (count-records-in-db)))
