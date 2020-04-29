@@ -74,20 +74,24 @@ A unique feature of mount-lite is that you can start your system up to a certain
 It will start all the dependencies for that defstate and then the specified defstate itself.
 The same goes for stopping the system up to a certain defstate, stopping the dependents for that defstate and then the defstate itself.
 You do this by supplying that particular defstate to the `start` or `stop` function.
-For example, let's imagine three defstates: `state-a`, `state-b` and `state-c`, the latter depending on the former:
+For example:
 
 ```clj
-(start state-b)
-;=> (user/state-a user/state-b)
+(defstate a)
+(defstate b)
+(defstate c)
+
+(start b)
+;=> (user/a user/b)
 
 (start)
-;=> (user/state-c)
+;=> (user/c)
 
-(stop state-b)
-;=> (user/state-c user/state-b)
+(stop b)
+;=> (user/c user/b)
 
 (stop)
-;=> (user/state-a)
+;=> (user/a)
 ```
 
 This feature is mainly used while developing in your REPL and for testing.
