@@ -1,8 +1,18 @@
 (ns mount.lite-test
-  (:require [clojure.test :refer [deftest testing is]]
+  (:require [clojure.test :as test :refer [deftest testing is]]
             [mount.lite :as sut]
             [mount.protocols :as protocols]
-            mount.report))
+            mount.report
+            [mount.extensions.basic :as basic])
+  (:import [clojure.lang ExceptionInfo]))
+
+(defn states [f]
+  (sut/defstate foo :start 1)
+  (basic/with-only [foo]
+    (sut/stop)
+    (f)))
+
+(test/use-fixtures :each states)
 
 (deftest test-state
   (testing "Macro `state` should create an IState implementation"
@@ -53,13 +63,33 @@
 
 (deftest test-start
 
-  (sut/defstate foo :start 1 :stop (reset! val :correct))
-  (protocols/stop foo)
-
   (testing "Calling `start`"
 
     (testing "should return the started states"
       (is (= (list foo) (sut/start))))
 
-    (testing "should have started the states"
-      (is (= 1 @foo)))))
+    (testing "should not start started states again"
+      (is (= () (sut/start))))
+
+    (testing "should start the states"
+      (is (= :started (protocols/status foo))))
+
+    (testing "should make the started value available"
+      (is (= 1 @foo))))
+
+  (testing "Calling `start` with an argument"))
+
+
+(deftest test-stop
+
+  (testing "Calling `stop`"
+    (sut/start)
+
+    (testing "should return the stopped states"
+      (is (= (list foo) (sut/stop))))
+
+    (testing "should stop the states"
+      (is (= :stopped (protocols/status foo))))
+
+    (testing "should make the started value unavailable"
+      (is (thrown? ExceptionInfo @foo)))))
