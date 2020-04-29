@@ -99,9 +99,7 @@
               (protocols/status cux)])))
 
     (testing "make the started values available"
-      (is (and (= 1 @foo)
-               (= 2 @bar)
-               (= 3 @cux))))))
+      (is (= [1 2 3] [@foo @bar @cux])))))
 
 
 (deftest test-start-up-to
@@ -134,7 +132,10 @@
       (is (= [:stopped :stopped :stopped]
              [(protocols/status foo)
               (protocols/status bar)
-              (protocols/status cux)])))
+              (protocols/status cux)]))
+
+      (testing "having executed the stop expression"
+        (is (= {foo 1 bar 2 cux 3} @stopped))))
 
     (testing "make the started value unavailable"
       (is (thrown? ExceptionInfo @foo)))))
