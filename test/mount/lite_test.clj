@@ -21,7 +21,10 @@
 
     (f)
 
-    (sut/stop)))
+    ;; TODO Should retreiving system keys be part of the API?
+    (doseq [system-key (keys @mount.implementation.statevar/systems)]
+      (sut/with-system-key system-key
+        (sut/stop)))))
 
 (test/use-fixtures :each states)
 
@@ -180,3 +183,14 @@
       (sut/stop bar)
       (is (= {foo :started bar :stopped cux :stopped}
              (sut/status))))))
+
+
+(deftest test-with-system-key
+
+  (testing "Using `with-system-key` should"
+
+    (testing "be able to start two systems"
+
+      (let [alice (sut/with-system-key :alice (sut/start))
+            bob   (sut/with-system-key :bob (sut/start))]
+        (is (= (list foo bar cux) alice bob))))))
