@@ -1,4 +1,4 @@
-(ns mount.reporting
+(ns reporting
   (:require  [clojure.test :as test]))
 
 
@@ -8,7 +8,7 @@
     (test/with-test-out
       (test/inc-report-counter :pass)
       (when (seq test/*testing-contexts*)
-        (println "✅ " (test/testing-contexts-str)))))
+        (println "✅" (test/testing-contexts-str)))))
 
   (defmethod test/report :fail [m]
     (test/with-test-out
