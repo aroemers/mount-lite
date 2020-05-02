@@ -3,7 +3,7 @@
             [mount.extensions.basic :as basic]
             [mount.lite :as sut]
             [mount.protocols :as protocols]
-            [mount.reporting :as reporting])
+            [reporting :as reporting])
   (:import clojure.lang.ExceptionInfo))
 
 ;;; Setup.
