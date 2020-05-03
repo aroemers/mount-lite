@@ -189,8 +189,59 @@
 
   (testing "Using `with-system-key` should"
 
-    (testing "be able to start two systems"
+    (testing "be able to start multiple systems"
 
       (let [alice (sut/with-system-key :alice (sut/start))
+            _     (sut/defstate foo :start 2)
             bob   (sut/with-system-key :bob (sut/start))]
-        (is (= (list foo bar cux) alice bob))))))
+        (is (= (list foo bar cux) alice bob))))
+
+    (testing "should not have influenced the default system"
+
+      (is (= (list foo bar cux) (sut/start))))
+
+    (testing "be able to acces different states"
+
+      (is (= [1 2]
+             [(sut/with-system-key :alice @foo)
+              (sut/with-system-key :bob @foo)])))
+
+    (testing "be able to stop multiple systems"
+
+      (let [alice (sut/with-system-key :alice (sut/stop))
+            bob   (sut/with-system-key :bob (sut/stop))]
+        (is (= (list cux bar foo) alice bob))))))
+
+
+(deftest test-with-substitutes
+
+  (testing "Using `with-substitutes` should"
+
+    (let [sub (sut/state :start :sub-start :stop (swap! stopped assoc :sub :sub-stop))]
+
+      (testing "not accept non-defstate keys"
+
+        (is (thrown? AssertionError (sut/with-substitutes {:wrong sub}))))
+
+      (testing "not accept non-state values"
+
+        (is (thrown? AssertionError (sut/with-substitutes {foo :wrong}))))
+
+      (testing "substitute the start logic"
+
+        (sut/with-substitutes {foo sub}
+          (protocols/start foo))
+
+        (is (= :sub-start @foo)))
+
+      (testing "substitute the stop logic"
+
+        (protocols/stop foo)
+
+        (is (= :sub-stop (-> stopped deref :sub)))))))
+
+
+(deftest test-with-system-map)
+
+
+(deftest test-compatible-2)
