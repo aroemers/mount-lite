@@ -241,7 +241,48 @@
         (is (= :sub-stop (-> stopped deref :sub)))))))
 
 
-(deftest test-with-system-map)
+(deftest test-with-system-map
+
+  (testing "Using `with-system-map` should"
+
+    (testing "not accept non-defstate keys"
+
+      (is (thrown? AssertionError (sut/with-system-map {:wrong 123}))))
+
+    (testing "make the given value available as state value"
+
+      (sut/with-system-map {foo 123}
+
+        (is (= 123 @foo)))
+
+      (testing "even when the defstate is started"
+
+        (sut/start foo)
+
+        (sut/with-system-map {foo 123}
+
+          (is (= 123 @foo)))))
+
+    (testing "not influence the state value outside its scope"
+
+      (is (= 1 @foo)))))
 
 
-(deftest test-compatible-2)
+(deftest test-compatibility-with-mount-lite-2
+
+  (testing "Backwards compatibility ensures that"
+
+    (testing "a var can be given to `start`"
+
+      (is (= (list foo) (sut/start #'foo))))
+
+    (testing "a var can be given to `stop`"
+
+      (is (= (list foo) (sut/stop #'foo))))
+
+    (testing "a vector of vars can be given to `with-substitutes`"
+
+      (sut/with-substitutes [#'foo (sut/state :start 222)]
+        (sut/start foo)
+
+        (is (= 222 @foo))))))
