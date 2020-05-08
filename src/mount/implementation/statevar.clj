@@ -65,7 +65,7 @@
               (start this)
               (deref this))
           (throw-error this "Not allowed to lazy start state" this))
-        (throw-error this "Cannot deref state" this " when not started"))))
+        (throw-error this "Cannot deref state" this "when not started"))))
 
   clojure.lang.Named
   (getNamespace [_]
