@@ -78,7 +78,8 @@
 
 (defmacro with-substitutes
   "Executes the given body while the given defstates' start/stop logic
-  have been substituted. These can be nested."
+  have been substituted. Note that it does not substitute the stop logic
+  of already started states. The use of this macro can be nested."
   [substitutes & body]
   `(let [conformed# (validations/validate-with-substitutes ~substitutes)]
      (binding [impl/*substitutes* (merge impl/*substitutes* conformed#)]
