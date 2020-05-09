@@ -21,8 +21,7 @@
 
     (f)
 
-    ;; TODO Should retreiving system keys be part of the API?
-    (doseq [system-key (keys @mount.implementation.statevar/systems)]
+    (doseq [system-key (sut/system-keys)]
       (sut/with-system-key system-key
         (sut/stop)))))
 
@@ -34,14 +33,14 @@
 (deftest test-state
 
   (testing "Macro `state` should create an IState implementation"
-    (let [state (sut/state :start 1 :stop this)]
+    (let [state (sut/state :start 1 :stop 2)]
       (is (satisfies? protocols/IState state))
 
       (testing "which can start"
         (is (= 1 (protocols/start state))))
 
-      (testing "which can stop, using implicit this"
-        (is (= 1 (protocols/stop state)))))
+      (testing "which can stop"
+        (is (= 2 (protocols/stop state)))))
 
     (testing "except when incorrect arguments are supplied"
       (is (thrown? AssertionError (eval `(sut/state :staart 1 :stoop 2)))))))
@@ -76,11 +75,11 @@
         (finally
           (protocols/stop foo))))
 
-    (testing "without overriding started stop logic"
+    (testing "overriding started stop logic"
       (let [val (atom :untouched)]
-        (sut/defstate foo :stop (reset! val :correct))
-        (protocols/start foo)
         (sut/defstate foo :stop (reset! val :wrong))
+        (protocols/start foo)
+        (sut/defstate foo :stop (reset! val :correct))
         (protocols/stop foo)
         (is (= :correct @val))))))
 
@@ -198,13 +197,19 @@
 
     (testing "should not have influenced the default system"
 
-      (is (= (list foo bar cux) (sut/start))))
+      (is (= (list foo bar cux) (sut/start)))
+
+      (sut/stop))
 
     (testing "be able to acces different states"
 
       (is (= [1 2]
              [(sut/with-system-key :alice @foo)
               (sut/with-system-key :bob @foo)])))
+
+    (testing "influence the `system-keys` function return value"
+
+      (is (= #{:alice :bob} (sut/system-keys))))
 
     (testing "be able to stop multiple systems"
 
@@ -234,11 +239,22 @@
 
         (is (= :sub-start @foo)))
 
-      (testing "substitute the stop logic"
+      (testing "have substituted the stop logic, also outside its scope, unaffected by global redefinitions"
+
+        (sut/defstate foo)
 
         (protocols/stop foo)
 
-        (is (= :sub-stop (-> stopped deref :sub)))))))
+        (is (= :sub-stop (-> stopped deref :sub)))
+
+        (testing "of an already started defstate"
+
+          (protocols/start foo)
+
+          (sut/with-substitutes {foo (sut/state :stop (swap! stopped assoc :sub :sub-override))}
+            (protocols/stop foo))
+
+          (is (= :sub-override (-> stopped deref :sub))))))))
 
 
 (deftest test-with-system-map

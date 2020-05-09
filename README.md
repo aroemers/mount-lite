@@ -129,7 +129,7 @@ It also shows that it adds more fluff to the actual test, and how you could star
 (deftest with-substitutes-test
   (with-substitutes {your.app.config/config (state :start (read-config "config.test.edn"))
                      your.app/db            (state :start (derby/embedded-db)
-                                                   :stop  (derby/stop-db this))}
+                                                   :stop  (derby/stop-db @your.app/db))}
     (try
       (start your.app/db)
       (is (= 1 (count-records-in-db)))

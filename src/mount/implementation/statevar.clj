@@ -14,9 +14,9 @@
 (defonce ^:dynamic *substitutes* {})
 (defonce ^:dynamic *lazy-mode*   false)
 
-(defonce statevars (java.util.LinkedHashMap.))
-(defonce systems   (atom {}))
-(defonce started   (atom {}))
+(defonce statevars   (java.util.LinkedHashMap.))
+(defonce systems     (atom {}))
+(defonce substituted (atom {}))
 
 
 ;;; StateVar implementation.
@@ -34,16 +34,19 @@
                        (get statevars this))
             result (start state)]
         (swap! systems update *system-key* assoc this result)
-        (swap! started update *system-key* assoc this state)
+        (when (get *substitutes* this)
+          (swap! substituted update *system-key* assoc this state))
         :started)))
 
   (stop [this]
     (when (and (= :started (status this))
                (extensions/*predicate* this))
-      (when-let [state (get-in @started [*system-key* this])]
+      (when-let [state (or (get *substitutes* this)
+                           (get-in @substituted [*system-key* this])
+                           (get statevars this))]
         (stop state))
       (swap! systems update *system-key* dissoc this)
-      (swap! started update *system-key* dissoc this)
+      (swap! substituted update *system-key* dissoc this)
       :stopped))
 
   protocols/IStatus
@@ -96,3 +99,9 @@
   (let [statevar (->StateVar name)]
     (.put statevars statevar state)
     statevar))
+
+(defn system-keys []
+  (reduce-kv (fn [a k v]
+               (cond-> a (not-empty v) (conj k)))
+             #{}
+             @systems))
