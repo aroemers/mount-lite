@@ -11,11 +11,17 @@
             (apply str "unknown expression key(s) supplied to state: "
                    (interpose ", " other-keys)))))
 
-(defn validate-defstate [name]
+(defn validate-defstate [name [arg1 arg2 & argx :as args]]
   (assert (symbol? name)
           "name of defstate must be a symbol.")
   (assert (not (namespace name))
-          (str "name of defstate must not be namespaced.")))
+          (str "name of defstate must not be namespaced."))
+  (let [[attrs args]
+        (cond (and (string? arg1) (map? arg2)) [(assoc arg2 :doc arg1) argx]
+              (string? arg1)                   [{:doc arg1} (cons arg2 argx)]
+              (map? arg1)                      [arg1 (cons arg2 argx)]
+              :otherwise                       [{} args])]
+    [(with-meta name (merge (meta name) attrs)) args]))
 
 (defn validate-start-stop [up-to]
   (let [conformed (validations/maybe-deref up-to)]

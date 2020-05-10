@@ -35,8 +35,8 @@
 (defmacro defstate
   "Define a global state. Takes a :start and a :stop expression."
   [name & exprs]
-  (validations/validate-defstate name)
-  `(def ~name (defstate* '~(symbol (str *ns*) (str name)) (state ~@exprs))))
+  (let [[name exprs] (validations/validate-defstate name exprs)]
+    `(def ~name (defstate* '~(symbol (str *ns*) (str name)) (state ~@exprs)))))
 
 (defn start
   "Starts all the unstarted global defstates, in the context of the
