@@ -9,14 +9,20 @@
 
 ;;; Global state.
 
+(defonce statevars (java.util.LinkedHashMap.))
+(defonce systems   (atom {}))
+(defonce started   (atom {}))
+
+;; Bindings
+
 (defonce ^:dynamic *system-key*  :default)
 (defonce ^:dynamic *system-map*  {})
 (defonce ^:dynamic *substitutes* {})
-(defonce ^:dynamic *lazy-mode*   false)
 
-(defonce statevars   (java.util.LinkedHashMap.))
-(defonce systems     (atom {}))
-(defonce substituted (atom {}))
+;; Experimental
+
+(defonce ^:dynamic *lazy-mode*     false)
+(defonce ^:dynamic *override-mode* true)
 
 
 ;;; StateVar implementation.
@@ -34,19 +40,20 @@
                        (get statevars this))
             result (start state)]
         (swap! systems update *system-key* assoc this result)
-        (when (get *substitutes* this)
-          (swap! substituted update *system-key* assoc this state))
+        (when (or (get *substitutes* this)
+                  (not *override-mode*))
+          (swap! started update *system-key* assoc this state))
         :started)))
 
   (stop [this]
     (when (and (= :started (status this))
                (extensions/*predicate* this))
       (when-let [state (or (get *substitutes* this)
-                           (get-in @substituted [*system-key* this])
+                           (get-in @started [*system-key* this])
                            (get statevars this))]
         (stop state))
       (swap! systems update *system-key* dissoc this)
-      (swap! substituted update *system-key* dissoc this)
+      (swap! started update *system-key* dissoc this)
       :stopped))
 
   protocols/IStatus
