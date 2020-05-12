@@ -33,8 +33,8 @@
   (impl/defstate named state))
 
 (defmacro defstate
-  "Define a global state. Takes a :start and a :stop expression. Supports
-  optional docstring and attribute map like defn."
+  "Define a global state. Takes a :start and a :stop expression.
+  Supports optional docstring and attribute map like defn."
   [name & exprs]
   (let [[name exprs] (validations/validate-defstate name exprs)]
     `(def ~name (defstate* '~(symbol (str *ns*) (str name)) (state ~@exprs)))))
