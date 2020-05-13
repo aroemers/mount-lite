@@ -90,13 +90,11 @@ So a full `defstate` definition might look something like this:
 
 Consider the following in your design when using mount-lite:
 
-Only use `defstate` in your application namespaces, not in library namespaces, and preferable in the outskirts of your application.
+1. Only use `defstate` in your application namespaces, not in library namespaces, and preferable in the outskirts of your application.
 Having a global state does not mean you should forego on the good practice of passing state along as arguments to functions.
-
-Only use `defstate` when either the stateful object needs some stop logic before the application can be reloaded/restarted, or whenever the state depends on another defstate.
+2. Only use `defstate` when either the stateful object needs some stop logic before the application can be reloaded/restarted, or whenever the state depends on another defstate.
 In other cases, just use a def.
-
-Try to use your `defstate` as if it were private.
+3. Try to use your `defstate` as if it were private.
 Better yet, declare it as private.
 This will keep you from refering to your state from every corner of your application.
 
