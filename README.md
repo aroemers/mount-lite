@@ -40,8 +40,8 @@ For example:
 
 ```clj
 (defstate db
-  :start (dblib/start (get-in @config/config [:db :url]))
-  :stop  (dblib/stop @db))
+  :start (dblib/connect (get-in @config/config [:db :url]))
+  :stop  (dblib/disconnect @db))
 ;=> #'my.app/db
 ```
 
@@ -72,7 +72,7 @@ Calling `(stop)` stops all the states in reverse order.
 ## Other features
 
 There is more to mount-lite than just the primer above.
-Especially the first to sections about partial systems and testing facilities are important.
+Especially the next sections about partial systems and testing facilities are important.
 
 - [Starting and stopping part of system](#starting-and-stopping-part-of-system)
 - [Testing](#testing)
