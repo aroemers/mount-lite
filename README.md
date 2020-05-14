@@ -173,6 +173,29 @@ For example:
 
 In the above example, two systems are running, where the only difference is the `my.app/db` defstate's value.
 
+### Extensions
+
+Since mount-lite 2.0 an extension point available to influence which states are started or stopped when calling `(start)` or `(stop)`.
+Mount-lite 3.0 improves upon this by making it simpler.
+
+Extensions can be supplied using the `mount.extensions/with-predicate` macro.
+The predicate you supply receives each defstate that is about to be started or stopped.
+All active predicates must agree to allow to start or stop it.
+
+The following example is an anonymous extension that only starts states within the user namespace:
+
+```clj
+(with-predicate #(= "user" (namespace %))
+  (start))
+```
+
+Several powerful extensions are provided out of the box:
+
+1. [basic]() - explicitly influence which states are started or stopped.
+2. [data-driven]() - specify how a system is started based on a pure data map.
+3. [namespace-deps]() - uses a namespace dependency tree to determine which states should be started or stopped, instead of the default linear behaviour.
+4. [refresh]() - wraps the [tools.namespace]() "refresh" functionality, by stopping updated states, refreshing and starting the stopped states again.
+
 
 ## License
 
