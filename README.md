@@ -197,6 +197,19 @@ Several powerful extensions are provided out of the box:
 4. [refresh]() - wraps the [tools.namespace]() "refresh" functionality, by stopping updated states, refreshing and starting the stopped states again.
 
 
+### Metadata on defstate
+
+Lastly, it may be good to know that the `defstate` macro supports metadata on the name, a docstring and an attribute map.
+For example, a full `defstate` could be defined as follows:
+
+```clj
+(defstate ^:private my-state
+  "This is an example docstring."
+  {:since "0.9"}
+  :start ...
+  :stop  ...)
+```
+
 ## License
 
 Copyright © 2017-2020 Functional Bytes
