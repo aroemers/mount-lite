@@ -41,16 +41,17 @@ And here is how this extension could be used:
   (start))
 ```
 
+This particular extension may not be that useful, but it shows how the extension point works.
+It also shows that a state implements `INamed`, making it suitable for the `namespace` and `name` core functions.
+
 ## Provided extensions
 
 Mount-lite provides several extensions out of the box.
 The [starting "up-to"]() feature is actually implemented as an extension.
 But there are several more.
 
-### Extension 1: Basic
-
-### Extension 2: Data-driven
-
-### Extension 3: Namespace-based dependency graph
-
-### Extension 4: Refresh
+1. The [basic]() extension offers two composable macros called `with-only` and `with-except`, by which you can explicitly control which states are started/stopped.
+2. The [data-driven]() extension offers a way of specifying how a system of states is started by supplying a pure data map.
+3. The [namespace-deps]() extension enhances the ["up-to" feature]() of mount-lite by using a namespace dependency tree to determine which states should be started or stopped, instead of the default linear behaviour.
+4. The [refresh]() extension wrap the [tools.namespace]() refresh functionality, by first stopping the to-be-reloaded states before the actual refresh.
+After the refresh the stopped states are started again.

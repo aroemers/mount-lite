@@ -29,9 +29,9 @@ The basic behaviour is similar to the original mount library.
 Instead of requiring the `mount.core` namespace, simply require `mount.lite`, and the other namespaces your state depends on.
 
 ```clj
-(ns your.app
+(ns my.app
   (:require [mount.lite :as mount :refer [defstate]]
-            [your.app.config :as config] ;; <-- also has a defstate.
+            [my.app.config :as config] ;; <-- also has a defstate.
             [some.db.lib :as dblib]))
 ```
 
@@ -42,7 +42,7 @@ For example:
 (defstate db
   :start (dblib/start (get-in @config/config [:db :url]))
   :stop  (dblib/stop @db))
-;=> #'your.app/db
+;=> #'my.app/db
 ```
 
 Now you can start your system by calling `(start)`.
@@ -52,28 +52,29 @@ Calling `(stop)` stops all the states in reverse order.
 
 ```clj
 (mount/start)
-;=> (your.app.config/config
-     your.app/db)
+;=> (my.app.config/config
+     my.app/db)
 
 @db
 ;=> object[some.db.Object 0x12345678]
 
 (mount/stop)
-;=> (your.app/db
-     your.app.config/config)
+;=> (my.app/db
+     my.app.config/config)
 
 @db
-;=> ExceptionInfo: Cannot deref state your.app/db when not started (system :default)
+;=> ExceptionInfo: Cannot deref state my.app/db when not started (system :default)
 ```
 
 *These are the basics you need. Enjoy!* 🚀
 
 
-## Starting and stopping part of system
+## Other features
 
-A unique feature of mount-lite is that you can start your system up to a certain defstate.
-It will start all the dependencies for that defstate and then the specified defstate itself.
-The same goes for stopping the system up to a certain defstate, stopping the dependents for that defstate and then the defstate itself.
+### Starting and stopping part of system
+
+A unique feature of mount-lite is that you can start or stop your system "up to" a certain defstate.
+It will start all the dependencies for that state and then the specified state itself.
 You do this by supplying that particular defstate to the `start` or `stop` function.
 For example:
 
@@ -98,70 +99,69 @@ For example:
 This feature is mainly used while developing in your REPL and for testing.
 
 
-## Testing
+### Testing
 
 Below you'll find a basic explanation of the testing features in mount-lite.
 For a more thorough description, go to the documentation link shown earlier.
 
-### The system map
+#### The system map
 
-The mount-lite library always included the "substitutes" feature of the original mount library, albeit implementated in slightly different way.
-Mount-lite 3.0 still supports substituting, as described further down below.
-However version 3.0 added a new way for setting up the system in unit tests: the `with-system-map` macro.
+Mount-lite always included the "substitutes" feature of the original mount, be it implementated in slightly different way.
+Version 3.0 still supports substituting as described further down below.
+However it also added a new way for setting up a system in unit tests: the `with-system-map` macro.
 It allows you to explicitly specify what values the defstates must have within the scope of this macro.
 For example:
 
 ```clj
 (deftest with-system-map-test
-  (with-system-map {your.app/db mock-db}
+  (with-system-map {my.app/db mock-db}
     (is (= 1 (count-records-in-db)))))
 ```
 
 In the example above, whenever the `your.app/db` defstate is consulted within the scope of the `with-system-map` expression, it returns the mock database.
 
-### Substituting
+#### Substituting
 
-Substituting is still supported, and also still desired for unit or integration tests on a more "live" system.
+Substituting is the other testing facility, used for unit or integration tests on a more "live" system.
 The example below shows how the former example would be written with substitutes.
-It also shows that it adds more fluff to the actual test, and how you could start your system "up-to" the `db` defstate.
+It also shows that it adds more fluff to the actual test, and how you could start your system "up-to" the `my.app/db` defstate.
 
 ```clj
 (deftest with-substitutes-test
-  (with-substitutes {your.app.config/config (state :start (read-config "config.test.edn"))
-                     your.app/db            (state :start (derby/embedded-db)
-                                                   :stop  (derby/stop-db @your.app/db))}
+  (with-substitutes {my.app.config/config (state :start (read-config "config.test.edn"))
+                     my.app/db            (state :start (derby/embedded-db)
+                                                 :stop  (derby/stop-db @my.app/db))}
     (try
-      (start your.app/db)
+      (start my.app/db)
       (is (= 1 (count-records-in-db)))
       (finally
         (stop)))))
 ```
 
-Note that these two concepts can be used together in flexible ways.
-For example, you can supply a partial system map, and start the rest of the - possibly and/or partially substituted - defstates.
-The states already in the system map will not be started in that case.
+Note that the two testing concepts can be used together in flexible ways.
+For example, you can supply a partial system map, and start the rest of the - possibly substituted - states.
+The states already in the system map will not be started in that case, as those are regarded already being started.
 
-
-## Multiple systems
+### Multiple systems
 
 Another unique feature of mount-lite is that supports running multiple systems in parallel.
 This feature was added in mount-lite 2.0, and it has been improved upon in version 3.0.
 Where the former version was based on spinning up a "session" thread, now you simply specify a system by its key, whatever thread you're in.
 If not specified, the key is `:default`.
 
-To specify a key, you use the `with-system-key` macro.
+To specify a system key you use the `with-system-key` macro.
 All mount-lite actions within the scope of that expression - such as starting, stopping, or consulting a defstate's value - will use the system identified by that key.
 Note that this can be combined with the testing features discussed earlier as well.
 For example:
 
 ```clj
 (start)
-;=> (your.app.config/config your.app/db)
+;=> (my.app.config/config my.app/db)
 
 (with-system-key :empty-db
-  (with-substitutes {your.app/db your.app.integration-test/empty-db}
+  (with-substitutes {my.app/db my.app.integration-test/empty-db}
     (start)))
-;=> (your.app.config/config your.app/db)
+;=> (my.app.config/config my.app/db)
 
 (count-records-in-db)
 ;=> 4321
@@ -171,7 +171,7 @@ For example:
 ;=> 0
 ```
 
-In the above example, two systems are running, where the only difference is the `your.app/db` defstate's value.
+In the above example, two systems are running, where the only difference is the `my.app/db` defstate's value.
 
 
 ## License
