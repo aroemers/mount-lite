@@ -71,6 +71,15 @@ Calling `(stop)` stops all the states in reverse order.
 
 ## Other features
 
+There is more to mount-lite than just the primer above.
+Especially the first to sections about partial systems and testing facilities are important.
+
+- [Starting and stopping part of system](#starting-and-stopping-part-of-system)
+- [Testing](#testing)
+- [Multiple parallel systems](#multiple-parallel-systems)
+- [Extensions](#extensions)
+- [Metadata on defstate](#metadata-on-defstate)
+
 ### Starting and stopping part of system
 
 A unique feature of mount-lite is that you can start or stop your system "up to" a certain defstate.
@@ -142,7 +151,7 @@ Note that the two testing concepts can be used together in flexible ways.
 For example, you can supply a partial system map, and start the rest of the - possibly substituted - states.
 The states already in the system map will not be started in that case, as those are regarded already being started.
 
-### Multiple systems
+### Multiple parallel systems
 
 Another unique feature of mount-lite is that supports running multiple systems in parallel.
 This feature was added in mount-lite 2.0, and it has been improved upon in version 3.0.
