@@ -223,6 +223,6 @@ For example, a full `defstate` could be defined as follows:
 
 ## License
 
-Copyright © 2017-2020 [Functional Bytes](https://functionalbytes.nl)
+Copyright © 2016-2020 [Functional Bytes](https://functionalbytes.nl)
 
 Distributed under the Eclipse Public License either version 1.0 or (at your option) any later version.
