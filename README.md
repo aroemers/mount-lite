@@ -15,6 +15,8 @@ A library resembling [mount](https://github.com/tolitius/mount), but with differ
 * **Supports extensions**, some powerful ones are provided, such as data-driven system configs and tools.namespace integration.
 * **Small, simple and composable implementation**, less magic and less code is less bugs.
 
+This [blog post](https://functionalbytes.nl/clojure/mount/mount-lite/2016/02/11/mount-lite.html) explains why mount-lite was created.
+Note that the blog post covers version 1.0 of mount-lite; the API has changed since then.
 
 ## Getting started
 
@@ -200,10 +202,10 @@ The following example is an anonymous extension that only starts states within t
 
 Several powerful extensions are provided out of the box:
 
-1. [basic]() - explicitly influence which states are started or stopped.
-2. [data-driven]() - specify how a system is started based on a pure data map.
-3. [namespace-deps]() - uses a namespace dependency tree to determine which states should be started or stopped, instead of the default linear behaviour.
-4. [refresh]() - wraps the [tools.namespace]() "refresh" functionality, by stopping updated states, refreshing and starting the stopped states again.
+1. [basic](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/api/mount.extensions.basic) - explicitly influence which states are started or stopped.
+2. [data-driven](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/api/mount.extensions.data-driven) - specify how a system is started based on a pure data map.
+3. [namespace-deps](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/api/mount.extensions.namespace-deps) - uses a namespace dependency tree to determine which states should be started or stopped, instead of the default linear behaviour.
+4. [refresh](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/api/mount.extensions.refresh) - wraps the [tools.namespace](https://github.com/clojure/tools.namespace) library "refresh" functionality, by stopping updated states, refreshing and starting the stopped states again.
 
 
 ### Metadata on defstate
@@ -221,7 +223,6 @@ For example, a full `defstate` could be defined as follows:
 
 ## License
 
-Copyright © 2017-2020 Functional Bytes
+Copyright © 2017-2020 [Functional Bytes](https://functionalbytes.nl)
 
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Distributed under the Eclipse Public License either version 1.0 or (at your option) any later version.

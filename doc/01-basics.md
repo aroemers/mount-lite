@@ -13,7 +13,7 @@ Inside the REPL you can quickly reset your application to use new and updated co
 
 The mount-lite library has some unique features and approach with respect to mount.
 For more info on why mount-lite was created, see [this blog post](https://www.functionalbytes.nl/clojure/mount/mount-lite/2016/02/11/mount-lite.html).
-Note that the blog post covers version 0.9 of mount-lite, and quite some things have changed with [version 2.0](https://functionalbytes.nl/clojure/mount/mount-lite/2016/12/10/mount-lite-2.html) and [version 3.0]().
+Note that the blog post covers version 0.9 of mount-lite, and quite some things have changed with [version 2.0](https://functionalbytes.nl/clojure/mount/mount-lite/2016/12/10/mount-lite-2.html) and version 3.0 (blog post pending).
 This documentation covers version 3.0.
 
 ## Defining states
@@ -101,5 +101,5 @@ This will keep you from refering to your state from every corner of your applica
 ## Further reading
 
 Now that you know the basics, there is more to learn.
-It is advised to learn about at least the [testing features]() and [partially starting/stopping]() the system.
-You could also read up on how to start [multiple systems]() in parallel or mount-lite's [extensions]().
+It is advised to learn about at least the [testing features](03-testing.md) and [partially starting/stopping](02-partial-system.md) the system.
+You could also read up on how to start [multiple systems](04-multiple-systems.md) in parallel or mount-lite's [extensions](05-extensions.md).
