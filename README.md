@@ -75,6 +75,8 @@ Calling `(stop)` stops all the states in reverse order.
 
 There is more to mount-lite than just the primer above.
 Especially the next sections about partial systems and testing facilities are important.
+Below you find a quick overview of the features.
+Remember that more extensive documentation covering these topics can be found at [![cljdoc badge](https://cljdoc.org/badge/functionalbytes/mount-lite)](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT).
 
 - [Starting and stopping part of system](#starting-and-stopping-part-of-system)
 - [Testing](#testing)
