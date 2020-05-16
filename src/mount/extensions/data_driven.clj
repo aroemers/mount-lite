@@ -5,6 +5,7 @@
    :clojure.tools.namespace.repl/unload false}
   (:require [clojure.set :as set]
             [mount.extensions.basic :as basic]
+            [mount.extensions.metadata :as metadata]
             [mount.lite :as mount]))
 
 ;;; Internals.
@@ -39,6 +40,12 @@
     (mount/with-system-key system-key
       (f))))
 
+(defn- wrap-with-metadata [f predicate]
+  (let [resolved (resolve predicate)]
+    (fn []
+      (metadata/with-metadata resolved
+        (f)))))
+
 (defn- key->fn [key]
   (if-let [f (some-> (namespace key)
                      (doto (-> symbol require))
@@ -55,7 +62,8 @@
    :except      ::wrap-with-except
    :substitutes ::wrap-with-substitutes
    :system-map  ::wrap-with-system-map
-   :system-key  ::wrap-with-system-key})
+   :system-key  ::wrap-with-system-key
+   :metadata    ::wrap-with-metadata})
 
 
 ;;; Public API.
@@ -86,6 +94,8 @@
    :system-map - wrap the body with a system map.
 
    :system-key - wrap the body with a system key.
+
+   :metadata - wrap the body with the metadata/with-metadata extension.
 
   Next to the predefined keys above, one can supply your own namespace
   qualified keys. These keys must point to wrapper functions that
