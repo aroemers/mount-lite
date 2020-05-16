@@ -112,3 +112,6 @@
                (cond-> a (not-empty v) (conj k)))
              #{}
              @systems))
+
+(defn unload! []
+  (.clear statevars))

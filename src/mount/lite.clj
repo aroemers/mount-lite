@@ -117,3 +117,18 @@
   "Returns a set of active system keys."
   []
   (impl/system-keys))
+
+(defn reload!
+  "Have mount-lite forget all known global states, so that mount-lite
+  can pick up on new and renamed global states in the correct order
+  when they are loaded again. You will either have to do this loading
+  yourself - using `(require 'my-app.core :reload-all)` for example -
+  or pass a namespace (string, symbol or actual namespace object) to
+  reload! to do this loading for you. No system(s) can be running when
+  calling reload!"
+  ([]
+   (assert (empty? (system-keys)) "Cannot reload while system(s) are running.")
+   (impl/unload!))
+  ([ns]
+   (reload!)
+   (require (symbol (str ns)) :reload-all)))
