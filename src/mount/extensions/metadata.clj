@@ -4,7 +4,7 @@
 
   (defstate nrepl-server
     {:qualifier :dev}
-    :start (nrepl/start-server ...)
+    :start (nrepl/start-server :port 7888)
     :stop  (nrepl/stop-server @nrepl-server))
 
   (with-metadata #(contains? #{:dev nil} (:qualifier %))

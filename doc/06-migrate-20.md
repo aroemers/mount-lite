@@ -1,4 +1,4 @@
-## Migrate to 2.0
+# Migrate to 2.0
 
 Version 2.0 has breaking changes with respect to version 1.0.
 Below are the changes from the 1.0 version to version 2.0.
