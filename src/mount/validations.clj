@@ -1,7 +1,8 @@
 (ns mount.validations
   "Validation and conformation helper functions."
   {:clojure.tools.namespace.repl/load   false
-   :clojure.tools.namespace.repl/unload false}
+   :clojure.tools.namespace.repl/unload false
+   :no-doc                              true}
   (:require [mount.protocols :as protocols]))
 
 ;;; Internals
