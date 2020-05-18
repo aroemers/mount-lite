@@ -117,14 +117,3 @@
 (defn forget! []
   (assert (empty? (system-keys)) "Cannot forget while system(s) are running.")
   (.clear statevars))
-
-(defn reload! []
-  (let [nss (distinct (map namespace (reverse (keys statevars))))]
-    (forget!)
-    (doseq [ns nss]
-      (try
-        (require (symbol ns) :reload-all)
-        (catch java.io.FileNotFoundException fnfe
-          (when-not (str/includes? (.getMessage fnfe) (str (namespace-munge ns) ".clj"))
-            (throw fnfe))))))
-  (apply list (keys statevars)))
