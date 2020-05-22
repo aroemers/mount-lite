@@ -120,8 +120,8 @@
 
 (defn forget!
   "Forget all known global states. This can sometimes be necessary to
-  have mount-lite pick up on new and removed global states in the
-  correct order as they are reloaded again.
+  have mount-lite pick up on new, renamed and removed global states in
+  the correct order as they are reloaded again.
 
   You will have to do this reloading yourself, using `(require
   'my-app.core :reload-all)` for example. No system(s) can be running
