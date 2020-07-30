@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.1.4] - 2020-07-30
+
+Fixed reflection warnings.
+
 ## [2.1.3] - 2020-04-10
 
 Updated docs to be hosted on cljdoc.org.
@@ -110,6 +114,7 @@ Updated docs to be hosted on cljdoc.org.
 ## 0.9
 - Initial release
 
+[2.1.4]: https://github.com/aroemers/mount-lite/compare/2.1.4...2.1.3
 [2.1.3]: https://github.com/aroemers/mount-lite/compare/2.1.3...2.1.2
 [2.1.2]: https://github.com/aroemers/mount-lite/compare/2.1.2...2.1.1
 [2.1.1]: https://github.com/aroemers/mount-lite/compare/2.1.1...2.1.0

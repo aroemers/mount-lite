@@ -24,5 +24,5 @@
   (resolve (keyword->symbol kw)))
 
 (defn var->keyword
-  [var]
+  [^clojure.lang.Var var]
   (keyword (str (.ns var)) (str (.sym var))))
