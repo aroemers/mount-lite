@@ -35,6 +35,10 @@
   (start)
   (is (= @state-3 "state-1 + state-2 + state-3") "State 1 is back to its original."))
 
+(deftest test-falsy-start
+  (is (state :start nil))
+  (is (state :start false)))
+
 (deftest test-substitute-map
   (with-substitutes [#'state-2 {:start-fn (fn [] "sub-2")}] (start))
   (is (= @state-3 "sub-2 + state-3") "State 2 is substituted by map.")
