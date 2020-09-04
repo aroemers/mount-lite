@@ -107,7 +107,7 @@
   keyword arguments. A required :start expression, an optional :stop
   expression, and an optional :name for the state."
   [& {:keys [start stop name] :or {name "-anonymous-"} :as fields}]
-  (if start
+  (if (contains? fields :start)
     `(#'map->State (merge ~(dissoc fields :start :stop :name)
                           {:start-fn (fn [] ~start)
                            :stop-fn  (fn [~'this] ~stop)
