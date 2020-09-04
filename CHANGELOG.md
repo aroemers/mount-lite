@@ -1,8 +1,12 @@
 # Change Log
 
-## [2.1.4] - 2020-07-30
+## [2.1.5] - 2020-09-04
+### Fixed
+- Merged #20 - Allow :start to be specified with a falsy value
 
-Fixed reflection warnings.
+## [2.1.4] - 2020-07-30
+### Fixed
+- Fixed reflection warnings.
 
 ## [2.1.3] - 2020-04-10
 
@@ -114,6 +118,7 @@ Updated docs to be hosted on cljdoc.org.
 ## 0.9
 - Initial release
 
+[2.1.5]: https://github.com/aroemers/mount-lite/compare/2.1.5...2.1.4
 [2.1.4]: https://github.com/aroemers/mount-lite/compare/2.1.4...2.1.3
 [2.1.3]: https://github.com/aroemers/mount-lite/compare/2.1.3...2.1.2
 [2.1.2]: https://github.com/aroemers/mount-lite/compare/2.1.2...2.1.1
