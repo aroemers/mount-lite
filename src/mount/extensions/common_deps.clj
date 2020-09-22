@@ -7,25 +7,28 @@
 (defn- transitive
   "Given a graph and a node, returns all the transitive nodes."
   [graph node]
-  (loop [unexpanded (graph node)
-         expanded #{}]
-    (if-let [[node & more] (seq unexpanded)]
-      (if (contains? expanded node)
-        (recur more expanded)
-        (recur (concat more (graph node))
-               (conj expanded node)))
-      expanded)))
+  (letfn [(search [cur]
+            (->> (get graph cur)
+                 (map search)
+                 (reduce into [cur])))]
+    (search node)))
+
+(defn ^:no-doc transitives
+  "Filters and orders a given list of states in transitive dependency order
+  based upon the given dependency graphs."
+  [var graphs states]
+  (let [var-kw       (utils/var->keyword var)
+        dependencies (reverse (transitive (:dependencies graphs) var-kw))
+        dependents   (transitive (:dependents graphs) var-kw)
+        concatted    (distinct (concat dependencies dependents))]
+    (filter (set states) concatted)))
 
 (defn ^:no-doc with-transitives*
   "Calls 0-arity function `f`, while `*states*` has been bound to the
   transitive dependencies and dependents of the given state `var`."
   [var graphs f]
-  (let [var-kw       (utils/var->keyword var)
-        dependencies (transitive (:dependencies graphs) var-kw)
-        dependents   (transitive (:dependents graphs) var-kw)
-        concatted    (set (concat dependencies dependents))]
-    (binding [mount/*states* (atom (filter (conj concatted var-kw) @mount/*states*))]
-      (f))))
+  (binding [mount/*states* (atom (transitives var graphs @mount/*states*))]
+    (f)))
 
 (defmacro with-transitives
   "Wraps the `body` having the `*states*` extension point bound to the
