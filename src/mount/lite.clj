@@ -42,12 +42,12 @@
 (defn- throw-started
   [name]
   (throw (Error. (format "state %s already started %s" name
-                         (if (default-session?) "in this session" "")))))
+                         (if (default-session?) "" "in this session")))))
 
 (defn- throw-unstarted
   [name]
   (throw (Error. (format "state %s not started %s" name
-                         (if (default-session?) "in this session" "")))))
+                         (if (default-session?) "" "in this session")))))
 
 (defn- throw-not-found
   [var]
