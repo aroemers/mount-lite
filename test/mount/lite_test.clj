@@ -7,6 +7,8 @@
             [mount.lite-test.test-state-3 :refer (state-3)])
   (:import [clojure.lang ExceptionInfo]))
 
+(def ^:dynamic *foo* "bar")
+
 ;;; Stop all states before and after every test.
 
 (use-fixtures :each (fn [f] (stop) (f) (stop)))
@@ -82,6 +84,7 @@
            (is (= (status) {#'state-1 :started #'state-2 :started #'state-2-a :stopped #'state-2-b :stopped #'state-3 :stopped})))
         (is (= (status) {#'state-1 :started #'state-2 :started #'state-2-a :stopped #'state-2-b :stopped #'state-3 :stopped}))))
     (is (= (status) {#'state-1 :started #'state-2 :stopped #'state-2-a :stopped #'state-2-b :stopped #'state-3 :stopped})))
+
   (testing "with a nested thread"
     (start #'state-1)
     (is (= (status) {#'state-1 :started #'state-2 :stopped #'state-2-a :stopped #'state-2-b :stopped #'state-3 :stopped}))
@@ -93,4 +96,12 @@
             (Thread.)
             (.join))
         (= (status) {#'state-1 :started #'state-2 :started #'state-2-a :stopped #'state-2-b :stopped #'state-3 :stopped})))
-    (is (= (status) {#'state-1 :started #'state-2 :stopped #'state-2-a :stopped #'state-2-b :stopped #'state-3 :stopped}))))
+    (is (= (status) {#'state-1 :started #'state-2 :stopped #'state-2-a :stopped #'state-2-b :stopped #'state-3 :stopped})))
+
+  (testing "maintaining bindings"
+    (let [session *session*]
+      (binding [*foo* "baz"]
+        @(:result
+          (with-session
+            (is (not= *session* session))
+            (is (= *foo* "baz"))))))))

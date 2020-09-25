@@ -216,16 +216,18 @@
   Returns a map with the spawned :thread and a :promise that will be set to the
   result of the body or an exception."
   [& body]
-  `(let [p# (promise)]
-     {:thread (doto (Thread. (fn []
-                               (binding [*session* (new-session)]
-                                 (.set ^InheritableThreadLocal itl *session*)
-                                 (try
-                                   (deliver p# (do ~@body))
-                                   (catch Throwable t#
-                                     (deliver p# t#)
-                                     (throw t#))
-                                   (finally
-                                     (stop))))))
-                (.start))
+  `(let [p#        (promise)
+         bindings# (get-thread-bindings)
+         runnable# (fn []
+                    (with-bindings bindings#
+                      (binding [*session* (new-session)]
+                        (.set ^InheritableThreadLocal itl *session*)
+                        (try
+                          (deliver p# (do ~@body))
+                          (catch Throwable t#
+                            (deliver p# t#)
+                            (throw t#))
+                          (finally
+                            (stop))))))]
+     {:thread (doto (Thread. runnable#) (.start))
       :result p#}))
