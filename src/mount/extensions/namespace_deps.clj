@@ -65,7 +65,7 @@
   "Just like the core `start`, except with an `up-to-var`, it only
   starts the transitive dependencies of that state."
   ([]
-   (mount/start))
+   (start nil))
   ([up-to-var]
    (common-deps/with-transitives up-to-var (build-graphs)
      (mount/start up-to-var))))
@@ -74,7 +74,7 @@
   "Just like the core `stop`, except with a `down-to-var`, it only
   stops the transitive dependents of that state."
   ([]
-   (mount/stop))
+   (stop nil))
   ([down-to-var]
    (common-deps/with-transitives down-to-var (build-graphs)
      (mount/stop down-to-var))))

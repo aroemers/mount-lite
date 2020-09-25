@@ -44,14 +44,26 @@
 
 (deftest transitives-test
   (testing "ordering active states in dependency order"
-    (is (= [::debug
-            ::env
+    (is (= [::config-a
+            ::overrides-a
             ::config-b
             ::overrides-b
-            ::config-a
-            ::overrides-a
             ::overrides
+            ::env
             ::config
             ::db
+            ::debug
             ::system]
-           (sut/transitives #'system graphs states)))))
+           (sut/transitives #'system graphs states)))
+    (is (= [::config-a
+            ::overrides-a
+            ::config-b
+            ::overrides-b
+            ::overrides
+            ::env
+            ::config
+            ::db
+            ::debug
+            ::system
+            ::registry]
+           (sut/transitives nil graphs states)))))
