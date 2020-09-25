@@ -18,17 +18,17 @@
 
 ;;; The state protocol implementation.
 
-(defonce ^:dynamic itl (InheritableThreadLocal.))
+(defonce ^:dynamic *itl* (InheritableThreadLocal.))
 
 (defn- throw-started
   [name]
   (throw (Error. (format "state %s already started %s" name
-                         (if (.get ^InheritableThreadLocal itl) "in this session" "")))))
+                         (if (.get ^InheritableThreadLocal *itl*) "in this session" "")))))
 
 (defn- throw-unstarted
   [name]
   (throw (Error. (format "state %s not started %s" name
-                         (if (.get ^InheritableThreadLocal itl) "in this session" "")))))
+                         (if (.get ^InheritableThreadLocal *itl*) "in this session" "")))))
 
 (defn- throw-not-found
   [var]
@@ -39,29 +39,29 @@
   (start* [this]
     (if (= :stopped (status* this))
       (let [value (start-fn)]
-        (swap! sessions assoc (.get ^InheritableThreadLocal itl) (assoc (dissoc this :sessions) ::value value)))
+        (swap! sessions assoc (.get ^InheritableThreadLocal *itl*) (assoc (dissoc this :sessions) ::value value)))
       (throw-started name)))
 
   (stop* [this]
     (let [value   (deref this)
-          stop-fn (get-in @sessions [(.get ^InheritableThreadLocal itl) :stop-fn])]
+          stop-fn (get-in @sessions [(.get ^InheritableThreadLocal *itl*) :stop-fn])]
       (stop-fn value)
-      (swap! sessions dissoc (.get ^InheritableThreadLocal itl))))
+      (swap! sessions dissoc (.get ^InheritableThreadLocal *itl*))))
 
   (status* [_]
-    (if (get @sessions (.get ^InheritableThreadLocal itl))
+    (if (get @sessions (.get ^InheritableThreadLocal *itl*))
       :started
       :stopped))
 
   (properties [this]
     (-> this
-        (merge (get @sessions (.get ^InheritableThreadLocal itl)))
+        (merge (get @sessions (.get ^InheritableThreadLocal *itl*)))
         (dissoc ::value :sessions)))
 
   IDeref
   (deref [this]
     (if (= :started (status* this))
-      (get-in @sessions [(.get ^InheritableThreadLocal itl) ::value])
+      (get-in @sessions [(.get ^InheritableThreadLocal *itl*) ::value])
       (throw-unstarted name))))
 
 (prefer-method print-method Map IDeref)
@@ -202,8 +202,8 @@
   [& body]
   `(let [p# (promise)]
      {:thread (doto (Thread. (fn []
-                               (.set ^InheritableThreadLocal @#'itl (Thread/currentThread))
-                               (binding [itl itl]
+                               (.set ^InheritableThreadLocal @#'*itl* (Thread/currentThread))
+                               (binding [*itl* *itl*]
                                  (try
                                    (deliver p# (do ~@body))
                                    (catch Throwable t#
