@@ -18,7 +18,7 @@
 
 ;;; The state protocol implementation.
 
-(defonce ^:private itl (InheritableThreadLocal.))
+(defonce ^:dynamic itl (InheritableThreadLocal.))
 
 (defn- throw-started
   [name]
@@ -203,12 +203,13 @@
   `(let [p# (promise)]
      {:thread (doto (Thread. (fn []
                                (.set ^InheritableThreadLocal @#'itl (Thread/currentThread))
-                               (try
-                                 (deliver p# (do ~@body))
-                                 (catch Throwable t#
-                                   (deliver p# t#)
-                                   (throw t#))
-                                 (finally
-                                   (stop)))))
+                               (binding [itl itl]
+                                 (try
+                                   (deliver p# (do ~@body))
+                                   (catch Throwable t#
+                                     (deliver p# t#)
+                                     (throw t#))
+                                   (finally
+                                     (stop))))))
                 (.start))
       :result p#}))
