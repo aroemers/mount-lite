@@ -24,10 +24,7 @@
 
 (defonce ^:private default-session (new-session))
 
-(defonce itl
-  (proxy [InheritableThreadLocal] []
-    (initialValue []
-      default-session)))
+(defonce itl (InheritableThreadLocal.))
 
 (defonce ^:dynamic *session* default-session)
 
