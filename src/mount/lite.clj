@@ -33,7 +33,7 @@
 
 (defn current-session
   []
-  (or *session* (.get ^InheritableThreadLocal itl)))
+  (or (.get ^InheritableThreadLocal itl) *session*))
 
 (defn- default-session?
   []
