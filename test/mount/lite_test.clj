@@ -137,7 +137,9 @@
                        #'state-2   :started
                        #'state-2-a :stopped
                        #'state-2-b :stopped
-                       #'state-3   :stopped})))
+                       #'state-3   :stopped}))
+
+      (stop))
 
     (is (= (status) {#'state-1   :started
                      #'state-2   :stopped
@@ -172,7 +174,10 @@
                        #'state-2   :started
                        #'state-2-a :stopped
                        #'state-2-b :stopped
-                       #'state-3   :stopped})))
+                       #'state-3   :stopped}))
+
+      (stop))
+
     (is (= (status) {#'state-1   :started
                      #'state-2   :stopped
                      #'state-2-a :stopped
@@ -208,7 +213,10 @@
                        #'state-2   :started
                        #'state-2-a :stopped
                        #'state-2-b :stopped
-                       #'state-3   :stopped}))))
+                       #'state-3   :stopped}))
+
+      (stop)))
+
     (is (= (status) {#'state-1   :started
                      #'state-2   :stopped
                      #'state-2-a :stopped
@@ -245,7 +253,9 @@
                          #'state-2   :started
                          #'state-2-a :stopped
                          #'state-2-b :stopped
-                         #'state-3   :stopped}))))
+                         #'state-3   :stopped}))
+
+        (stop)))
 
     (is (= (status) {#'state-1   :started
                      #'state-2   :stopped
@@ -281,7 +291,9 @@
                          #'state-2   :started
                          #'state-2-a :stopped
                          #'state-2-b :stopped
-                         #'state-3   :stopped}))))
+                         #'state-3   :stopped}))
+
+        (stop)))
 
     (is (= (status) {#'state-1   :started
                      #'state-2   :stopped
@@ -320,7 +332,8 @@
                          #'state-2   :started
                          #'state-2-a :stopped
                          #'state-2-b :stopped
-                         #'state-3   :stopped})))))
+                         #'state-3   :stopped}))
+        (stop))))
 
     (is (= (status) {#'state-1   :started
                      #'state-2   :stopped
