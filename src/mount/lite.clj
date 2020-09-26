@@ -18,13 +18,13 @@
 
 ;;; The state protocol implementation.
 
-(defn new-session
+(defn- new-session
   []
   (gensym "mount-session-"))
 
 (defonce ^:private default-session (new-session))
 
-(defonce ^:dynamic *session* default-session)
+(defonce ^:private ^:dynamic *session* default-session)
 
 (defn- default-session?
   []

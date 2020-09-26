@@ -1,6 +1,6 @@
 (ns mount.lite-test
   (:require [clojure.test :refer [deftest is testing use-fixtures]]
-            [mount.lite :refer [*session* state status stop with-session with-session* with-substitutes start]]
+            [mount.lite :refer [state status stop with-session with-session* with-substitutes start]]
             [mount.lite-test.test-state-1 :refer (state-1)]
             [mount.lite-test.test-state-2 :refer (state-2)]
             [mount.lite-test.test-state-2-extra :as ts2e :refer [state-2-a state-2-b]]
@@ -113,8 +113,6 @@
       (stop))
     (is (and (realized? stopped) (= 1 @stopped)) "this is bound")))
 
-(def ^:dynamic *foo* "bar")
-
 (deftest test-with-session
   (testing "simple"
     (start #'state-1)
@@ -222,13 +220,6 @@
                      #'state-2-a :stopped
                      #'state-2-b :stopped
                      #'state-3   :stopped})))
-
-  (testing "maintaining bindings"
-    (let [session *session*]
-      (binding [*foo* "baz"]
-        (with-session
-          (is (not= *session* session))
-          (is (= *foo* "baz"))))))
 
 (deftest test-with-session*
   (testing "simple"
@@ -340,11 +331,3 @@
                      #'state-2-a :stopped
                      #'state-2-b :stopped
                      #'state-3   :stopped})))
-
-  (testing "maintaining bindings"
-    (let [session *session*]
-      (binding [*foo* "baz"]
-        (with-session*
-          (fn []
-            (is (not= *session* session))
-            (is (= *foo* "baz")))))))
