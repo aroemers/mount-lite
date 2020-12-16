@@ -15,8 +15,14 @@
 (def ^:private refresh-tracker
   (resolve 'clojure.tools.namespace.repl/refresh-tracker))
 
+(def ^:private refresh-dirs
+  (resolve 'clojure.tools.namespace.repl/refresh-dirs))
+
 (def ^:private scan
   (resolve 'clojure.tools.namespace.dir/scan))
+
+(def ^:private scan-dirs
+  (resolve 'clojure.tools.namespace.dir/scan-dirs))
 
 (def ^:private remove-disabled
   (resolve 'clojure.tools.namespace.repl/remove-disabled))
@@ -32,7 +38,19 @@
   clojure.tools.namespace.repl/refresh."
   []
   (if refresh-tracker
-    (let [nss (-> refresh-tracker deref scan remove-disabled :clojure.tools.namespace.track/unload set)]
+    (let [scan-fn (cond
+                    ;; `refresh-dirs` is set and `scan-dirs` is available.
+                    (and (seq refresh-dirs) scan-dirs)
+                    #(scan-dirs % refresh-dirs)
+
+                    ;; `refresh-dirs` is not set, but `scan-dirs` is available.
+                    scan-dirs
+                    #(scan-dirs %)
+
+                    ;; We are using 0.2.x version of `clojure.tools.namespace`.
+                    :else
+                    scan)
+          nss (-> refresh-tracker deref scan-fn remove-disabled :clojure.tools.namespace.track/unload set)]
       (keep (fn [kw]
               (when (nss (symbol (namespace kw)))
                 (utils/resolve-keyword kw)))
