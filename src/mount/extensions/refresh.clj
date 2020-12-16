@@ -40,8 +40,8 @@
   (if refresh-tracker
     (let [scan-fn (cond
                     ;; `refresh-dirs` is set and `scan-dirs` is available.
-                    (and (seq refresh-dirs) scan-dirs)
-                    #(scan-dirs % refresh-dirs)
+                    (and refresh-dirs (seq @refresh-dirs) scan-dirs)
+                    #(scan-dirs % @refresh-dirs)
 
                     ;; `refresh-dirs` is not set, but `scan-dirs` is available.
                     scan-dirs
