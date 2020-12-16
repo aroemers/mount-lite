@@ -2,8 +2,8 @@
   "An extension that offers helpers for working with the
   tools.namespace contrib library. Make sure you add the
   tools.namespace to the dependencies of your project yourself. This
-  extension has been tested with version 0.2.11 of the tools.namespace
-  library."
+  extension has been tested with versions 0.2.11, 0.3.1 and 1.1.0
+  of the tools.namespace library."
   {:clojure.tools.namespace.repl/load   false
    :clojure.tools.namespace.repl/unload false}
   (:require [mount.extensions.basic :as basic]
