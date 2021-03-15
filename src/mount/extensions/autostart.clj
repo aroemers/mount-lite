@@ -39,7 +39,7 @@
         @state))))
 
 (defmacro defstate
-  "Defines a state that should be auto-started on first deref.
+  "Defines a state that will be auto-started on first deref, including its dependencies.
 
   See `mount.lite/defstate` for more information."
   [name & args]
