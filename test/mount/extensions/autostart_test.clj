@@ -27,8 +27,11 @@
     (mount/stop)
     (is (fully? :stopped)))
   (testing "with custom autostart-fn"
-    (sut/set-autostart-fn! deps/start)
-    (= 462 @third)
-    (is (fully? :started))
-    (mount/stop)
-    (is (fully? :stopped))))
+    (try
+      (sut/set-autostart-fn! deps/start)
+      (= 462 @third)
+      (is (fully? :started))
+      (mount/stop)
+      (is (fully? :stopped))
+      (finally
+        (sut/set-autostart-fn! mount/start)))))
