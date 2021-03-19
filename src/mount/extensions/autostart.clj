@@ -1,4 +1,7 @@
 (ns mount.extensions.autostart
+  "This extension provides a `defstate` that auto-starts on first use.
+
+  Use `set-autostart-fn!` to configure which fn should be used to start the states."
   (:require [mount.lite :as mount])
   (:import [clojure.lang IDeref]
            [mount.lite IState]))
