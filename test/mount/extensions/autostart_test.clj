@@ -13,25 +13,26 @@
   :start 420)
 
 (sut/defstate third
-  :dependencies [#'first #'second]
-  :start (+ @first @second))
+  :dependencies [#'first]
+  :start (* 2 @first))
 
-(defn fully?
-  [state]
-  (= {#'first state #'second state #'third state} (mount/status)))
+(defn in-state?
+  [states]
+  (= (zipmap [#'first #'second #'third] states) (mount/status)))
 
 (deftest autostart-test
   (testing "with default autostart-fn"
-    (= 462 @third)
-    (is (fully? :started))
+    (= 84 @third)
+    (is (in-state? [:started :started :started]))
     (mount/stop)
-    (is (fully? :stopped)))
+    (is (in-state? [:stopped :stopped :stopped])))
   (testing "with custom autostart-fn"
     (try
       (sut/set-autostart-fn! deps/start)
-      (= 462 @third)
-      (is (fully? :started))
+      (= 84 @third)
+      (testing "explicit deps still only starts states in its deps tree"
+        (is (in-state? [:started :stopped :started])))
       (mount/stop)
-      (is (fully? :stopped))
+      (is (in-state? [:stopped :stopped :stopped]))
       (finally
         (sut/set-autostart-fn! mount/start)))))
