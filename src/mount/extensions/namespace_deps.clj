@@ -7,7 +7,7 @@
 
   Using these functions, your project *must* include the
   org.clojure/tools.namespace library. This extension has been tested
-  with version 0.2.11 of that library."
+  with version 0.2.11, 0.3.1 and 1.1.0 of that library."
   {:clojure.tools.namespace.repl/load false
    :clojure.tools.namespace.repl/unload false}
   (:require [mount.extensions.common-deps :as common-deps]
