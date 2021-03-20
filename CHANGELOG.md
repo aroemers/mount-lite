@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.2.0] - 2021-03-20
+### Added
+- Merged #28 - Add autostart extension
+
 ## [2.1.5] - 2020-09-04
 ### Fixed
 - Merged #20 - Allow :start to be specified with a falsy value
@@ -118,6 +122,7 @@ Updated docs to be hosted on cljdoc.org.
 ## 0.9
 - Initial release
 
+[2.2.0]: https://github.com/aroemers/mount-lite/compare/2.2.0...2.1.5
 [2.1.5]: https://github.com/aroemers/mount-lite/compare/2.1.5...2.1.4
 [2.1.4]: https://github.com/aroemers/mount-lite/compare/2.1.4...2.1.3
 [2.1.3]: https://github.com/aroemers/mount-lite/compare/2.1.3...2.1.2

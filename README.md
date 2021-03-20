@@ -9,7 +9,7 @@ A library resembling [mount](https://github.com/tolitius/mount), but different o
 
 ## Getting started
 
-Add `[functionalbytes/mount-lite "2.1.5"]` or `functionalbytes/mount-lite {:mvn/version "2.1.5"}` to your dependencies and make sure Clojars is one of your repositories.
+Add `[functionalbytes/mount-lite "2.2.0"]` or `functionalbytes/mount-lite {:mvn/version "2.2.0"}` to your dependencies and make sure Clojars is one of your repositories.
 
 You can find all the documentation about mount-lite, what makes it unique, and the API by clicking on the link below:
 
@@ -80,6 +80,8 @@ The following extensions are currently provided:
 - **[Inferred dependencies](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/api/mount.extensions.namespace-deps)**: only start (or stop) states based on an inferred dependency graph using the tools.namespace library.
 
 - **[Explicit dependencies](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/api/mount.extensions.explicit-deps)**: only start (or stop) states based on an explicitly declared dependency graph.
+
+- **[Autostart](https://cljdoc.org/d/functionalbytes/mount-lite/CURRENT/api/mount.extensions.autostart)**: automatically start states (and its dependencies) on first use.
 
 ## Version 2.x
 
