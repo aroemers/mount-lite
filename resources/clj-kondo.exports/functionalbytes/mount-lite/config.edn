@@ -1,0 +1,3 @@
+{:hooks
+ {:analyze-call
+  {mount.lite/defstate hooks.lite/defstate-hook}}}
