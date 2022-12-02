@@ -1,3 +1,4 @@
+#_{:clj-kondo/ignore [:unused-namespace]}
 (ns mount.lite-test.test-state-3
   (:require [mount.lite :refer (defstate)]
             [mount.lite-test.test-state-2 :refer (state-2)]
