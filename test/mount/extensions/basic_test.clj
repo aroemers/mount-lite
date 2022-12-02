@@ -1,7 +1,7 @@
 (ns mount.extensions.basic-test
   (:require [clojure.test :refer (deftest is use-fixtures)]
             [mount.extensions.basic :as basic]
-            [mount.lite :refer :all]
+            [mount.lite :refer [start stop status]]
             [mount.lite-test.test-state-1 :refer (state-1)]
             [mount.lite-test.test-state-2 :refer (state-2)]
             [mount.lite-test.test-state-3 :refer (state-3)]))

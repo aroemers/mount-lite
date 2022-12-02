@@ -39,7 +39,7 @@
 
 (deftest autostart-test
   (testing "with default autostart-fn"
-    (= 84 @state-c)
+    (is (= 84 @state-c))
     (is-status {#'state-a :started #'state-b :started #'state-c :started})
     (mount/stop)
     (is-status {#'state-a :stopped #'state-b :stopped #'state-c :stopped}))
@@ -47,7 +47,7 @@
   (testing "with custom autostart-fn (explicit-deps)"
     (try
       (sut/set-autostart-fn! deps/start)
-      (= 84 @state-c)
+      (is (= 84 @state-c))
       (is-status {#'state-a :started #'state-b :stopped #'state-c :started})
       (mount/stop)
       (is-status {#'state-a :stopped #'state-b :stopped #'state-c :stopped})

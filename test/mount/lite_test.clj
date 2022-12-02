@@ -1,6 +1,6 @@
 (ns mount.lite-test
-  (:require [clojure.test :refer :all]
-            [mount.lite :refer :all]
+  (:require [clojure.test :refer [deftest use-fixtures is]]
+            [mount.lite :refer [start stop status with-substitutes state]]
             [mount.lite-test.test-state-1 :refer (state-1)]
             [mount.lite-test.test-state-2 :refer (state-2)]
             [mount.lite-test.test-state-2-extra :as ts2e :refer (state-2-a state-2-b)]
