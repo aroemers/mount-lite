@@ -5,7 +5,7 @@
   (let [[attrs args] (cond (and (string? arg1) (map? arg2)) [(assoc arg2 :doc arg1) argx]
                            (string? arg1)                   [{:doc arg1} (cons arg2 argx)]
                            (map? arg1)                      [arg1 (cons arg2 argx)]
-                           :otherwise                       [{} args])]
+                           :else                            [{} args])]
     [(with-meta name (merge (meta name) attrs)) args]))
 
 (defn find-index

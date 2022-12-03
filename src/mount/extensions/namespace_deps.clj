@@ -19,7 +19,7 @@
   (try
     (require 'clojure.tools.namespace.dir)
     (resolve 'clojure.tools.namespace.dir/scan-all)
-    (catch Exception e)))
+    (catch Exception _e)))
 
 (def ^:private dependency
   (try
@@ -27,7 +27,7 @@
     {:graph                   (resolve 'clojure.tools.namespace.dependency/graph)
      :transitive-dependencies (resolve 'clojure.tools.namespace.dependency/transitive-dependencies)
      :depend                  (resolve 'clojure.tools.namespace.dependency/depend)}
-    (catch Exception e)))
+    (catch Exception _e)))
 
 (defn- ns-graph->state-graph
   "Take two graphs with namespace-to-namespace `:dependencies` and

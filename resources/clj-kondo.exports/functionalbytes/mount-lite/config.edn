@@ -1,0 +1,3 @@
+{:hooks {:macroexpand {mount.lite/state                    hooks.lite/state
+                       mount.lite/defstate                 hooks.lite/defstate
+                       mount.extensions.autostart/defstate hooks.lite/defstate}}}

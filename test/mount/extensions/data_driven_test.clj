@@ -1,7 +1,7 @@
 (ns mount.extensions.data-driven-test
   (:require [clojure.test :refer (deftest is use-fixtures)]
             [mount.extensions.data-driven :as dd]
-            [mount.lite :refer :all]
+            [mount.lite :refer [state start stop status]]
             [mount.lite-test.test-state-1 :refer (state-1)]
             [mount.lite-test.test-state-2 :refer (state-2)]
             [mount.lite-test.test-state-3 :refer (state-3)]))

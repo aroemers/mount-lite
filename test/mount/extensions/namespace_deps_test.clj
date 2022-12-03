@@ -1,5 +1,5 @@
 (ns mount.extensions.namespace-deps-test
-  (:require [clojure.test :as test :refer (deftest is testing)]
+  (:require [clojure.test :as test :refer (deftest is)]
             [mount.extensions.namespace-deps :as sut]
             [mount.lite :as mount]
             [mount.lite-test.test-state-1 :as ts1 :refer (state-1)]

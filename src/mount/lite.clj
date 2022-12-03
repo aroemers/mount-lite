@@ -119,8 +119,7 @@
   Optionally one can define a :stop expression. Supports docstring and
   attribute map."
   [name & args]
-  (let [[name args] (utils/name-with-attrs name args)
-        current     (resolve name)]
+  (let [[name args] (utils/name-with-attrs name args)]
     `(do (defonce ~name (#'map->State {:sessions (atom nil)}))
          (let [local# (state :name ~(str name) ~@args)
                var#   (var ~name)

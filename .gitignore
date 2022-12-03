@@ -12,3 +12,5 @@ pom.xml.asc
 /mount-lite.iml
 .idea/
 /.lsp
+/.clj-kondo/*
+/!.clj-kondo/config.edn
