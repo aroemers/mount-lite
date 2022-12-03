@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.3.0] - 2022-12-03
+### Added
+- Merged #30 - Add clj-kondo support for defstate macro
+
 ## [2.2.1] - 2021-03-20
 ### Changed
 - Merged #26 - Support tools.namespace 0.3.x and and 1.x.x
@@ -126,6 +130,7 @@ Updated docs to be hosted on cljdoc.org.
 ## 0.9
 - Initial release
 
+[2.3.0]: https://github.com/aroemers/mount-lite/compare/2.3.0...2.2.1
 [2.2.1]: https://github.com/aroemers/mount-lite/compare/2.2.1...2.2.0
 [2.2.0]: https://github.com/aroemers/mount-lite/compare/2.2.0...2.1.5
 [2.1.5]: https://github.com/aroemers/mount-lite/compare/2.1.5...2.1.4
