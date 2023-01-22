@@ -95,7 +95,7 @@ Version 0.9.x will still be maintained, and can be found under the [1.x branch](
 
 ## License
 
-Copyright © 2017-2020 Functional Bytes
+Copyright © 2017-2023 Functional Bytes
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
