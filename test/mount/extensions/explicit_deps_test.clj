@@ -1,7 +1,8 @@
 (ns mount.extensions.explicit-deps-test
   (:require [clojure.test :refer (deftest is use-fixtures testing)]
             [mount.extensions.explicit-deps :as deps]
-            [mount.lite :refer (start state status stop with-substitutes)]
+            [mount.lite :as mount :refer (defstate start state status stop with-substitutes)]
+            [mount.utils :as utils]
             [mount.lite-test.test-state-1 :as ts1 :refer (state-1)]
             [mount.lite-test.test-state-2 :as ts2 :refer (state-2)]
             [mount.lite-test.test-state-2-extra :as ts2e]
@@ -11,9 +12,25 @@
 
 (use-fixtures :each (fn [f] (stop) (f) (stop)))
 
+(declare someone)
+
+(defn def-someone
+  []
+  (defstate someone
+    :start "i am someone"
+    :dependencies nil))
+
+(defn undef-someone
+  []
+  (ns-unmap *ns* 'someone)
+  (swap! mount/*states*
+         #(remove %2 %1)
+         #(= % (utils/var->keyword #'someone))))
+
 ;;; Tests.
 
 (def dont-need-anyone (state :start "appeltaart" :dependencies nil))
+(def i-need-someone (state :start (str @someone " yay!") :dependencies [#'someone]))
 
 (deftest build-graphs-test
   (testing "no substitutes used"
@@ -39,6 +56,15 @@
   (with-substitutes [#'state-2 dont-need-anyone]
     (deps/start #'state-3))
   (is (status) {#'state-1 :stopped #'state-2 :started #'state-3 :started}))
+
+(deftest start-with-overridden-dependency
+  (try
+    (def-someone)
+    (with-substitutes [#'state-2-a i-need-someone]
+      (deps/start #'state-2-a))
+    (is (status) {#'state-1 :started #'state-2 :started #'someone :started #'state-2-a :started})
+    (finally
+      (undef-someone))))
 
 (deftest stop-test
   (with-substitutes [#'state-2 dont-need-anyone]
