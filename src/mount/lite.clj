@@ -211,3 +211,9 @@
                                    (stop)))))
                 (.start))
       :result p#}))
+
+(comment
+  (def x 1)
+  (defstate foo :start (fn [] x))
+  @foo
+  )

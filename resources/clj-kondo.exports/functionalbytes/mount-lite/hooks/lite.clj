@@ -16,10 +16,10 @@
         hmap (exprs-map args)]
     (when-not (contains? hmap :start)
       (throw (ex-info "missing :start expression" {})))
-    `(def ~name ~hmap)))
+    `(def ~name (mount.lite/map->State ~hmap))))
 
 (defmacro state [& args]
   (let [hmap (exprs-map args)]
     (when-not (contains? hmap :start)
       (throw (ex-info "missing :start expression" {})))
-    hmap))
+    `(mount.lite/map->State ~hmap)))

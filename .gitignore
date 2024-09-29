@@ -11,6 +11,4 @@ pom.xml.asc
 .hg/
 /mount-lite.iml
 .idea/
-/.lsp
-/.clj-kondo/*
-/!.clj-kondo/config.edn
+.cache
