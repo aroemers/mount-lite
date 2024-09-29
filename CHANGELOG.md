@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.3.1] - 2024-09-29
+### Fixed
+- Merged #31 - Fix linting with new clj-kondo
+
 ## [2.3.0] - 2022-12-03
 ### Added
 - Merged #30 - Add clj-kondo support for defstate macro
