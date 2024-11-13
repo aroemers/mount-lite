@@ -47,6 +47,8 @@
   See `mount.lite/defstate` for more information."
   [name & args]
   `(do
+     (when-let [existing# (resolve '~name)]
+       (alter-var-root existing# (fn [state#] (cond-> state# (instance? AutoStartState state#) :state))))
      (mount/defstate ~name ~@args)
      (alter-var-root (var ~name) (fn [state#] (->AutoStartState (var ~name) state#)))
      (var ~name)))

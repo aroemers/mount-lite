@@ -52,4 +52,12 @@
       (mount/stop)
       (is-status {#'state-a :stopped #'state-b :stopped #'state-c :stopped})
       (finally
-        (sut/set-autostart-fn! mount/start)))))
+        (sut/set-autostart-fn! mount/start))))
+
+  (testing "redefining state"
+    (in-ns 'mount.extensions.autostart-test)
+    (is (= 42 @state-a))
+    (sut/defstate state-a :start 4242)
+    (is (= 42 @state-a))
+    (mount/stop)
+    (is (= 4242 @state-a))))
