@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.3.2] - 2024-09-29
+### Fixed
+- Merged #33 - Fix redefining autostarting state
+
 ## [2.3.1] - 2024-09-29
 ### Fixed
 - Merged #31 - Fix linting with new clj-kondo
@@ -134,6 +138,8 @@ Updated docs to be hosted on cljdoc.org.
 ## 0.9
 - Initial release
 
+[2.3.2]: https://github.com/aroemers/mount-lite/compare/2.3.2...2.3.1
+[2.3.1]: https://github.com/aroemers/mount-lite/compare/2.3.1...2.3.0
 [2.3.0]: https://github.com/aroemers/mount-lite/compare/2.3.0...2.2.1
 [2.2.1]: https://github.com/aroemers/mount-lite/compare/2.2.1...2.2.0
 [2.2.0]: https://github.com/aroemers/mount-lite/compare/2.2.0...2.1.5
